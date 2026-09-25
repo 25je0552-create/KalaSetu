@@ -116,15 +116,34 @@ class _PhotoReviewScreenState extends ConsumerState<PhotoReviewScreen> {
                         ),
                       ],
                     ),
-                    padding: _showAfter ? const EdgeInsets.all(24) : EdgeInsets.zero,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(16),
-                      child: photoPath != null && File(photoPath).existsSync()
-                          ? Image.file(File(photoPath), fit: BoxFit.contain)
-                          : Image.network(
-                              'https://images.unsplash.com/photo-1615865417491-9941019fbc00?auto=format&fit=crop&w=800&q=80',
-                              fit: BoxFit.contain,
+                    padding: const EdgeInsets.all(16),
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: photoPath != null && File(photoPath).existsSync()
+                              ? Image.file(File(photoPath), fit: BoxFit.contain)
+                              : Image.network(
+                                  'https://images.unsplash.com/photo-1615865417491-9941019fbc00?auto=format&fit=crop&w=800&q=80',
+                                  fit: BoxFit.contain,
+                                ),
+                        ),
+                        // Harmonized craft detection bounding box overlay aligned precisely across both views
+                        Center(
+                          child: Container(
+                            width: 200,
+                            height: 230,
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: _showAfter ? AppColors.primary : AppColors.secondaryContainer,
+                                width: 2,
+                              ),
+                              borderRadius: BorderRadius.circular(12),
                             ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),

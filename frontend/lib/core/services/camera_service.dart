@@ -39,6 +39,7 @@ class CameraService {
       camera,
       ResolutionPreset.high,
       enableAudio: false,
+      imageFormatGroup: ImageFormatGroup.jpeg,
     );
 
     try {
@@ -56,16 +57,32 @@ class CameraService {
     await _setupController(_selectedCameraIndex);
   }
 
-  Future<void> toggleFlash() async {
-    if (!isInitialized) return;
-    final current = _controller!.value.flashMode;
-    final next = current == FlashMode.off ? FlashMode.torch : FlashMode.off;
-    await _controller!.setFlashMode(next);
+  Future<void> setFlashMode(FlashMode mode) async {
+    if (!isInitialized || _controller == null) return;
+    try {
+      await _controller!.setFlashMode(mode);
+    } catch (e) {
+      debugPrint('[CameraService] setFlashMode error: $e');
+    }
   }
 
-  Future<XFile?> takePhoto() async {
-    if (!isInitialized) return null;
+  Future<void> toggleFlash() async {
+    if (!isInitialized || _controller == null) return;
+    final current = _controller!.value.flashMode;
+    final next = current == FlashMode.off ? FlashMode.always : FlashMode.off;
+    await setFlashMode(next);
+  }
+
+  Future<XFile?> takePhoto({FlashMode? flashMode}) async {
+    if (!isInitialized || _controller == null) return null;
     try {
+      if (flashMode != null) {
+        await _controller!.setFlashMode(flashMode);
+        // Ensure hardware sensor auto-exposure and flash pre-capture settle
+        if (flashMode == FlashMode.always || flashMode == FlashMode.auto) {
+          await Future.delayed(const Duration(milliseconds: 120));
+        }
+      }
       return await _controller!.takePicture();
     } catch (e) {
       debugPrint('[CameraService] takePicture error: $e');

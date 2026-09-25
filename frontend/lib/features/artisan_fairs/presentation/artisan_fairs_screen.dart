@@ -271,8 +271,10 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
         data: (fairs) {
           var filteredFairs = fairs;
           if (_selectedTabIndex == 1) {
-            filteredFairs = fairs.where((f) => f.applied || _appliedFairIds.contains(f.id)).toList();
+            filteredFairs = fairs.where((f) => !f.applied && !_appliedFairIds.contains(f.id)).toList();
           } else if (_selectedTabIndex == 2) {
+            filteredFairs = fairs.where((f) => f.applied || _appliedFairIds.contains(f.id)).toList();
+          } else if (_selectedTabIndex == 3) {
             filteredFairs = fairs.where((f) => f.subsidized).toList();
           }
 
@@ -407,11 +409,13 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     children: [
-                      _buildTab(0, ref.tr('tab_upcoming_fairs'), Icons.event),
+                      _buildTab(0, ref.tr('nav_fairs'), Icons.festival),
                       const SizedBox(width: 8),
-                      _buildTab(1, '${ref.tr('tab_my_applications')} ($appliedCount)', Icons.assignment_turned_in),
+                      _buildTab(1, ref.tr('tab_upcoming_fairs'), Icons.event),
                       const SizedBox(width: 8),
-                      _buildTab(2, ref.tr('tab_govt_subsidies'), Icons.verified),
+                      _buildTab(2, '${ref.tr('tab_my_applications')} ($appliedCount)', Icons.assignment_turned_in),
+                      const SizedBox(width: 8),
+                      _buildTab(3, ref.tr('tab_govt_subsidies'), Icons.verified),
                     ],
                   ),
                 ),
@@ -489,7 +493,7 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
                                   SnackBar(
                                     content: Text(
                                       isHindi
-                                          ? 'कारीगर हेल्पलाइन १८००-२००-८८९९ पर कॉल की जा रही है...'
+                                          ? 'कारीगर हेल्पलाइन 1800-200-8899 पर कॉल की जा रही है...'
                                           : 'Calling Artisan Helpline 1800-200-8899...',
                                     ),
                                   ),

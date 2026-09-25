@@ -349,30 +349,14 @@ class _ArtisanHomeScreenState extends ConsumerState<ArtisanHomeScreen> {
               const SizedBox(height: 24),
 
               // 4. Summary Tiles (आज का लेखा-जोखा)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    ref.tr('today_summary'),
-                    style: const TextStyle(
-                      fontFamily: 'Literata',
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.onSurface,
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () => context.push('/artisan/earnings'),
-                    child: Text(
-                      ref.tr('view_details'),
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                  ),
-                ],
+              Text(
+                ref.tr('today_summary'),
+                style: const TextStyle(
+                  fontFamily: 'Literata',
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.onSurface,
+                ),
               ),
               const SizedBox(height: 10),
               Row(
@@ -381,7 +365,7 @@ class _ArtisanHomeScreenState extends ConsumerState<ArtisanHomeScreen> {
                     icon: Icons.account_balance_wallet_outlined,
                     iconColor: AppColors.secondary,
                     period: ref.tr('period_today'),
-                    value: isHindi ? '₹३,४५०' : '₹3,450',
+                    value: '₹3,450',
                     label: ref.tr('today_earnings'),
                     onTap: () => context.push('/artisan/earnings'),
                   ),
@@ -420,12 +404,15 @@ class _ArtisanHomeScreenState extends ConsumerState<ArtisanHomeScreen> {
                       color: AppColors.onSurface,
                     ),
                   ),
-                  Text(
-                    '${ref.tr('view_all')} (18)',
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.primary,
+                  GestureDetector(
+                    onTap: () => context.push('/customer/home'),
+                    child: Text(
+                      '${ref.tr('view_all')} (18)',
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primary,
+                      ),
                     ),
                   ),
                 ],
@@ -474,73 +461,76 @@ class _ArtisanHomeScreenState extends ConsumerState<ArtisanHomeScreen> {
                       final priceStr = isHindi ? '₹${p.price.toInt()}' : '₹${p.price.toInt()}';
                       final stockStr = '${p.stock} ${ref.tr('stock_left')}';
 
-                      return Container(
-                        width: 148,
-                        decoration: BoxDecoration(
-                          color: AppColors.surfaceContainerHigh,
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.4)),
-                        ),
-                        padding: const EdgeInsets.all(8),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: Image.network(
-                                p.imageUrl,
-                                height: 95,
-                                width: double.infinity,
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => Container(
+                      return GestureDetector(
+                        onTap: () => context.push('/customer/product/${p.id}'),
+                        child: Container(
+                          width: 148,
+                          decoration: BoxDecoration(
+                            color: AppColors.surfaceContainerHigh,
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.4)),
+                          ),
+                          padding: const EdgeInsets.all(8),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image.network(
+                                  p.imageUrl,
                                   height: 95,
-                                  color: AppColors.surfaceContainer,
-                                  child: const Icon(Icons.image, color: AppColors.outline),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              pName,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                fontFamily: 'Be Vietnam Pro',
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.onSurface,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  priceStr,
-                                  style: const TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.primary,
+                                  width: double.infinity,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => Container(
+                                    height: 95,
+                                    color: AppColors.surfaceContainer,
+                                    child: const Icon(Icons.image, color: AppColors.outline),
                                   ),
                                 ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.secondaryFixed,
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: Text(
-                                    stockStr,
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                pName,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontFamily: 'Be Vietnam Pro',
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.onSurface,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    priceStr,
                                     style: const TextStyle(
-                                      fontSize: 10,
+                                      fontSize: 13,
                                       fontWeight: FontWeight.bold,
-                                      color: AppColors.secondary,
+                                      color: AppColors.primary,
                                     ),
                                   ),
-                                ),
-                              ],
-                            ),
-                          ],
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.secondaryFixed,
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Text(
+                                      stockStr,
+                                      style: const TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.secondary,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
                       );
                     },
@@ -550,75 +540,88 @@ class _ArtisanHomeScreenState extends ConsumerState<ArtisanHomeScreen> {
               const SizedBox(height: 20),
 
               // 6. Direct Artisan Assistance Bar (1800-200-8899)
-              Container(
-                decoration: BoxDecoration(
-                  color: AppColors.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.5)),
-                ),
-                padding: const EdgeInsets.all(14),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 44,
-                      height: 44,
-                      decoration: const BoxDecoration(
-                        color: AppColors.secondaryContainer,
-                        shape: BoxShape.circle,
+              GestureDetector(
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        isHindi
+                            ? 'कारीगर हेल्पलाइन 1800-200-8899 पर कॉल की जा रही है...'
+                            : 'Calling Artisan Helpline 1800-200-8899...',
                       ),
-                      child: const Icon(Icons.support_agent, size: 24, color: AppColors.onSecondaryContainer),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Text(
-                                ref.tr('direct_help'),
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.onSurface,
-                                ),
-                              ),
-                              const SizedBox(width: 6),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                                decoration: BoxDecoration(
-                                  color: AppColors.primary,
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Text(
-                                  ref.tr('free'),
+                  );
+                },
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.5)),
+                  ),
+                  padding: const EdgeInsets.all(14),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 44,
+                        height: 44,
+                        decoration: const BoxDecoration(
+                          color: AppColors.secondaryContainer,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.support_agent, size: 24, color: AppColors.onSecondaryContainer),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  ref.tr('direct_help'),
                                   style: const TextStyle(
-                                    fontSize: 9,
+                                    fontSize: 14,
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.white,
+                                    color: AppColors.onSurface,
                                   ),
                                 ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            ref.tr('talk_to_craft_friend'),
-                            style: const TextStyle(fontSize: 12, color: AppColors.onSurfaceVariant),
-                          ),
-                        ],
+                                const SizedBox(width: 6),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primary,
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Text(
+                                    ref.tr('free'),
+                                    style: const TextStyle(
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              ref.tr('talk_to_craft_friend'),
+                              style: const TextStyle(fontSize: 12, color: AppColors.onSurfaceVariant),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    Container(
-                      width: 36,
-                      height: 36,
-                      decoration: const BoxDecoration(
-                        color: AppColors.surfaceContainerLow,
-                        shape: BoxShape.circle,
+                      Container(
+                        width: 36,
+                        height: 36,
+                        decoration: const BoxDecoration(
+                          color: AppColors.surfaceContainerLow,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.phone_in_talk, size: 20, color: AppColors.primary),
                       ),
-                      child: const Icon(Icons.phone_in_talk, size: 20, color: AppColors.primary),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(height: 24),

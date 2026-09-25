@@ -18,6 +18,15 @@ final localeProvider = StateNotifierProvider<LocaleNotifier, AppLocale>((ref) {
   return LocaleNotifier();
 });
 
+String toEnglishDigits(String input) {
+  const devanagari = ['०', '१', '२', '३', '४', '५', '६', '७', '८', '९'];
+  var result = input;
+  for (int i = 0; i < devanagari.length; i++) {
+    result = result.replaceAll(devanagari[i], i.toString());
+  }
+  return result;
+}
+
 class AppStrings {
   static const Map<String, Map<String, String>> _strings = {
     // Brand & Top Navigation
@@ -162,7 +171,7 @@ class AppStrings {
       'en': 'OTP Verification',
     },
     'enter_otp': {
-      'hi': '६ अंकों का ओटीपी दर्ज करें',
+      'hi': '6 अंकों का ओटीपी दर्ज करें',
       'en': 'Enter 6-Digit OTP',
     },
     'otp_sent_to': {
@@ -294,7 +303,7 @@ class AppStrings {
       'en': 'Orders Received',
     },
     'orders_count_4': {
-      'hi': '४ नए',
+      'hi': '4 नए',
       'en': '4 New',
     },
     'craft_fairs': {
@@ -302,7 +311,7 @@ class AppStrings {
       'en': 'Craft Fairs',
     },
     'fairs_count_2': {
-      'hi': '२ मेले',
+      'hi': '2 मेले',
       'en': '2 Fairs',
     },
     'available_in_shop': {
@@ -326,7 +335,7 @@ class AppStrings {
       'en': 'Free',
     },
     'talk_to_craft_friend': {
-      'hi': '१८००-२००-८८९९ • शिल्प मित्र से बात करें',
+      'hi': '1800-200-8899 • शिल्प मित्र से बात करें',
       'en': '1800-200-8899 • Speak with Craft Friend',
     },
 
@@ -600,11 +609,11 @@ class AppStrings {
       'en': 'GI Card No: UP/TERRA/2021/8492',
     },
     'experience_years': {
-      'hi': '२४ वर्ष अनुभव',
+      'hi': '24 वर्ष अनुभव',
       'en': '24 Years Exp.',
     },
     'active_items_count': {
-      'hi': '१८ शिल्प उपलब्ध',
+      'hi': '18 शिल्प उपलब्ध',
       'en': '18 Items Listed',
     },
     'artisan_story_heading': {
@@ -644,7 +653,7 @@ class AppStrings {
       'en': 'Artisan Support Desk',
     },
     'helpline_support_desc': {
-      'hi': 'टोल-फ्री १८००-२००-८८९९ पर तुरंत बात करें',
+      'hi': 'टोल-फ्री 1800-200-8899 पर तुरंत बात करें',
       'en': 'Toll-free 1800-200-8899 instant support',
     },
     'logout': {
@@ -674,7 +683,7 @@ class AppStrings {
       'en': 'Weekly Earnings History',
     },
     'week_current': {
-      'hi': 'सप्ताह ८ (वर्तमान)',
+      'hi': 'सप्ताह 8 (वर्तमान)',
       'en': 'Week 8 (Current)',
     },
     'week_prev': {
@@ -736,7 +745,7 @@ class AppStrings {
       'en': 'Artisan Margin (25% Min.):',
     },
     'margin_guarantee_badge': {
-      'hi': '+ २५% गारंटी',
+      'hi': '+ 25% गारंटी',
       'en': '+ 25% Guaranteed',
     },
     'suggested_price_label': {
@@ -931,7 +940,8 @@ class AppStrings {
 
   static String get(String key, AppLocale locale) {
     final lang = locale == AppLocale.hindi ? 'hi' : 'en';
-    return _strings[key]?[lang] ?? _strings[key]?['hi'] ?? key;
+    final str = _strings[key]?[lang] ?? _strings[key]?['hi'] ?? key;
+    return toEnglishDigits(str);
   }
 }
 

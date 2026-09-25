@@ -17,7 +17,7 @@ class ArtisanCameraScreen extends ConsumerStatefulWidget {
   ConsumerState<ArtisanCameraScreen> createState() => _ArtisanCameraScreenState();
 }
 
-class _ArtisanCameraScreenState extends ConsumerState<ArtisanCameraScreen> {
+class _ArtisanCameraScreenState extends ConsumerState<ArtisanCameraScreen> with WidgetsBindingObserver {
   final CameraService _cameraService = CameraService();
   bool _isCapturing = false;
   bool _showFlashOverlay = false;
@@ -28,7 +28,18 @@ class _ArtisanCameraScreenState extends ConsumerState<ArtisanCameraScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _initCamera();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (!_cameraService.isInitialized) return;
+    if (state == AppLifecycleState.inactive) {
+      _cameraService.dispose();
+    } else if (state == AppLifecycleState.resumed) {
+      _initCamera();
+    }
   }
 
   Future<void> _initCamera() async {
@@ -54,7 +65,10 @@ class _ArtisanCameraScreenState extends ConsumerState<ArtisanCameraScreen> {
     try {
       XFile? photo;
       if (_cameraService.isInitialized) {
-        photo = await _cameraService.takePhoto();
+        final mode = _flashState == 1
+            ? FlashMode.always
+            : (_flashState == 2 ? FlashMode.auto : FlashMode.off);
+        photo = await _cameraService.takePhoto(flashMode: mode);
       }
 
       final photoPath = photo?.path ?? 'sample_kulhad_craft.jpg';
@@ -84,11 +98,15 @@ class _ArtisanCameraScreenState extends ConsumerState<ArtisanCameraScreen> {
     }
   }
 
-  void _cycleFlash() {
+  void _cycleFlash() async {
+    final nextState = (_flashState + 1) % 3;
     setState(() {
-      _flashState = (_flashState + 1) % 3;
+      _flashState = nextState;
     });
-    _cameraService.toggleFlash();
+    final mode = nextState == 1
+        ? FlashMode.always
+        : (nextState == 2 ? FlashMode.auto : FlashMode.off);
+    await _cameraService.setFlashMode(mode);
   }
 
   void _toggleVoiceNote() {
@@ -114,6 +132,7 @@ class _ArtisanCameraScreenState extends ConsumerState<ArtisanCameraScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _cameraService.dispose();
     super.dispose();
   }
@@ -186,69 +205,91 @@ class _ArtisanCameraScreenState extends ConsumerState<ArtisanCameraScreen> {
           ),
         ),
       ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Column(
-            children: [
-              // 1. Framing Status Banner
-              Container(
-                decoration: BoxDecoration(
-                  color: AppColors.surfaceContainer,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.4)),
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                child: Row(
-                  children: [
-                    const Icon(Icons.center_focus_strong, color: AppColors.primary, size: 20),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        ref.tr('center_craft_hint'),
-                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.onSurface),
-                      ),
-                    ),
-                    Container(
-                      width: 7,
-                      height: 7,
-                      decoration: const BoxDecoration(
-                        color: AppColors.secondary,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      ref.tr('good_light'),
-                      style: const TextStyle(fontSize: 11, color: AppColors.onSurfaceVariant, fontWeight: FontWeight.w600),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 10),
-
-              // 2. Viewfinder Frame Overlay (4:5 Aspect Ratio)
-              Expanded(
-                child: AspectRatio(
-                  aspectRatio: 4 / 5,
-                  child: Container(
+      body: OrientationBuilder(
+        builder: (context, orientation) {
+          final isPortrait = orientation == Orientation.portrait;
+          return SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Column(
+                children: [
+                  // 1. Framing Status Banner
+                  Container(
                     decoration: BoxDecoration(
-                      color: AppColors.surfaceContainerHighest,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.5)),
-                      boxShadow: const [
-                        BoxShadow(color: Color(0x15000000), blurRadius: 10, offset: Offset(0, 4)),
+                      color: AppColors.surfaceContainer,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.4)),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.center_focus_strong, color: AppColors.primary, size: 20),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            ref.tr('center_craft_hint'),
+                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.onSurface),
+                          ),
+                        ),
+                        Container(
+                          width: 7,
+                          height: 7,
+                          decoration: const BoxDecoration(
+                            color: AppColors.secondary,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          ref.tr('good_light'),
+                          style: const TextStyle(fontSize: 11, color: AppColors.onSurfaceVariant, fontWeight: FontWeight.w600),
+                        ),
                       ],
                     ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(20),
-                      child: Stack(
-                        fit: StackFit.expand,
-                        children: [
-                          // Live camera preview or realistic artisan craft fallback
-                          _cameraService.isInitialized
-                              ? CameraPreview(_cameraService.controller!)
-                              : Image.network(
+                  ),
+                  const SizedBox(height: 10),
+
+                  // 2. Viewfinder Frame Overlay (dynamic aspect ratio & dark surface to prevent yellow rendering bug)
+                  Expanded(
+                    child: AspectRatio(
+                      aspectRatio: isPortrait ? (4 / 5) : (5 / 4),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.black,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.5)),
+                          boxShadow: const [
+                            BoxShadow(color: Color(0x15000000), blurRadius: 10, offset: Offset(0, 4)),
+                          ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(20),
+                          child: Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              // Live camera preview scaled correctly to prevent aspect ratio / orientation glitch
+                              if (_cameraService.isInitialized && _cameraService.controller != null)
+                                Center(
+                                  child: FittedBox(
+                                    fit: BoxFit.cover,
+                                    clipBehavior: Clip.hardEdge,
+                                    child: SizedBox(
+                                      width: _cameraService.controller!.value.previewSize != null
+                                          ? (isPortrait
+                                              ? _cameraService.controller!.value.previewSize!.height
+                                              : _cameraService.controller!.value.previewSize!.width)
+                                          : (isPortrait ? 720 : 1280),
+                                      height: _cameraService.controller!.value.previewSize != null
+                                          ? (isPortrait
+                                              ? _cameraService.controller!.value.previewSize!.width
+                                              : _cameraService.controller!.value.previewSize!.height)
+                                          : (isPortrait ? 1280 : 720),
+                                      child: CameraPreview(_cameraService.controller!),
+                                    ),
+                                  ),
+                                )
+                              else
+                                Image.network(
                                   'https://lh3.googleusercontent.com/aida-public/AB6AXuCF1WoBZgqM24_q4yeNmcBo3uSKRiyFqnM4Y6Boj3WRImT4D4NVb0pLlvRtwxJh5tA9MMrlR8KpPwWeX0XAyw1FZf2x9OK-janmeVVotPAzcLg8ktVbC_l5hWEW6qX3hn5RQZ7uoItJV5oSVX9UpQHpe2kDPO155oVM1WlWv8iBZnv-kei-dg_m1AQ-KnHPfgVJ6vzKJh0Hq9zrb8yHu7DM7mOUg8ETBLVlASneowvaM4DtyMod3BOM',
                                   fit: BoxFit.cover,
                                 ),
@@ -599,7 +640,9 @@ class _ArtisanCameraScreenState extends ConsumerState<ArtisanCameraScreen> {
             ],
           ),
         ),
-      ),
-    );
-  }
+      );
+    },
+  ),
+);
+}
 }

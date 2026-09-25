@@ -16,6 +16,7 @@ import '../../features/artisan_orders/presentation/artisan_orders_screen.dart';
 import '../../features/artisan_earnings/presentation/artisan_earnings_screen.dart';
 import '../../features/artisan_profile/presentation/artisan_profile_screen.dart';
 import '../../features/artisan_profile/presentation/voice_onboarding_screen.dart';
+import '../../features/artisan_profile/presentation/artisan_story_text_screen.dart';
 import '../../features/artisan_add_item/presentation/artisan_camera_screen.dart';
 import '../../features/artisan_add_item/presentation/photo_review_screen.dart';
 import '../../features/artisan_add_item/presentation/voice_describe_screen.dart';
@@ -162,6 +163,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/artisan/voice-onboarding',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const VoiceOnboardingScreen(),
+      ),
+      GoRoute(
+        path: '/artisan/story-input',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const ArtisanStoryTextInputScreen(),
       ),
 
       // ═══════════════════════════════════════════════════════════

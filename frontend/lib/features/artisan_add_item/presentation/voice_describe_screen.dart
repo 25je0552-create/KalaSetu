@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -18,6 +19,7 @@ class _VoiceDescribeScreenState extends ConsumerState<VoiceDescribeScreen> with 
   late AudioRecorder _audioRecorder;
   bool _isPaused = false;
   bool _isDone = false;
+  bool _isRecordingActive = false;
   final int _seconds = 24;
   late AnimationController _waveAnim;
 
@@ -34,34 +36,75 @@ class _VoiceDescribeScreenState extends ConsumerState<VoiceDescribeScreen> with 
 
   Future<void> _startRecording() async {
     try {
-      if (await _audioRecorder.hasPermission()) {
-        await _audioRecorder.start(const RecordConfig(), path: '');
+      final hasPerm = await _audioRecorder.hasPermission();
+      if (!hasPerm) {
+        if (mounted) {
+          setState(() {
+            _isPaused = false;
+            _isDone = false;
+            _isRecordingActive = false;
+          });
+        }
+        return;
+      }
+
+      final tempDir = Directory.systemTemp.path;
+      final filePath = '$tempDir/craft_voice_${DateTime.now().millisecondsSinceEpoch}.m4a';
+
+      await _audioRecorder.start(
+        const RecordConfig(encoder: AudioEncoder.aacLc),
+        path: filePath,
+      );
+      _isRecordingActive = true;
+      if (mounted) {
         setState(() {
           _isPaused = false;
           _isDone = false;
         });
       }
-    } catch (_) {
-      setState(() {
-        _isPaused = false;
-        _isDone = false;
-      });
+    } catch (e) {
+      debugPrint('[VoiceDescribe] Recording start exception: $e');
+      _isRecordingActive = false;
+      if (mounted) {
+        setState(() {
+          _isPaused = false;
+          _isDone = false;
+        });
+      }
     }
   }
 
   Future<void> _togglePause() async {
-    if (_isPaused) {
-      await _audioRecorder.resume();
-      setState(() => _isPaused = false);
-    } else {
-      await _audioRecorder.pause();
-      setState(() => _isPaused = true);
+    try {
+      if (_isPaused) {
+        if (_isRecordingActive && await _audioRecorder.isRecording()) {
+          await _audioRecorder.resume();
+        }
+        if (mounted) setState(() => _isPaused = false);
+      } else {
+        if (_isRecordingActive && await _audioRecorder.isRecording()) {
+          await _audioRecorder.pause();
+        }
+        if (mounted) setState(() => _isPaused = true);
+      }
+    } catch (e) {
+      debugPrint('[VoiceDescribe] Pause toggle exception: $e');
+      if (mounted) setState(() => _isPaused = !_isPaused);
     }
   }
 
   Future<void> _finishRecording() async {
-    setState(() => _isDone = true);
-    final path = await _audioRecorder.stop();
+    if (mounted) setState(() => _isDone = true);
+    String? path;
+    try {
+      if (_isRecordingActive && await _audioRecorder.isRecording()) {
+        path = await _audioRecorder.stop();
+      }
+    } catch (e) {
+      debugPrint('[VoiceDescribe] Stop recording exception: $e');
+    }
+    _isRecordingActive = false;
+
     ref.read(addItemWizardProvider.notifier).setAudio(path ?? 'audio_sample.m4a');
     await Future.delayed(const Duration(milliseconds: 600));
     if (mounted) {
@@ -72,7 +115,11 @@ class _VoiceDescribeScreenState extends ConsumerState<VoiceDescribeScreen> with 
   @override
   void dispose() {
     _waveAnim.dispose();
-    _audioRecorder.dispose();
+    try {
+      _audioRecorder.dispose();
+    } catch (e) {
+      debugPrint('[VoiceDescribe] Audio recorder dispose exception: $e');
+    }
     super.dispose();
   }
 

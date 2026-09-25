@@ -22,8 +22,8 @@ class _VoiceOnboardingScreenState extends ConsumerState<VoiceOnboardingScreen> w
     super.initState();
     _animController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1400),
-    )..repeat(reverse: true);
+      duration: const Duration(milliseconds: 1600),
+    )..repeat();
   }
 
   @override
@@ -54,6 +54,42 @@ class _VoiceOnboardingScreenState extends ConsumerState<VoiceOnboardingScreen> w
         ),
         duration: const Duration(seconds: 3),
       ),
+    );
+  }
+
+  Widget _buildRippleRing(double offset) {
+    return AnimatedBuilder(
+      animation: _animController,
+      builder: (context, child) {
+        if (!_isListening) {
+          return Container(
+            width: 140,
+            height: 140,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: AppColors.secondary.withValues(alpha: 0.15),
+                width: 1.5,
+              ),
+            ),
+          );
+        }
+        final progress = (_animController.value + offset) % 1.0;
+        final size = 100.0 + (progress * 130.0);
+        final opacity = (1.0 - progress).clamp(0.0, 1.0) * 0.55;
+
+        return Container(
+          width: size,
+          height: size,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: AppColors.secondary.withValues(alpha: opacity),
+              width: 2.0,
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -146,86 +182,57 @@ class _VoiceOnboardingScreenState extends ConsumerState<VoiceOnboardingScreen> w
               ),
               const SizedBox(height: 48),
 
-              // Concentric Wave Hub & Large Mic Button
-              Center(
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    // Outer ripple
-                    AnimatedBuilder(
-                      animation: _animController,
-                      builder: (context, child) {
-                        final scale = _isListening ? 1.0 + (_animController.value * 0.3) : 1.0;
-                        return Container(
-                          width: 220 * scale,
-                          height: 220 * scale,
+              // Fixed-dimension ripple hub so widgets below remain 100% static
+              SizedBox(
+                width: 240,
+                height: 240,
+                child: Center(
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      _buildRippleRing(0.0),
+                      _buildRippleRing(0.33),
+                      _buildRippleRing(0.66),
+                      // Big Action Seal Button
+                      GestureDetector(
+                        onTapDown: (_) => _startListening(),
+                        onTapUp: (_) => _stopListening(),
+                        onTapCancel: () => _stopListening(),
+                        child: Container(
+                          width: 100,
+                          height: 100,
                           decoration: BoxDecoration(
+                            color: _isListening ? AppColors.primaryContainer : AppColors.primary,
                             shape: BoxShape.circle,
-                            border: Border.all(
-                              color: AppColors.secondaryContainer.withValues(alpha: _isListening ? 0.6 : 0.2),
-                              width: 2,
-                            ),
+                            boxShadow: const [
+                              BoxShadow(color: Color(0x339D3E14), blurRadius: 16, offset: Offset(0, 6)),
+                            ],
                           ),
-                        );
-                      },
-                    ),
-                    // Mid ripple
-                    AnimatedBuilder(
-                      animation: _animController,
-                      builder: (context, child) {
-                        final scale = _isListening ? 1.0 + (_animController.value * 0.15) : 1.0;
-                        return Container(
-                          width: 170 * scale,
-                          height: 170 * scale,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: AppColors.secondary.withValues(alpha: _isListening ? 0.7 : 0.3),
-                              width: 1.5,
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                    // Big Action Seal Button
-                    GestureDetector(
-                      onTapDown: (_) => _startListening(),
-                      onTapUp: (_) => _stopListening(),
-                      onTapCancel: () => _stopListening(),
-                      child: Container(
-                        width: 100,
-                        height: 100,
-                        decoration: BoxDecoration(
-                          color: _isListening ? AppColors.primaryContainer : AppColors.primary,
-                          shape: BoxShape.circle,
-                          boxShadow: const [
-                            BoxShadow(color: Color(0x339D3E14), blurRadius: 16, offset: Offset(0, 6)),
-                          ],
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              _isListening
-                                  ? Icons.graphic_eq
-                                  : (_isRecorded ? Icons.check_circle : Icons.mic),
-                              size: 42,
-                              color: Colors.white,
-                            ),
-                            Text(
-                              ref.tr('speak_action').toUpperCase(),
-                              style: const TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                _isListening
+                                    ? Icons.graphic_eq
+                                    : (_isRecorded ? Icons.check_circle : Icons.mic),
+                                size: 42,
                                 color: Colors.white,
-                                letterSpacing: 1,
                               ),
-                            ),
-                          ],
+                              Text(
+                                ref.tr('speak_action').toUpperCase(),
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                  letterSpacing: 1,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(height: 36),
@@ -300,13 +307,7 @@ class _VoiceOnboardingScreenState extends ConsumerState<VoiceOnboardingScreen> w
               // Fallback text form link
               TextButton(
                 onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        isHindi ? 'साधारण फ़ॉर्म खोला जा रहा है...' : 'Opening standard form...',
-                      ),
-                    ),
-                  );
+                  context.push('/artisan/story-input');
                 },
                 child: Column(
                   children: [

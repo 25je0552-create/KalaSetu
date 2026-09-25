@@ -7,11 +7,18 @@ import '../../../core/widgets/clay_widgets.dart';
 import '../../../core/services/auth_service.dart';
 import '../data/artisan_repository.dart';
 
-class ArtisanProfileScreen extends ConsumerWidget {
+class ArtisanProfileScreen extends ConsumerStatefulWidget {
   const ArtisanProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ArtisanProfileScreen> createState() => _ArtisanProfileScreenState();
+}
+
+class _ArtisanProfileScreenState extends ConsumerState<ArtisanProfileScreen> {
+  bool _isPlayingStory = false;
+
+  @override
+  Widget build(BuildContext context) {
     final artisanAsync = ref.watch(currentArtisanProvider);
     final user = ref.watch(authStateProvider);
     final currentLocale = ref.watch(localeProvider);
@@ -237,24 +244,32 @@ class ArtisanProfileScreen extends ConsumerWidget {
                         children: [
                           ElevatedButton.icon(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primary,
+                              backgroundColor: _isPlayingStory ? AppColors.secondary : AppColors.primary,
                               foregroundColor: Colors.white,
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                             ),
-                            icon: const Icon(Icons.volume_up, size: 16),
+                            icon: Icon(_isPlayingStory ? Icons.pause_circle_filled : Icons.volume_up, size: 18),
                             label: Text(
-                              ref.tr('listen'),
+                              _isPlayingStory
+                                  ? (isHindi ? 'कहानी रोकें' : 'Pause Story')
+                                  : (isHindi ? 'कहानी सुनें' : 'Listen to Story'),
                               style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                             ),
                             onPressed: () {
+                              setState(() {
+                                _isPlayingStory = !_isPlayingStory;
+                              });
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(
-                                    isHindi
-                                        ? 'स्वर परिचय सुनाया जा रहा है...'
-                                        : 'Playing artisan voice introduction...',
+                                    _isPlayingStory
+                                        ? (isHindi
+                                            ? 'स्वर परिचय सुनाया जा रहा है...'
+                                            : 'Playing artisan voice story...')
+                                        : (isHindi ? 'स्वर परिचय रोका गया' : 'Voice story paused'),
                                   ),
+                                  duration: const Duration(seconds: 2),
                                 ),
                               );
                             },
@@ -267,21 +282,133 @@ class ArtisanProfileScreen extends ConsumerWidget {
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                             ),
-                            icon: const Icon(Icons.mic, size: 16),
+                            icon: const Icon(Icons.edit_note, size: 18),
                             label: Text(
-                              isHindi ? 'नया बोलें' : 'Re-record',
+                              isHindi ? 'कहानी बदलें' : 'Edit Story',
                               style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                             ),
                             onPressed: () => context.push('/artisan/voice-onboarding'),
                           ),
                         ],
                       ),
+                      if (_isPlayingStory) ...[
+                        const SizedBox(height: 12),
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: AppColors.secondaryFixed.withValues(alpha: 0.6),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: AppColors.secondary.withValues(alpha: 0.3)),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.graphic_eq, color: AppColors.onSecondaryFixed, size: 22),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      isHindi ? 'ऑडियो परिचय चल रहा है...' : 'Playing Audio Introduction...',
+                                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.onSecondaryFixed),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    const LinearProgressIndicator(
+                                      value: 0.38,
+                                      backgroundColor: Colors.black12,
+                                      valueColor: AlwaysStoppedAnimation<Color>(AppColors.secondary),
+                                      minHeight: 3,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              const Text(
+                                '0:24 / 1:15',
+                                style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.onSecondaryFixed),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
                 const SizedBox(height: 24),
 
-                // 3. Quick Actions & Settings
+                // 3. Complete Seller Details
+                Text(
+                  isHindi ? 'शिल्पकार पूर्ण विवरण' : 'Seller Profile Details',
+                  style: const TextStyle(
+                    fontFamily: 'Literata',
+                    fontSize: 17,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceContainerLow,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.4)),
+                  ),
+                  child: Column(
+                    children: [
+                      _buildDetailRow(
+                        icon: Icons.person_pin,
+                        label: isHindi ? 'शिल्पकार का नाम' : 'Artisan Full Name',
+                        value: name,
+                      ),
+                      const Divider(height: 16),
+                      _buildDetailRow(
+                        icon: Icons.palette_outlined,
+                        label: isHindi ? 'शिल्प विधा' : 'Master Craft Specialization',
+                        value: isHindi ? 'पारंपरिक गोरखपुर टेराकोटा शिल्प (Handmade Terracotta)' : 'Traditional Gorakhpur Terracotta Craft',
+                      ),
+                      const Divider(height: 16),
+                      _buildDetailRow(
+                        icon: Icons.place_outlined,
+                        label: isHindi ? 'कार्यशाला का पता' : 'Workshop / Studio Address',
+                        value: isHindi ? 'ग्राम बड़हलगंज, गोरखपुर, उत्तर प्रदेश - 273402' : 'Vill. Barhalganj, Gorakhpur, UP - 273402',
+                      ),
+                      const Divider(height: 16),
+                      _buildDetailRow(
+                        icon: Icons.eco_outlined,
+                        label: isHindi ? 'उपयोग होने वाली सामग्री' : 'Primary Materials Used',
+                        value: isHindi ? 'प्राकृतिक नदी की चिकनी मिट्टी, प्राकृतिक गेरू रंग' : 'River Silt Clay, Natural Mineral Ochre, Wood Kiln',
+                      ),
+                      const Divider(height: 16),
+                      _buildDetailRow(
+                        icon: Icons.history_edu_outlined,
+                        label: isHindi ? 'अनुभव एवं परंपरा' : 'Experience & Heritage',
+                        value: isHindi ? '28 वर्ष (3 पीढ़ियों की पुश्तैनी कला)' : '28 Years (3 Generations of Legacy)',
+                      ),
+                      const Divider(height: 16),
+                      _buildDetailRow(
+                        icon: Icons.verified_user_outlined,
+                        label: isHindi ? 'जी.आई. प्रमाणन संख्या' : 'GI Certification No.',
+                        value: 'UP/TERRA/2021/8492 (Active GI Holder)',
+                      ),
+                      const Divider(height: 16),
+                      _buildDetailRow(
+                        icon: Icons.military_tech_outlined,
+                        label: isHindi ? 'पुरस्कार व सम्मान' : 'Honors & Recognition',
+                        value: isHindi ? 'राज्य हस्तशिल्प पुरस्कार (2018)' : 'State Handicraft Awardee (2018)',
+                      ),
+                      const Divider(height: 16),
+                      _buildDetailRow(
+                        icon: Icons.phone_android_outlined,
+                        label: isHindi ? 'संपर्क मोबाइल' : 'Registered Mobile Number',
+                        value: '+91 98765 43210 (Verified)',
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // 4. Quick Actions & Settings
                 Text(
                   ref.tr('profile_actions_heading'),
                   style: const TextStyle(
@@ -290,6 +417,15 @@ class ArtisanProfileScreen extends ConsumerWidget {
                     fontWeight: FontWeight.bold,
                     color: AppColors.onSurface,
                   ),
+                ),
+                const SizedBox(height: 10),
+
+                // Fairs & Exhibitions Quick Tile
+                _buildActionTile(
+                  icon: Icons.festival,
+                  title: isHindi ? 'शिल्प मेले एवं प्रदर्शनियां' : 'Fairs & Exhibitions',
+                  subtitle: isHindi ? 'आगामी मेलों और स्टॉल के लिए आवेदन करें' : 'Browse upcoming craft fairs & stalls',
+                  onTap: () => context.go('/artisan/fairs'),
                 ),
                 const SizedBox(height: 10),
 
@@ -348,7 +484,7 @@ class ArtisanProfileScreen extends ConsumerWidget {
                       SnackBar(
                         content: Text(
                           isHindi
-                            ? 'कारीगर हेल्पलाइन १८००-२००-८८९९ पर कॉल की जा रही है...'
+                            ? 'कारीगर हेल्पलाइन 1800-200-8899 पर कॉल की जा रही है...'
                             : 'Dialing Artisan Helpline 1800-200-8899...',
                         ),
                       ),
@@ -444,6 +580,44 @@ class ArtisanProfileScreen extends ConsumerWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildDetailRow({
+    required IconData icon,
+    required String label,
+    required String value,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 18, color: AppColors.primary),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 11,
+                  color: AppColors.onSurfaceVariant,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.onSurface,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
