@@ -357,18 +357,78 @@ class _ArtisanCameraScreenState extends ConsumerState<ArtisanCameraScreen> with 
                                     ),
                                   ),
                                 ),
-                                // Switch camera
-                                GestureDetector(
-                                  onTap: () => _cameraService.switchCamera(),
-                                  child: Container(
-                                    width: 34,
-                                    height: 34,
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withValues(alpha: 0.88),
-                                      shape: BoxShape.circle,
+                                // Right actions: Torch toggle (gracefully hidden when unsupported) & Switch camera
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    if (_cameraService.hasTorchSupport) ...[
+                                      GestureDetector(
+                                        onTap: () async {
+                                          await _cameraService.toggleTorch();
+                                          if (mounted) setState(() {});
+                                        },
+                                        child: Container(
+                                          width: 34,
+                                          height: 34,
+                                          decoration: BoxDecoration(
+                                            color: _cameraService.isTorchOn
+                                                ? AppColors.secondary
+                                                : Colors.white.withValues(alpha: 0.88),
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: Icon(
+                                            _cameraService.isTorchOn ? Icons.flashlight_on : Icons.flashlight_off,
+                                            size: 18,
+                                            color: _cameraService.isTorchOn ? Colors.white : AppColors.onSurface,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                    ],
+                                    GestureDetector(
+                                      onTap: () async {
+                                        if (!_cameraService.hasMultipleCameras) {
+                                          final isHindi = ref.read(localeProvider) == AppLocale.hindi;
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                isHindi
+                                                    ? 'इस डिवाइस में केवल एक ही कैमरा उपलब्ध है'
+                                                    : 'Only one camera is available on this device',
+                                              ),
+                                              duration: const Duration(seconds: 2),
+                                            ),
+                                          );
+                                          return;
+                                        }
+                                        final switched = await _cameraService.switchCamera();
+                                        if (mounted) {
+                                          setState(() {});
+                                          if (!switched) {
+                                            final isHindi = ref.read(localeProvider) == AppLocale.hindi;
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(
+                                                content: Text(
+                                                  isHindi
+                                                      ? 'कैमरा बदलने में विफल, कृपया पुनः प्रयास करें'
+                                                      : 'Failed to switch camera. Please retry.',
+                                                ),
+                                              ),
+                                            );
+                                          }
+                                        }
+                                      },
+                                      child: Container(
+                                        width: 34,
+                                        height: 34,
+                                        decoration: BoxDecoration(
+                                          color: Colors.white.withValues(alpha: 0.88),
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Icon(Icons.flip_camera_ios, size: 18, color: AppColors.onSurface),
+                                      ),
                                     ),
-                                    child: const Icon(Icons.flip_camera_ios, size: 18, color: AppColors.onSurface),
-                                  ),
+                                  ],
                                 ),
                               ],
                             ),

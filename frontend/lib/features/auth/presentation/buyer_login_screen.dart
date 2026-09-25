@@ -7,14 +7,14 @@ import '../../../core/localization/app_localizations.dart';
 import '../../../core/widgets/clay_widgets.dart';
 import '../../../core/services/auth_service.dart';
 
-class LoginScreen extends ConsumerStatefulWidget {
-  const LoginScreen({super.key});
+class BuyerLoginScreen extends ConsumerStatefulWidget {
+  const BuyerLoginScreen({super.key});
 
   @override
-  ConsumerState<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<BuyerLoginScreen> createState() => _BuyerLoginScreenState();
 }
 
-class _LoginScreenState extends ConsumerState<LoginScreen> {
+class _BuyerLoginScreenState extends ConsumerState<BuyerLoginScreen> {
   final TextEditingController _phoneController = TextEditingController();
   bool _isLoading = false;
   bool _isGoogleLoading = false;
@@ -24,6 +24,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   void dispose() {
     _phoneController.dispose();
     super.dispose();
+  }
+
+  void _signInAsBuyer({String? phone}) {
+    ref.read(authStateProvider.notifier).setAuthenticatedUser(
+      AppUser(
+        id: 'buyer_usr_${DateTime.now().millisecondsSinceEpoch}',
+        phone: phone ?? '+91 98111 22334',
+        name: ref.read(localeProvider) == AppLocale.hindi ? 'कला सेतु ग्राहक' : 'KalaSetu Buyer',
+        role: UserRole.customer,
+      ),
+    );
+    context.go('/buyer/home');
   }
 
   Future<void> _handleSendOtp() async {
@@ -42,7 +54,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       final authService = ref.read(authServiceProvider);
       await authService.sendOtp('+91$phone');
       if (mounted) {
-        context.push('/otp-verify', extra: '+91$phone');
+        _signInAsBuyer(phone: '+91$phone');
       }
     } catch (e) {
       final isHindi = ref.read(localeProvider) == AppLocale.hindi;
@@ -62,18 +74,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       final authService = ref.read(authServiceProvider);
       await authService.signInWithGoogle();
 
-      // Set user session in Riverpod
       ref.read(authStateProvider.notifier).setAuthenticatedUser(
         const AppUser(
-          id: 'google_user_1',
-          name: 'रमेश प्रजापति',
-          email: 'artisan.ramesh@gmail.com',
-          role: UserRole.artisan,
+          id: 'buyer_google_1',
+          name: 'Ananya Verma',
+          email: 'ananya.buyer@gmail.com',
+          role: UserRole.customer,
         ),
       );
 
       if (mounted) {
-        context.go('/role-select');
+        context.go('/buyer/home');
       }
     } catch (e) {
       final isHindi = ref.read(localeProvider) == AppLocale.hindi;
@@ -116,7 +127,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       decoration: BoxDecoration(
                         color: AppColors.surfaceContainer,
                         shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.outlineVariant, width: 1.5),
+                        border: Border.all(color: AppColors.secondary, width: 1.5),
                         boxShadow: const [
                           BoxShadow(
                             color: Color(0x149D3E14),
@@ -131,108 +142,45 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ),
                     ),
                     const SizedBox(height: 10),
-                    Text(
-                      ref.tr('app_name'),
-                      style: const TextStyle(
-                        fontFamily: 'Literata',
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.primary,
-                      ),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          ref.tr('app_name'),
+                          style: const TextStyle(
+                            fontFamily: 'Literata',
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: AppColors.secondaryFixed,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            isHindi ? 'खरीदार बाज़ार' : 'Buyer App',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.onSecondaryFixed,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
+                    const SizedBox(height: 4),
                     Text(
-                      ref.tr('tagline'),
+                      isHindi ? 'सीधे भारतीय कारीगरों से प्रामाणिक हस्तशिल्प खरीदें' : 'Shop authentic Indian crafts directly from master artisans',
+                      textAlign: TextAlign.center,
                       style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                         color: AppColors.onSurfaceVariant,
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 18),
-
-              // Prominent Language Selection Bar directly on the first login screen
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                decoration: BoxDecoration(
-                  color: AppColors.surfaceContainerLow,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: AppColors.outlineVariant.withOpacity(0.5)),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.language, size: 20, color: AppColors.primary),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        ref.tr('select_language'),
-                        style: const TextStyle(
-                          fontFamily: 'Be Vietnam Pro',
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.onSurface,
-                        ),
-                      ),
-                    ),
-                    // Language Switcher Buttons
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        GestureDetector(
-                          onTap: () {
-                            ref.read(localeProvider.notifier).setLocale(AppLocale.hindi);
-                          },
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 200),
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: isHindi ? AppColors.primary : AppColors.surfaceContainerHigh,
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: isHindi ? AppColors.primary : AppColors.outlineVariant.withOpacity(0.4),
-                              ),
-                            ),
-                            child: Text(
-                              'हिन्दी',
-                              style: TextStyle(
-                                fontFamily: 'Be Vietnam Pro',
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                                color: isHindi ? Colors.white : AppColors.onSurfaceVariant,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        GestureDetector(
-                          onTap: () {
-                            ref.read(localeProvider.notifier).setLocale(AppLocale.english);
-                          },
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 200),
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: !isHindi ? AppColors.primary : AppColors.surfaceContainerHigh,
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: !isHindi ? AppColors.primary : AppColors.outlineVariant.withOpacity(0.4),
-                              ),
-                            ),
-                            child: Text(
-                              'English',
-                              style: TextStyle(
-                                fontFamily: 'Be Vietnam Pro',
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                                color: !isHindi ? Colors.white : AppColors.onSurfaceVariant,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
                     ),
                   ],
                 ),
@@ -251,37 +199,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 child: Row(
                   children: [
                     Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 10),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary,
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: const [
-                            BoxShadow(color: Color(0x209D3E14), blurRadius: 4, offset: Offset(0, 2)),
-                          ],
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(Icons.storefront, size: 18, color: Colors.white),
-                            const SizedBox(width: 8),
-                            Text(
-                              isHindi ? 'मैं दुकानदार हूँ' : "I'm a Shopkeeper",
-                              style: const TextStyle(
-                                fontFamily: 'Be Vietnam Pro',
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    Expanded(
                       child: GestureDetector(
                         onTap: () {
-                          context.go('/buyer/login');
+                          context.go('/login');
                         },
                         child: Container(
                           padding: const EdgeInsets.symmetric(vertical: 10),
@@ -292,10 +212,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Icon(Icons.shopping_bag_outlined, size: 18, color: AppColors.onSurfaceVariant),
+                              const Icon(Icons.storefront, size: 18, color: AppColors.onSurfaceVariant),
                               const SizedBox(width: 8),
                               Text(
-                                isHindi ? 'मैं खरीदार हूँ' : "I'm a Buyer",
+                                isHindi ? 'मैं दुकानदार हूँ' : "I'm a Shopkeeper",
                                 style: const TextStyle(
                                   fontFamily: 'Be Vietnam Pro',
                                   fontSize: 13,
@@ -308,30 +228,58 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ),
                       ),
                     ),
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        decoration: BoxDecoration(
+                          color: AppColors.secondary,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: const [
+                            BoxShadow(color: Color(0x20556B2F), blurRadius: 4, offset: Offset(0, 2)),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.shopping_bag, size: 18, color: Colors.white),
+                            const SizedBox(width: 8),
+                            Text(
+                              isHindi ? 'मैं खरीदार हूँ' : "I'm a Buyer",
+                              style: const TextStyle(
+                                fontFamily: 'Be Vietnam Pro',
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 22),
 
               // Title and Subtitle
               Text(
-                ref.tr('login'),
+                isHindi ? 'खरीदार लॉगिन' : 'Buyer Sign In',
                 style: const TextStyle(
                   fontFamily: 'Literata',
-                  fontSize: 26,
+                  fontSize: 24,
                   fontWeight: FontWeight.bold,
                   color: AppColors.onSurface,
                 ),
               ),
               const SizedBox(height: 6),
               Text(
-                ref.tr('login_subtitle'),
+                isHindi ? 'अपने फोन नंबर या Google खाते से लॉगिन करें' : 'Sign in to explore artisan collections & track your orders',
                 style: const TextStyle(
-                  fontSize: 14,
+                  fontSize: 13,
                   color: AppColors.onSurfaceVariant,
                 ),
               ),
-              const SizedBox(height: 22),
+              const SizedBox(height: 20),
 
               // Phone Input Field
               Container(
@@ -379,7 +327,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   style: const TextStyle(color: AppColors.error, fontSize: 13),
                 ),
               ],
-              const SizedBox(height: 20),
+              const SizedBox(height: 18),
 
               // Send OTP Primary Button
               TerracottaButton(
@@ -388,7 +336,27 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 isLoading: _isLoading,
                 onPressed: _handleSendOtp,
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
+
+              // Instant Continue as Buyer (Instant Guest Access)
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.secondary,
+                    side: const BorderSide(color: AppColors.secondary, width: 1.5),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  icon: const Icon(Icons.explore_outlined, size: 20),
+                  label: Text(
+                    isHindi ? 'सीधे खरीदारी शुरू करें (अतिथि)' : 'Continue as Guest Buyer',
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                  ),
+                  onPressed: () => _signInAsBuyer(),
+                ),
+              ),
+              const SizedBox(height: 20),
 
               // Divider "or"
               Row(
@@ -398,85 +366,51 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Text(
                       ref.tr('or_divider'),
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.outline,
-                      ),
+                      style: const TextStyle(fontSize: 12, color: AppColors.onSurfaceVariant),
                     ),
                   ),
                   const Expanded(child: Divider(color: AppColors.outlineVariant)),
                 ],
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
 
-              // Official Google Branded Sign-In Button
+              // Google Sign In Button
               SizedBox(
-                height: 54,
                 width: double.infinity,
+                height: 50,
                 child: OutlinedButton(
                   style: OutlinedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: const Color(0xFF1F1F1F),
-                    side: const BorderSide(color: Color(0xFF747775), width: 1),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    foregroundColor: AppColors.onSurface,
+                    side: BorderSide(color: AppColors.outlineVariant.withValues(alpha: 0.8)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    backgroundColor: AppColors.surfaceContainerLow,
                   ),
                   onPressed: _isGoogleLoading ? null : _handleGoogleSignIn,
                   child: _isGoogleLoading
                       ? const SizedBox(
-                          height: 22,
-                          width: 22,
+                          width: 20,
+                          height: 20,
                           child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
                         )
                       : Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Image.network(
-                              'https://fonts.gstatic.com/s/i/productlogos/googleg/v6/24px.svg',
-                              width: 22,
-                              height: 22,
-                              errorBuilder: (_, __, ___) => const Icon(Icons.g_mobiledata, size: 28, color: Colors.blue),
+                              'https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg',
+                              width: 18,
+                              height: 18,
+                              errorBuilder: (_, __, ___) => const Icon(Icons.g_mobiledata, size: 24, color: AppColors.primary),
                             ),
-                            const SizedBox(width: 12),
+                            const SizedBox(width: 10),
                             Text(
                               ref.tr('continue_google'),
-                              style: const TextStyle(
-                                fontFamily: 'Roboto',
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600,
-                                color: Color(0xFF1F1F1F),
-                              ),
+                              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
                             ),
                           ],
                         ),
                 ),
               ),
-              const SizedBox(height: 32),
-
-              // Create account link
-              Center(
-                child: TextButton(
-                  onPressed: () => context.push('/signup'),
-                  child: Text.rich(
-                    TextSpan(
-                      text: ref.tr('need_account'),
-                      style: const TextStyle(color: AppColors.onSurfaceVariant, fontSize: 14),
-                      children: [
-                        TextSpan(
-                          text: ref.tr('signup_link'),
-                          style: const TextStyle(
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
+              const SizedBox(height: 24),
             ],
           ),
         ),

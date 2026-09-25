@@ -697,6 +697,25 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
                     Text(dateRange, style: const TextStyle(fontSize: 13, color: AppColors.onSurfaceVariant)),
                   ],
                 ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    const Icon(Icons.storefront_outlined, size: 16, color: Color(0xFFD4A373)),
+                    const SizedBox(width: 6),
+                    Text(
+                      '${fair.participatingShopsCount} ${isHindi ? 'प्रतिभागी दुकानें' : 'Participating Shops'}',
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.onSurface),
+                    ),
+                    const Spacer(),
+                    GestureDetector(
+                      onTap: () => context.push('/fair/${fair.id}'),
+                      child: Text(
+                        isHindi ? 'विवरण देखें →' : 'View Details →',
+                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.primary),
+                      ),
+                    ),
+                  ],
+                ),
                 const SizedBox(height: 10),
                 Container(
                   padding: const EdgeInsets.all(10),

@@ -7,11 +7,14 @@ import '../localization/app_localizations.dart';
 import '../../features/auth/presentation/splash_screen.dart';
 import '../../features/auth/presentation/language_select_screen.dart';
 import '../../features/auth/presentation/login_screen.dart';
+import '../../features/auth/presentation/buyer_login_screen.dart';
 import '../../features/auth/presentation/signup_screen.dart';
 import '../../features/auth/presentation/otp_verify_screen.dart';
 import '../../features/auth/presentation/role_select_screen.dart';
 import '../../features/artisan_home/presentation/artisan_home_screen.dart';
+import '../../features/artisan_home/presentation/shop_catalog_screen.dart';
 import '../../features/artisan_fairs/presentation/artisan_fairs_screen.dart';
+import '../../features/artisan_fairs/presentation/fair_detail_screen.dart';
 import '../../features/artisan_orders/presentation/artisan_orders_screen.dart';
 import '../../features/artisan_earnings/presentation/artisan_earnings_screen.dart';
 import '../../features/artisan_profile/presentation/artisan_profile_screen.dart';
@@ -40,11 +43,15 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isAuthRoute = state.uri.path == '/splash' ||
           state.uri.path == '/onboarding-language' ||
           state.uri.path == '/login' ||
+          state.uri.path == '/buyer/login' ||
           state.uri.path == '/signup' ||
           state.uri.path == '/otp-verify';
 
-      // Route Guard: unauthenticated requests redirect to /login
+      // Route Guard: unauthenticated requests redirect to appropriate login
       if (authUser == null && !isAuthRoute) {
+        if (state.uri.path.startsWith('/buyer')) {
+          return '/buyer/login';
+        }
         return '/login';
       }
 
@@ -65,6 +72,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/login',
         builder: (context, state) => const LoginScreen(),
+      ),
+      GoRoute(
+        path: '/buyer/login',
+        builder: (context, state) => const BuyerLoginScreen(),
       ),
       GoRoute(
         path: '/signup',
@@ -169,6 +180,22 @@ final routerProvider = Provider<GoRouter>((ref) {
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const ArtisanStoryTextInputScreen(),
       ),
+      GoRoute(
+        path: '/artisan/shop-catalog/:artisanId',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final aid = state.pathParameters['artisanId'] ?? 'art_1';
+          return ShopCatalogScreen(artisanId: aid);
+        },
+      ),
+      GoRoute(
+        path: '/artisan/shop-catalog',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final aid = state.uri.queryParameters['id'] ?? 'art_1';
+          return ShopCatalogScreen(artisanId: aid);
+        },
+      ),
 
       // ═══════════════════════════════════════════════════════════
       // SHELL C: CUSTOMER SHELL (StatefulShellRoute with Bottom Nav)
@@ -229,6 +256,35 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/customer/b2b/bulk-request',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const B2bBulkRequestScreen(),
+      ),
+
+      // Dedicated Buyer App Routes (/buyer/* namespace)
+      GoRoute(
+        path: '/buyer/home',
+        builder: (context, state) => const MarketplaceHomeScreen(),
+      ),
+      GoRoute(
+        path: '/buyer/product/:productId',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final pid = state.pathParameters['productId'] ?? 'prod_1';
+          return ProductDetailScreen(productId: pid);
+        },
+      ),
+      GoRoute(
+        path: '/buyer/cart',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const CartScreen(),
+      ),
+
+      // Fair Detail Route
+      GoRoute(
+        path: '/fair/:fairId',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final fid = state.pathParameters['fairId'] ?? 'fair_1';
+          return FairDetailScreen(fairId: fid);
+        },
       ),
     ],
   );

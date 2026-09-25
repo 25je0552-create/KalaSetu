@@ -19,7 +19,11 @@
     "expectedVisitorsEn": "250K+ Visitors",
     "imageUrl": "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?auto=format&fit=crop&w=600&q=80",
     "applied": true,
-    "subsidized": true
+    "subsidized": true,
+    "participatingShopIds": ["art_1", "art_2", "art_3", "art_4"],
+    "participatingShopsCount": 85,
+    "descriptionHi": "हुनर हाट देश भर के उस्ताद कारीगरों, शिल्पकारों और पारंपरिक पाक विशेषज्ञों का भव्य राष्ट्रीय संगम है। यहां सभी कारीगर अपने प्रामाणिक हस्तशिल्प सीधे उपभोक्ताओं को प्रस्तुत करते हैं।",
+    "descriptionEn": "Hunar Haat is a flagship national exhibition bringing together master artisans, weavers, and craftspeople from across India to showcase authentic handmade heritage."
   },
   {
     "id": "fair_2",
@@ -41,7 +45,11 @@
     "expectedVisitorsEn": "1M+ Visitors",
     "imageUrl": "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=600&q=80",
     "applied": true,
-    "subsidized": true
+    "subsidized": true,
+    "participatingShopIds": ["art_1", "art_2"],
+    "participatingShopsCount": 240,
+    "descriptionHi": "विश्व का सबसे बड़ा हस्तशिल्प मेला जहां ग्रामीण भारतीय शिल्प, वस्त्र परंपराएं और लोक संगीत की बहुरंगी छटा देखने को मिलती है।",
+    "descriptionEn": "The world's largest crafts fair celebrating the rich diversity of Indian folk traditions, regional textiles, terracotta pottery, and live artisan demonstrations."
   },
   {
     "id": "fair_3",
@@ -63,6 +71,10 @@
     "expectedVisitorsEn": "400K+ Visitors",
     "imageUrl": "https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&w=600&q=80",
     "applied": false,
-    "subsidized": true
+    "subsidized": true,
+    "participatingShopIds": ["art_1", "art_3"],
+    "participatingShopsCount": 110,
+    "descriptionHi": "शिल्पग्राम आगरा में आयोजित ताज महोत्सव भारतीय कला, शिल्प, संगीत और ऐतिहासिक धरोहर का वार्षिक उत्सव है।",
+    "descriptionEn": "An annual 10-day carnival held near the Eastern Gate of the Taj Mahal, showcasing exquisite marble inlay, brassware, woodwork, and terracotta pottery."
   }
 ]

@@ -16,11 +16,53 @@ class PhotoReviewScreen extends ConsumerStatefulWidget {
 
 class _PhotoReviewScreenState extends ConsumerState<PhotoReviewScreen> {
   bool _showAfter = true; // Toggle between Before & After AI Studio Backdrop
+  double? _imageAspectRatio;
+  String? _lastResolvedPath;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _resolveImageAspectRatio();
+    });
+  }
+
+  void _resolveImageAspectRatio() {
+    final photoPath = ref.read(addItemWizardProvider).capturedPhotoPath;
+    if (_lastResolvedPath == photoPath && _imageAspectRatio != null) return;
+    _lastResolvedPath = photoPath;
+
+    final ImageProvider provider = (photoPath != null && File(photoPath).existsSync())
+        ? FileImage(File(photoPath))
+        : const NetworkImage('https://images.unsplash.com/photo-1615865417491-9941019fbc00?auto=format&fit=crop&w=800&q=80') as ImageProvider;
+
+    provider.resolve(const ImageConfiguration()).addListener(
+      ImageStreamListener(
+        (ImageInfo info, bool _) {
+          if (mounted) {
+            final width = info.image.width.toDouble();
+            final height = info.image.height.toDouble();
+            if (width > 0 && height > 0) {
+              setState(() {
+                _imageAspectRatio = width / height;
+              });
+            }
+          }
+        },
+        onError: (dynamic error, StackTrace? _) {
+          debugPrint('[PhotoReview] Image aspect ratio resolve error: $error');
+        },
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final wizardState = ref.watch(addItemWizardProvider);
     final photoPath = wizardState.capturedPhotoPath;
+    if (photoPath != _lastResolvedPath) {
+      _resolveImageAspectRatio();
+    }
 
     return Scaffold(
       backgroundColor: AppColors.surface,
@@ -100,50 +142,71 @@ class _PhotoReviewScreenState extends ConsumerState<PhotoReviewScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Visual Display Stage
+              // Visual Display Stage: dynamically sized to the photo's natural aspect ratio
               Expanded(
                 child: Center(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: _showAfter ? AppColors.surfaceBright : Colors.black87,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.5)),
-                      boxShadow: [
-                        BoxShadow(
-                          color: _showAfter ? const Color(0x1F785440) : Colors.black26,
-                          blurRadius: 18,
-                          offset: const Offset(0, 6),
-                        ),
-                      ],
-                    ),
-                    padding: const EdgeInsets.all(16),
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(16),
-                          child: photoPath != null && File(photoPath).existsSync()
-                              ? Image.file(File(photoPath), fit: BoxFit.contain)
-                              : Image.network(
-                                  'https://images.unsplash.com/photo-1615865417491-9941019fbc00?auto=format&fit=crop&w=800&q=80',
-                                  fit: BoxFit.contain,
-                                ),
-                        ),
-                        // Harmonized craft detection bounding box overlay aligned precisely across both views
-                        Center(
-                          child: Container(
-                            width: 200,
-                            height: 230,
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                color: _showAfter ? AppColors.primary : AppColors.secondaryContainer,
-                                width: 2,
-                              ),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
+                  child: AspectRatio(
+                    aspectRatio: _imageAspectRatio ?? (4 / 5),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: _showAfter ? AppColors.surfaceBright : Colors.black87,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.5)),
+                        boxShadow: [
+                          BoxShadow(
+                            color: _showAfter ? const Color(0x1F785440) : Colors.black26,
+                            blurRadius: 18,
+                            offset: const Offset(0, 6),
                           ),
+                        ],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(20),
+                        child: Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            photoPath != null && File(photoPath).existsSync()
+                                ? Image.file(
+                                    File(photoPath),
+                                    fit: BoxFit.cover,
+                                  )
+                                : Image.network(
+                                    'https://images.unsplash.com/photo-1615865417491-9941019fbc00?auto=format&fit=crop&w=800&q=80',
+                                    fit: BoxFit.cover,
+                                  ),
+                            // AI Studio subtle depth vignette
+                            if (_showAfter)
+                              Container(
+                                decoration: BoxDecoration(
+                                  gradient: RadialGradient(
+                                    center: Alignment.center,
+                                    radius: 0.9,
+                                    colors: [
+                                      Colors.transparent,
+                                      Colors.brown.withValues(alpha: 0.10),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            // Harmonized craft detection bounding box overlay aligned dynamically to photo ratio
+                            Center(
+                              child: FractionallySizedBox(
+                                widthFactor: 0.78,
+                                heightFactor: 0.78,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                      color: _showAfter ? AppColors.primary : AppColors.secondaryContainer,
+                                      width: 2,
+                                    ),
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
                   ),
                 ),

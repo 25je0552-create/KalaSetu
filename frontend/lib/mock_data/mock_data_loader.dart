@@ -201,6 +201,10 @@ class CraftFair {
   final String imageUrl;
   final bool applied;
   final bool subsidized;
+  final List<String> participatingShopIds;
+  final int participatingShopsCount;
+  final String descriptionHi;
+  final String descriptionEn;
 
   CraftFair({
     required this.id,
@@ -223,6 +227,10 @@ class CraftFair {
     required this.imageUrl,
     required this.applied,
     required this.subsidized,
+    this.participatingShopIds = const [],
+    this.participatingShopsCount = 0,
+    this.descriptionHi = '',
+    this.descriptionEn = '',
   });
 
   factory CraftFair.fromJson(Map<String, dynamic> json) {
@@ -247,6 +255,10 @@ class CraftFair {
       imageUrl: json['imageUrl'] as String,
       applied: json['applied'] as bool,
       subsidized: json['subsidized'] as bool,
+      participatingShopIds: List<String>.from(json['participatingShopIds'] ?? []),
+      participatingShopsCount: json['participatingShopsCount'] as int? ?? (json['participatingShopIds'] != null ? (json['participatingShopIds'] as List).length : 25),
+      descriptionHi: json['descriptionHi'] as String? ?? '',
+      descriptionEn: json['descriptionEn'] as String? ?? '',
     );
   }
 }

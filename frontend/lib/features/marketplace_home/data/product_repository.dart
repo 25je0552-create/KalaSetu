@@ -7,6 +7,9 @@ abstract class ProductRepository {
   
   // Real impl later: GET /api/products/:id
   Future<Product?> getProductById(String id);
+
+  // Real impl later: GET /api/artisans/:artisanId/products
+  Future<List<Product>> getProductsByArtisanId(String artisanId);
 }
 
 class MockProductRepository implements ProductRepository {
@@ -34,6 +37,12 @@ class MockProductRepository implements ProductRepository {
       return null;
     }
   }
+
+  @override
+  Future<List<Product>> getProductsByArtisanId(String artisanId) async {
+    _cachedProducts ??= await MockDataLoader.loadProducts();
+    return _cachedProducts!.where((p) => p.artisanId == artisanId).toList();
+  }
 }
 
 final productRepositoryProvider = Provider<ProductRepository>((ref) {
@@ -48,4 +57,9 @@ final featuredProductsProvider = FutureProvider<List<Product>>((ref) async {
 final productDetailProvider = FutureProvider.family<Product?, String>((ref, id) async {
   final repo = ref.watch(productRepositoryProvider);
   return repo.getProductById(id);
+});
+
+final artisanProductsProvider = FutureProvider.family<List<Product>, String>((ref, artisanId) async {
+  final repo = ref.watch(productRepositoryProvider);
+  return repo.getProductsByArtisanId(artisanId);
 });

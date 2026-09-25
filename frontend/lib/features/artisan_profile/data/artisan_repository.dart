@@ -26,3 +26,8 @@ final currentArtisanProvider = FutureProvider<Artisan?>((ref) async {
   final repo = ref.watch(artisanRepositoryProvider);
   return repo.getArtisanById('art_1');
 });
+
+final artisanByIdProvider = FutureProvider.family<Artisan?, String>((ref, id) async {
+  final repo = ref.watch(artisanRepositoryProvider);
+  return repo.getArtisanById(id);
+});

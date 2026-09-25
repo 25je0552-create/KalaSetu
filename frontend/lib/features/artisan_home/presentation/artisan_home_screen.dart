@@ -405,7 +405,7 @@ class _ArtisanHomeScreenState extends ConsumerState<ArtisanHomeScreen> {
                     ),
                   ),
                   GestureDetector(
-                    onTap: () => context.push('/customer/home'),
+                    onTap: () => context.push('/artisan/shop-catalog/art_1'),
                     child: Text(
                       '${ref.tr('view_all')} (18)',
                       style: const TextStyle(

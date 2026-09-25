@@ -7,6 +7,9 @@ abstract class FairRepository {
   
   // Real impl later: POST /api/fairs/:id/apply
   Future<bool> applyForFair(String fairId);
+
+  // Real impl later: GET /api/fairs/:id
+  Future<CraftFair?> getFairById(String id);
 }
 
 class MockFairRepository implements FairRepository {
@@ -22,6 +25,16 @@ class MockFairRepository implements FairRepository {
   Future<bool> applyForFair(String fairId) async {
     return true;
   }
+
+  @override
+  Future<CraftFair?> getFairById(String id) async {
+    _cached ??= await MockDataLoader.loadFairs();
+    try {
+      return _cached!.firstWhere((f) => f.id == id);
+    } catch (_) {
+      return null;
+    }
+  }
 }
 
 final fairRepositoryProvider = Provider<FairRepository>((ref) {
@@ -31,4 +44,9 @@ final fairRepositoryProvider = Provider<FairRepository>((ref) {
 final craftFairsProvider = FutureProvider<List<CraftFair>>((ref) async {
   final repo = ref.watch(fairRepositoryProvider);
   return repo.getFairs();
+});
+
+final fairDetailProvider = FutureProvider.family<CraftFair?, String>((ref, id) async {
+  final repo = ref.watch(fairRepositoryProvider);
+  return repo.getFairById(id);
 });

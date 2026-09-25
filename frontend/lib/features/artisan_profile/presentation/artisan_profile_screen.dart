@@ -6,6 +6,8 @@ import '../../../core/localization/app_localizations.dart';
 import '../../../core/widgets/clay_widgets.dart';
 import '../../../core/services/auth_service.dart';
 import '../data/artisan_repository.dart';
+import '../../marketplace_home/data/product_repository.dart';
+import '../../../mock_data/mock_data_loader.dart';
 
 class ArtisanProfileScreen extends ConsumerStatefulWidget {
   const ArtisanProfileScreen({super.key});
@@ -17,12 +19,94 @@ class ArtisanProfileScreen extends ConsumerStatefulWidget {
 class _ArtisanProfileScreenState extends ConsumerState<ArtisanProfileScreen> {
   bool _isPlayingStory = false;
 
+  Artisan _getFallbackArtisan(bool isHindi) {
+    return Artisan(
+      id: 'art_1',
+      name: isHindi ? 'रमेश प्रजापति' : 'Ramesh Prajapati',
+      phone: '+91 98765 43210',
+      craftType: isHindi ? 'टेराकोटा शिल्प' : 'Terracotta Pottery',
+      village: 'बड़हलगंज',
+      district: 'गोरखपुर',
+      state: 'उत्तर प्रदेश',
+      isCertified: true,
+      artisanCardNumber: 'UP/TERRA/2021/8492',
+      avatarUrl:
+          'https://lh3.googleusercontent.com/aida-public/AB6AXuB3sV-GYA0lx00uY-wcyCGKIEJi1pJCzJy99rDKdTCu56nL130Frmkp11Rh59MuH1zyK5xZArvcRK1kGahDZgyXtpcykw8v4zHQunxg9abSMFOOhRUtNSTvmhZNK5fzaDbTxY5nJKoZlJdbDCs503FQbB1tagmI-Q4DcAC-NQZYx5c1khH0XtdtrkYgC22-Kb8h_emvmrzgw24ZjROCv0EKo6c1BNt_it-hfswbRFnjlPD2h_o3izQs',
+      story: isHindi
+          ? 'मैं गोरखपुर में 28 वर्षों से माटी की मूर्तियां और बर्तन बना रहा हूं। यह हमारी 3 पीढ़ियों की विरासत है।'
+          : 'I have been sculpting clay for 28 years in Gorakhpur. Carrying forward a 3-generation legacy of GI-tagged terracotta art.',
+      activeProductsCount: 14,
+      rating: 4.9,
+      yearsOfExperience: 28,
+    );
+  }
+
+  void _showContactDialog(BuildContext context, Artisan artisan, bool isHindi) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Row(
+          children: [
+            const Icon(Icons.contact_phone, color: AppColors.primary),
+            const SizedBox(width: 8),
+            Text(isHindi ? 'शिल्पकार संपर्क विवरण' : 'Artisan Contact'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              artisan.name,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            const SizedBox(height: 4),
+            Text('${artisan.craftType} • ${artisan.district}, ${artisan.state}'),
+            const SizedBox(height: 12),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.phone, color: AppColors.secondary),
+              title: Text(artisan.phone),
+              subtitle: Text(isHindi ? 'सीधे कॉल करें' : 'Call directly'),
+              onTap: () {
+                Navigator.of(ctx).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      isHindi
+                          ? '${artisan.name} को कॉल किया जा रहा है: ${artisan.phone}'
+                          : 'Calling ${artisan.name}: ${artisan.phone}',
+                    ),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.badge, color: AppColors.secondary),
+              title: Text(artisan.artisanCardNumber),
+              subtitle: Text(isHindi ? 'जीआई शिल्पकार कार्ड संख्या' : 'GI Artisan Card No.'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text(isHindi ? 'बंद करें' : 'Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final artisanAsync = ref.watch(currentArtisanProvider);
     final user = ref.watch(authStateProvider);
     final currentLocale = ref.watch(localeProvider);
     final isHindi = currentLocale == AppLocale.hindi;
+    final fallback = _getFallbackArtisan(isHindi);
+    final artisan = artisanAsync.value ?? fallback;
 
     return Scaffold(
       backgroundColor: AppColors.surface,
@@ -65,53 +149,58 @@ class _ArtisanProfileScreenState extends ConsumerState<ArtisanProfileScreen> {
           ),
         ),
       ),
-      body: artisanAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
-        error: (err, _) => Center(child: Text('त्रुटि: $err')),
-        data: (artisan) {
-          final name = artisan?.name ?? user?.name ?? (isHindi ? 'रमेश प्रजापति' : 'Ramesh Prajapati');
-          final craft = artisan != null
-              ? '${artisan.craftType}, ${artisan.district}'
-              : (isHindi ? 'माटी शिल्पी, गोरखपुर' : 'Clay Artisan, Gorakhpur');
-          final story = artisan?.story ?? ref.tr('artisan_story_text');
+      body: artisanAsync.isLoading && !artisanAsync.hasValue
+          ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+          : _buildProfileContent(context, artisan, user, isHindi),
+    );
+  }
 
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
+  Widget _buildProfileContent(
+    BuildContext context,
+    Artisan artisan,
+    dynamic user,
+    bool isHindi,
+  ) {
+    final name = artisan.name.isNotEmpty ? artisan.name : (user?.name ?? (isHindi ? 'रमेश प्रजापति' : 'Ramesh Prajapati'));
+    final craft = '${artisan.craftType}, ${artisan.district}';
+    final story = artisan.story.isNotEmpty ? artisan.story : ref.tr('artisan_story_text');
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 1. Profile Header Card
+          Container(
+            decoration: BoxDecoration(
+              color: AppColors.surfaceContainerHigh,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.4)),
+              boxShadow: const [
+                BoxShadow(color: Color(0x0C000000), blurRadius: 10, offset: Offset(0, 3)),
+              ],
+            ),
+            padding: const EdgeInsets.all(18),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 1. Profile Header Card
-                Container(
-                  decoration: BoxDecoration(
-                    color: AppColors.surfaceContainerHigh,
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.4)),
-                    boxShadow: const [
-                      BoxShadow(color: Color(0x0C000000), blurRadius: 10, offset: Offset(0, 3)),
-                    ],
-                  ),
-                  padding: const EdgeInsets.all(18),
-                  child: Column(
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            width: 68,
-                            height: 68,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(color: AppColors.primary, width: 2),
-                              color: AppColors.surfaceContainer,
-                            ),
-                            child: ClipOval(
-                              child: Image.network(
-                                artisan?.avatarUrl ??
-                                    'https://lh3.googleusercontent.com/aida-public/AB6AXuB3sV-GYA0lx00uY-wcyCGKIEJi1pJCzJy99rDKdTCu56nL130Frmkp11Rh59MuH1zyK5xZArvcRK1kGahDZgyXtpcykw8v4zHQunxg9abSMFOOhRUtNSTvmhZNK5fzaDbTxY5nJKoZlJdbDCs503FQbB1tagmI-Q4DcAC-NQZYx5c1khH0XtdtrkYgC22-Kb8h_emvmrzgw24ZjROCv0EKo6c1BNt_it-hfswbRFnjlPD2h_o3izQs',
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => const Icon(Icons.person, size: 40, color: AppColors.primary),
-                              ),
-                            ),
-                          ),
+                Row(
+                  children: [
+                    Container(
+                      width: 68,
+                      height: 68,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: AppColors.primary, width: 2),
+                        color: AppColors.surfaceContainer,
+                      ),
+                      child: ClipOval(
+                        child: Image.network(
+                          artisan.avatarUrl,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => const Icon(Icons.person, size: 40, color: AppColors.primary),
+                        ),
+                      ),
+                    ),
                           const SizedBox(width: 14),
                           Expanded(
                             child: Column(
@@ -204,8 +293,188 @@ class _ArtisanProfileScreenState extends ConsumerState<ArtisanProfileScreen> {
                           ),
                         ],
                       ),
+                      const SizedBox(height: 16),
+                      // Action buttons: Edit Profile, View Listings, Contact
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              icon: const Icon(Icons.edit_outlined, size: 16),
+                              label: Text(
+                                isHindi ? 'प्रोफ़ाइल बदलें' : 'Edit Profile',
+                                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                              ),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: AppColors.primary,
+                                side: const BorderSide(color: AppColors.primary),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                padding: const EdgeInsets.symmetric(vertical: 10),
+                              ),
+                              onPressed: () => context.push('/artisan/story-input'),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              icon: const Icon(Icons.storefront_outlined, size: 16),
+                              label: Text(
+                                isHindi ? 'उत्पाद देखें' : 'View Listings',
+                                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primary,
+                                foregroundColor: Colors.white,
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                padding: const EdgeInsets.symmetric(vertical: 10),
+                              ),
+                              onPressed: () => context.push('/artisan/shop-catalog/${artisan.id}'),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Material(
+                            color: AppColors.secondaryContainer.withValues(alpha: 0.3),
+                            borderRadius: BorderRadius.circular(10),
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(10),
+                              onTap: () => _showContactDialog(context, artisan, isHindi),
+                              child: Padding(
+                                padding: const EdgeInsets.all(10),
+                                child: const Icon(Icons.phone_in_talk, size: 18, color: AppColors.secondary),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
+                ),
+                const SizedBox(height: 20),
+
+                // 2. Artisan's Listed Crafts Section
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      isHindi ? 'शिल्पकार के उत्पाद' : "Artisan's Listed Crafts",
+                      style: const TextStyle(
+                        fontFamily: 'Literata',
+                        fontSize: 17,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.onSurface,
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () => context.push('/artisan/shop-catalog/${artisan.id}'),
+                      child: Text(
+                        isHindi ? 'सभी देखें' : 'View All',
+                        style: const TextStyle(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Consumer(
+                  builder: (context, ref, _) {
+                    final productsAsync = ref.watch(artisanProductsProvider(artisan.id));
+                    return productsAsync.when(
+                      loading: () => const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(20),
+                          child: CircularProgressIndicator(color: AppColors.primary),
+                        ),
+                      ),
+                      error: (_, __) => const SizedBox.shrink(),
+                      data: (products) {
+                        if (products.isEmpty) {
+                          return Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: AppColors.surfaceContainerLow,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.3)),
+                            ),
+                            child: Center(
+                              child: Text(
+                                isHindi ? 'कोई उत्पाद उपलब्ध नहीं है' : 'No listings available yet',
+                                style: const TextStyle(color: AppColors.onSurfaceVariant),
+                              ),
+                            ),
+                          );
+                        }
+                        return SizedBox(
+                          height: 190,
+                          child: ListView.separated(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: products.length,
+                            separatorBuilder: (_, __) => const SizedBox(width: 12),
+                            itemBuilder: (context, index) {
+                              final prod = products[index];
+                              final prodTitle = isHindi && prod.nameHi.isNotEmpty ? prod.nameHi : prod.nameEn;
+                              return GestureDetector(
+                                onTap: () => context.push('/product/${prod.id}'),
+                                child: Container(
+                                  width: 140,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.surfaceContainerLow,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.3)),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      ClipRRect(
+                                        borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                                        child: Image.network(
+                                          prod.imageUrl,
+                                          height: 105,
+                                          width: double.infinity,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (_, __, ___) => Container(
+                                            height: 105,
+                                            color: AppColors.surfaceContainer,
+                                            child: const Icon(Icons.image, color: AppColors.outline),
+                                          ),
+                                        ),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.all(8),
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              prodTitle,
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                            ),
+                                            const SizedBox(height: 2),
+                                            Text(
+                                              '₹${prod.price.toInt()}',
+                                              style: const TextStyle(
+                                                color: AppColors.primary,
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 13,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        );
+                      },
+                    );
+                  },
                 ),
                 const SizedBox(height: 20),
 
@@ -438,14 +707,32 @@ class _ArtisanProfileScreenState extends ConsumerState<ArtisanProfileScreen> {
                 ),
                 const SizedBox(height: 10),
 
-                // Switch to Customer Track
+                // View Shop Catalog Quick Tile
                 _buildActionTile(
-                  icon: Icons.storefront_outlined,
+                  icon: Icons.store_mall_directory_outlined,
+                  title: isHindi ? 'दुकान उत्पाद कैटलॉग' : 'My Shop Catalog',
+                  subtitle: isHindi ? 'अपने सभी लिस्टेड क्राफ्ट देखें व प्रबंधित करें' : 'View all products listed by your shop',
+                  onTap: () => context.push('/artisan/shop-catalog/${artisan.id}'),
+                ),
+                const SizedBox(height: 10),
+
+                // Edit Profile Quick Tile
+                _buildActionTile(
+                  icon: Icons.badge_outlined,
+                  title: isHindi ? 'प्रोफ़ाइल विवरण संपादित करें' : 'Edit Profile Details',
+                  subtitle: isHindi ? 'शिल्प विधा, अनुभव और व्यक्तिगत जानकारी बदलें' : 'Update craft details, experience and info',
+                  onTap: () => context.push('/artisan/story-input'),
+                ),
+                const SizedBox(height: 10),
+
+                // Switch to Buyer Track
+                _buildActionTile(
+                  icon: Icons.shopping_bag_outlined,
                   title: ref.tr('switch_to_buyer'),
                   subtitle: ref.tr('switch_to_buyer_desc'),
                   onTap: () {
                     ref.read(authStateProvider.notifier).selectRole(UserRole.customer);
-                    context.go('/customer/home');
+                    context.go('/buyer/home');
                   },
                 ),
                 const SizedBox(height: 10),
@@ -518,9 +805,6 @@ class _ArtisanProfileScreenState extends ConsumerState<ArtisanProfileScreen> {
               ],
             ),
           );
-        },
-      ),
-    );
   }
 
   Widget _buildStatItem({required IconData icon, required String label}) {
