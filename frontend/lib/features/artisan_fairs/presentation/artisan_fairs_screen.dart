@@ -281,15 +281,18 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
         ),
         data: (fairs) {
           var filteredFairs = fairs;
-          if (_selectedTabIndex == 1) {
-            filteredFairs = fairs.where((f) => !f.applied && !_appliedFairIds.contains(f.id)).toList();
-          } else if (_selectedTabIndex == 2) {
+          if (_selectedTabIndex == 0) {
+            // Tab 0: Upcoming Fairs
+            filteredFairs = fairs;
+          } else if (_selectedTabIndex == 1) {
+            // Tab 1: My Applications
             if (isBuyer) {
               filteredFairs = fairs.where((f) => _bookmarkedFairIds.contains(f.id)).toList();
             } else {
               filteredFairs = fairs.where((f) => f.applied || _appliedFairIds.contains(f.id)).toList();
             }
-          } else if (_selectedTabIndex == 3) {
+          } else if (_selectedTabIndex == 2) {
+            // Tab 2: Govt Subsidies / Schemes
             filteredFairs = fairs.where((f) => f.subsidized).toList();
           }
 
@@ -423,24 +426,31 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // Filter Clay Tabs
+                // Filter Clay Tabs (3 tabs matching reference design)
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     children: [
-                      _buildTab(0, isBuyer ? ref.tr('tab_all_fairs') : ref.tr('nav_fairs'), Icons.festival),
+                      _buildTab(
+                        0,
+                        isBuyer ? (isHindi ? 'सभी मेले' : 'All Fairs') : ref.tr('tab_upcoming_fairs'),
+                        Icons.event,
+                      ),
                       const SizedBox(width: 8),
-                      _buildTab(1, ref.tr('tab_upcoming_fairs'), Icons.event),
+                      _buildTab(
+                        1,
+                        isBuyer
+                            ? (isHindi ? 'सहेजे गए' : 'Saved Fairs')
+                            : ref.tr('tab_my_applications'),
+                        isBuyer ? Icons.bookmark : Icons.assignment_turned_in,
+                        badgeCount: isBuyer ? (savedCount > 0 ? savedCount : null) : (appliedCount > 0 ? appliedCount : 2),
+                      ),
                       const SizedBox(width: 8),
                       _buildTab(
                         2,
-                        isBuyer
-                            ? '${ref.tr('tab_saved_fairs')} ($savedCount)'
-                            : '${ref.tr('tab_my_applications')} ($appliedCount)',
-                        isBuyer ? Icons.bookmark : Icons.assignment_turned_in,
+                        ref.tr('tab_govt_subsidies'),
+                        Icons.verified,
                       ),
-                      const SizedBox(width: 8),
-                      _buildTab(3, ref.tr('tab_govt_subsidies'), Icons.verified),
                     ],
                   ),
                 ),
@@ -557,7 +567,7 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
     );
   }
 
-  Widget _buildTab(int index, String label, IconData icon) {
+  Widget _buildTab(int index, String label, IconData icon, {int? badgeCount}) {
     final isSelected = _selectedTabIndex == index;
     return GestureDetector(
       onTap: () {
@@ -584,6 +594,27 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
                 color: isSelected ? Colors.white : AppColors.onSurfaceVariant,
               ),
             ),
+            if (badgeCount != null) ...[
+              const SizedBox(width: 6),
+              Container(
+                width: 20,
+                height: 20,
+                decoration: const BoxDecoration(
+                  color: AppColors.secondaryContainer,
+                  shape: BoxShape.circle,
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  '$badgeCount',
+                  style: const TextStyle(
+                    fontFamily: 'Be Vietnam Pro',
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.onSecondaryContainer,
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),
@@ -604,6 +635,28 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
     final isApplied = fair.applied || _appliedFairIds.contains(fair.id);
     final isBookmarked = _bookmarkedFairIds.contains(fair.id);
 
+    Color badgeBg;
+    IconData badgeIcon;
+    Color categoryColor;
+    IconData noticeIcon;
+
+    if (fair.id == 'fair_2') {
+      badgeBg = AppColors.primary;
+      badgeIcon = Icons.public;
+      categoryColor = AppColors.secondary;
+      noticeIcon = Icons.storefront;
+    } else if (fair.id == 'fair_3') {
+      badgeBg = const Color(0xFF936C57);
+      badgeIcon = Icons.palette;
+      categoryColor = const Color(0xFF785440);
+      noticeIcon = Icons.local_shipping;
+    } else {
+      badgeBg = AppColors.secondary;
+      badgeIcon = Icons.stars;
+      categoryColor = AppColors.primary;
+      noticeIcon = Icons.card_membership;
+    }
+
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surfaceContainer,
@@ -623,11 +676,11 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
                 child: Image.network(
                   fair.imageUrl,
-                  height: 150,
+                  height: 160,
                   width: double.infinity,
                   fit: BoxFit.cover,
                   errorBuilder: (_, __, ___) => Container(
-                    height: 150,
+                    height: 160,
                     color: AppColors.surfaceContainerHigh,
                     child: const Icon(Icons.festival, size: 48, color: AppColors.outline),
                   ),
@@ -639,12 +692,15 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: AppColors.secondary,
+                    color: badgeBg,
                     borderRadius: BorderRadius.circular(20),
+                    boxShadow: const [
+                      BoxShadow(color: Color(0x33000000), blurRadius: 4, offset: Offset(0, 2)),
+                    ],
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.stars, size: 14, color: Colors.white),
+                      Icon(badgeIcon, size: 14, color: Colors.white),
                       const SizedBox(width: 4),
                       Text(
                         badge,
@@ -658,9 +714,9 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
                 bottom: 10,
                 right: 10,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.7),
+                    color: Colors.black.withValues(alpha: 0.75),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
@@ -681,7 +737,7 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
                   children: [
                     Text(
                       category.toUpperCase(),
-                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.primary),
+                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: categoryColor),
                     ),
                     GestureDetector(
                       onTap: () {
@@ -703,13 +759,16 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
                   ],
                 ),
                 const SizedBox(height: 2),
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontFamily: 'Literata',
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.onSurface,
+                GestureDetector(
+                  onTap: () => context.push('/fair/${fair.id}'),
+                  child: Text(
+                    title,
+                    style: const TextStyle(
+                      fontFamily: 'Literata',
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.onSurface,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -760,10 +819,11 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
                   decoration: BoxDecoration(
                     color: AppColors.surfaceContainerHigh,
                     borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.2)),
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.card_membership, size: 18, color: AppColors.primary),
+                      Icon(noticeIcon, size: 18, color: categoryColor),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(

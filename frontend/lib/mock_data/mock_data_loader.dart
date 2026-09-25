@@ -85,6 +85,10 @@ class Artisan {
   final int yearsOfExperience;
   final String aadhaarNumber;
   final String? email;
+  final String giTagNumber;
+  final String generation;
+  final bool isPehchanVerified;
+  final bool isCraftVerified;
 
   Artisan({
     required this.id,
@@ -103,6 +107,10 @@ class Artisan {
     required this.yearsOfExperience,
     this.aadhaarNumber = '5842-9134-8492',
     this.email = 'ramesh.prajapati@kalasetu.in',
+    this.giTagNumber = '#GI-UP-2018',
+    this.generation = 'तृतीय पीढ़ी',
+    this.isPehchanVerified = true,
+    this.isCraftVerified = true,
   });
 
   factory Artisan.fromJson(Map<String, dynamic> json) {
@@ -123,6 +131,10 @@ class Artisan {
       yearsOfExperience: json['yearsOfExperience'] as int,
       aadhaarNumber: (json['aadhaarNumber'] as String?) ?? '5842-9134-8492',
       email: (json['email'] as String?) ?? 'ramesh.prajapati@kalasetu.in',
+      giTagNumber: (json['giTagNumber'] as String?) ?? '#GI-UP-2018',
+      generation: (json['generation'] as String?) ?? 'तृतीय पीढ़ी',
+      isPehchanVerified: (json['isPehchanVerified'] as bool?) ?? true,
+      isCraftVerified: (json['isCraftVerified'] as bool?) ?? true,
     );
   }
 }

@@ -43,22 +43,26 @@ class _ArtisanProfileScreenState extends ConsumerState<ArtisanProfileScreen> {
       id: 'art_1',
       name: isHindi ? 'रमेश प्रजापति' : 'Ramesh Prajapati',
       phone: '+91 98765 43210',
-      craftType: isHindi ? 'टेराकोटा शिल्प' : 'Terracotta Pottery',
-      village: isHindi ? 'बड़हलगंज' : 'Barhalganj',
+      craftType: isHindi ? 'गोरखपुर टेराकोटा एवं माटी शिल्प' : 'Gorakhpur Terracotta & Clay Craft',
+      village: isHindi ? 'गांव औरंगाबाद' : 'Aurangabad Village',
       district: isHindi ? 'गोरखपुर' : 'Gorakhpur',
       state: isHindi ? 'उत्तर प्रदेश' : 'Uttar Pradesh',
       isCertified: true,
-      artisanCardNumber: 'UP/TERRA/2021/8492',
+      artisanCardNumber: 'IND-UP-GKP-9021',
       aadhaarNumber: '5842-9134-8492',
       email: 'ramesh.prajapati@kalasetu.in',
       avatarUrl:
-          'https://lh3.googleusercontent.com/aida-public/AB6AXuB3sV-GYA0lx00uY-wcyCGKIEJi1pJCzJy99rDKdTCu56nL130Frmkp11Rh59MuH1zyK5xZArvcRK1kGahDZgyXtpcykw8v4zHQunxg9abSMFOOhRUtNSTvmhZNK5fzaDbTxY5nJKoZlJdbDCs503FQbB1tagmI-Q4DcAC-NQZYx5c1khH0XtdtrkYgC22-Kb8h_emvmrzgw24ZjROCv0EKo6c1BNt_it-hfswbRFnjlPD2h_o3izQs',
+          'https://lh3.googleusercontent.com/aida/AEtjO1WwXZ6MsJlC0xG1asbyymA6hnNNQvTRJ40iowmrO3sGggI4vS1kqCVRZGWuSo8STZQzZpohJ5hwl3cvVfGALpD5tDueM88BvazRUFKUzxkR1BxAatNOsMANpHUbAfU8B_mo2MAyGPBcL3edYP7_lDhwYu8ppHol3AsoXrAc27qOubqtbUqy8aFc2B7gY1SHFROQi-r2UYIyR03XFEbz-NzsZs-qCDDMRbHTdaJwPnf75-On8LSDHqvnJm0',
       story: isHindi
-          ? 'मैं गोरखपुर में 28 वर्षों से माटी की मूर्तियां और बर्तन बना रहा हूं। यह हमारी 3 पीढ़ियों की विरासत है।'
-          : 'I have been sculpting clay for 28 years in Gorakhpur. Carrying forward a 3-generation legacy of GI-tagged terracotta art.',
-      activeProductsCount: 14,
+          ? 'हमारा परिवार तीन पीढ़ियों से गोरखपुर की राप्ती नदी की उपजाऊ काली मिट्टी से पारम्परिक टेराकोटा दीप, मूर्तियां व कलश गढ़ता आया है। लकड़ियों से सुलगने वाली भट्टी में प्राकृतिक रूप से पकाई गई यह मिट्टी कभी रंग नहीं छोड़ती। हर शिल्पकला में हमारे पुरखों का आशीर्वाद और अवध की माटी की खुशबू समाई है।'
+          : 'For three generations, our family has shaped traditional terracotta earthen lamps, sculptures, and pitchers using the fertile black clay of Gorakhpur\'s Rapti riverbed. Fired naturally in wood-burning kilns, this clay never loses its earthy sheen. Every piece embodies our ancestral blessings and the fragrant soil of Awadh.',
+      activeProductsCount: 18,
       rating: 4.9,
-      yearsOfExperience: 28,
+      yearsOfExperience: 24,
+      giTagNumber: '#GI-UP-2018',
+      generation: isHindi ? 'तृतीय पीढ़ी' : '3rd Generation',
+      isPehchanVerified: true,
+      isCraftVerified: true,
     );
   }
 
@@ -132,7 +136,7 @@ class _ArtisanProfileScreenState extends ConsumerState<ArtisanProfileScreen> {
     return Scaffold(
       backgroundColor: AppColors.surface,
       appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(64),
+        preferredSize: const Size.fromHeight(66),
         child: Container(
           decoration: BoxDecoration(
             color: AppColors.surfaceContainer.withValues(alpha: 0.95),
@@ -143,24 +147,57 @@ class _ArtisanProfileScreenState extends ConsumerState<ArtisanProfileScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Row(
                 children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back, color: AppColors.onSurface),
-                    onPressed: () {
-                      debugPrint('[ArtisanProfileScreen] Back button tapped -> navigating to /artisan/home');
-                      context.go('/artisan/home');
-                    },
-                  ),
-                  Text(
-                    ref.tr('profile_title'),
-                    style: const TextStyle(
-                      fontFamily: 'Literata',
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.primary,
+                  Container(
+                    width: 38,
+                    height: 38,
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceContainer,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.4)),
                     ),
+                    padding: const EdgeInsets.all(4),
+                    child: ClipOval(
+                      child: Image.asset(AppConstants.logoPath, fit: BoxFit.cover),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text(
+                        'KalaSetu',
+                        style: TextStyle(
+                          fontFamily: 'Literata',
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                      Text(
+                        isHindi ? 'कलासेतु शिल्प मेले' : 'Craft Fairs & Haats',
+                        style: const TextStyle(fontSize: 11, color: AppColors.onSurfaceVariant),
+                      ),
+                    ],
                   ),
                   const Spacer(),
                   const LanguageTogglePill(),
+                  const SizedBox(width: 10),
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+                    ),
+                    child: ClipOval(
+                      child: Image.network(
+                        artisan.avatarUrl,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => const Icon(Icons.person, color: AppColors.primary, size: 20),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -169,7 +206,44 @@ class _ArtisanProfileScreenState extends ConsumerState<ArtisanProfileScreen> {
       ),
       body: artisanAsync.isLoading && !artisanAsync.hasValue
           ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
-          : _buildProfileContent(context, artisan, user, isHindi),
+          : Column(
+              children: [
+                if (_isPlayingStory)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    color: AppColors.secondaryContainer,
+                    child: Row(
+                      children: [
+                        const Icon(Icons.volume_up, size: 20, color: AppColors.onSecondaryContainer),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            isHindi
+                                ? 'ऑडियो चल रहा है: रमेश जी की कहानी (1:45 मिनट)'
+                                : 'Now Playing: Story of Master Ramesh (1:45 min)',
+                            style: const TextStyle(
+                              fontFamily: 'Be Vietnam Pro',
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.onSecondaryContainer,
+                            ),
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            setState(() => _isPlayingStory = false);
+                          },
+                          child: const Icon(Icons.close, size: 18, color: AppColors.onSecondaryContainer),
+                        ),
+                      ],
+                    ),
+                  ),
+                Expanded(
+                  child: _buildProfileContent(context, artisan, user, isHindi),
+                ),
+              ],
+            ),
     );
   }
 
@@ -180,109 +254,298 @@ class _ArtisanProfileScreenState extends ConsumerState<ArtisanProfileScreen> {
     bool isHindi,
   ) {
     final name = artisan.name.isNotEmpty ? artisan.name : (user?.name ?? (isHindi ? 'रमेश प्रजापति' : 'Ramesh Prajapati'));
-    final craft = '${artisan.craftType}, ${artisan.district}';
-    final story = artisan.story.isNotEmpty ? artisan.story : ref.tr('artisan_story_text');
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 1. Profile Header Card
-          Container(
-            decoration: BoxDecoration(
-              color: AppColors.surfaceContainerHigh,
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.4)),
-              boxShadow: const [
-                BoxShadow(color: Color(0x0C000000), blurRadius: 10, offset: Offset(0, 3)),
-              ],
+          // 1. Artisan Hero Card
+          _buildHeroCard(context, artisan, name, isHindi),
+          const SizedBox(height: 16),
+
+          // 2. Artisan Story & Heritage Card
+          _buildStoryAndHeritageCard(context, artisan, isHindi),
+          const SizedBox(height: 16),
+
+          // 3. Credentials & Trust Stats
+          _buildCredentialsTrustCard(isHindi),
+          const SizedBox(height: 16),
+
+          // 4. Workshop & Craft Studio Gallery (Carousel)
+          _buildStudioGalleryCard(context, artisan, isHindi),
+          const SizedBox(height: 16),
+
+          // 5. Bank & Payout Summary Card
+          _buildBankPayoutCard(isHindi),
+          const SizedBox(height: 16),
+
+          // 6. Verified Identity & Masked Aadhaar Card
+          _buildIdentityAndContactCard(context, artisan, isHindi),
+          const SizedBox(height: 16),
+
+          // 7. Artisan Welfare Schemes & Support
+          _buildSchemesAndHelplineCard(context, isHindi),
+          const SizedBox(height: 16),
+
+          // 8. Quick Actions & Sign Out
+          _buildActionsSection(context, artisan, isHindi),
+          const SizedBox(height: 24),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeroCard(
+    BuildContext context,
+    Artisan artisan,
+    String name,
+    bool isHindi,
+  ) {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFFF9ECD9),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.35)),
+        boxShadow: const [
+          BoxShadow(color: Color(0x0C000000), blurRadius: 8, offset: Offset(0, 2)),
+        ],
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Stack(
+        children: [
+          Positioned(
+            right: -24,
+            bottom: -24,
+            child: Container(
+              width: 120,
+              height: 120,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFFFFB599).withValues(alpha: 0.25),
+              ),
             ),
-            padding: const EdgeInsets.all(18),
+          ),
+          Positioned(
+            right: 16,
+            top: 16,
+            child: Opacity(
+              opacity: 0.1,
+              child: const Icon(Icons.circle_outlined, size: 68, color: AppColors.primary),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      width: 68,
-                      height: 68,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.primary, width: 2),
-                        color: AppColors.surfaceContainer,
-                      ),
-                      child: ClipOval(
-                        child: Image.network(
-                          artisan.avatarUrl,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => const Icon(Icons.person, size: 40, color: AppColors.primary),
+                    Stack(
+                      children: [
+                        Container(
+                          width: 76,
+                          height: 76,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.5), width: 1.5),
+                            color: AppColors.surfaceContainerHigh,
+                          ),
+                          child: ClipOval(
+                            child: Image.network(
+                              artisan.avatarUrl,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => const Icon(Icons.person, size: 44, color: AppColors.primary),
+                            ),
+                          ),
                         ),
-                      ),
+                        Positioned(
+                          right: 0,
+                          bottom: 0,
+                          child: Container(
+                            padding: const EdgeInsets.all(3),
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: AppColors.primary,
+                            ),
+                            child: const Icon(Icons.verified, size: 16, color: Colors.white),
+                          ),
+                        ),
+                      ],
                     ),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFFDDB0),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
                               children: [
-                                Row(
-                                  children: [
-                                    Container(
-                                      width: 8,
-                                      height: 8,
-                                      decoration: const BoxDecoration(
-                                        color: AppColors.secondaryContainer,
-                                        shape: BoxShape.circle,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      ref.tr('certified_badge'),
-                                      style: const TextStyle(
-                                        fontFamily: 'Be Vietnam Pro',
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.secondary,
-                                        letterSpacing: 0.5,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  name,
-                                  style: const TextStyle(
-                                    fontFamily: 'Literata',
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.onSurface,
+                                Container(
+                                  width: 5,
+                                  height: 5,
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFF805600),
+                                    shape: BoxShape.circle,
                                   ),
                                 ),
+                                const SizedBox(width: 5),
                                 Text(
-                                  craft,
-                                  style: const TextStyle(fontSize: 13, color: AppColors.onSurfaceVariant),
+                                  isHindi ? 'प्रमाणित मास्टर शिल्पी' : 'Certified Master Artisan',
+                                  style: const TextStyle(
+                                    fontFamily: 'Be Vietnam Pro',
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF805600),
+                                  ),
                                 ),
                               ],
                             ),
                           ),
+                          const SizedBox(height: 4),
+                          Text(
+                            name,
+                            style: const TextStyle(
+                              fontFamily: 'Literata',
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.onSurface,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            artisan.craftType,
+                            style: const TextStyle(
+                              fontFamily: 'Be Vietnam Pro',
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                          const SizedBox(height: 3),
+                          Row(
+                            children: [
+                              const Icon(Icons.location_on, size: 14, color: AppColors.outline),
+                              const SizedBox(width: 3),
+                              Expanded(
+                                child: Text(
+                                  '${artisan.village}, ${artisan.district}, ${artisan.state}',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontFamily: 'Be Vietnam Pro',
+                                    fontSize: 12,
+                                    color: AppColors.onSurfaceVariant,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ],
                       ),
-                      const SizedBox(height: 14),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                // GI Tag container
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.3)),
+                    boxShadow: const [
+                      BoxShadow(color: Color(0x06000000), blurRadius: 4, offset: Offset(0, 1)),
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(Icons.shield_outlined, size: 18, color: AppColors.secondary),
+                              const SizedBox(width: 6),
+                              Text(
+                                isHindi ? 'जी.आई. टैग धारक (#GI-UP-2018)' : 'GI Tag Holder (#GI-UP-2018)',
+                                style: const TextStyle(
+                                  fontFamily: 'Be Vietnam Pro',
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.onSurface,
+                                ),
+                              ),
+                            ],
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: AppColors.surfaceContainerHigh,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              isHindi ? 'मान्यता प्राप्त' : 'Certified',
+                              style: const TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.onSurfaceVariant,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          const Icon(Icons.military_tech_outlined, size: 16, color: AppColors.secondary),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              isHindi
+                                  ? '24 वर्ष का अनुभव • राज्य हस्तशिल्प पुरस्कार विजेता'
+                                  : '24 Years Experience • State Handicraft Awardee',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: AppColors.onSurfaceVariant,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 10),
+                // Verified chips
+                Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
                         decoration: BoxDecoration(
-                          color: AppColors.surfaceContainerLowest,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.3)),
+                          color: AppColors.surfaceContainerHigh,
+                          borderRadius: BorderRadius.circular(20),
                         ),
                         child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(Icons.verified, size: 18, color: Color(0xFF6B7A4F)),
-                            const SizedBox(width: 8),
-                            Expanded(
+                            const Icon(Icons.check_circle, size: 15, color: Color(0xFF805600)),
+                            const SizedBox(width: 5),
+                            Flexible(
                               child: Text(
-                                ref.tr('gi_card_number'),
+                                isHindi ? 'पहचान पत्र (Pehchan ID)' : 'Pehchan ID Verified',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
-                                  fontSize: 12,
+                                  fontSize: 11,
                                   fontWeight: FontWeight.w600,
                                   color: AppColors.onSurface,
                                 ),
@@ -291,846 +554,1096 @@ class _ArtisanProfileScreenState extends ConsumerState<ArtisanProfileScreen> {
                           ],
                         ),
                       ),
-                      const SizedBox(height: 14),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          _buildStatItem(
-                            icon: Icons.history_edu,
-                            label: ref.tr('experience_years'),
-                          ),
-                          Container(width: 1, height: 28, color: AppColors.outlineVariant.withValues(alpha: 0.4)),
-                          _buildStatItem(
-                            icon: Icons.star_rounded,
-                            label: '4.9 ★ (128)',
-                          ),
-                          Container(width: 1, height: 28, color: AppColors.outlineVariant.withValues(alpha: 0.4)),
-                          _buildStatItem(
-                            icon: Icons.inventory_2_outlined,
-                            label: ref.tr('active_items_count'),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      // Action buttons: Edit Profile, View Listings, Contact
-                      Row(
-                        children: [
-                          Expanded(
-                            child: OutlinedButton.icon(
-                              icon: const Icon(Icons.edit_outlined, size: 16),
-                              label: Text(
-                                isHindi ? 'प्रोफ़ाइल बदलें' : 'Edit Profile',
-                                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                              ),
-                              style: OutlinedButton.styleFrom(
-                                foregroundColor: AppColors.primary,
-                                side: const BorderSide(color: AppColors.primary),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                padding: const EdgeInsets.symmetric(vertical: 10),
-                              ),
-                              onPressed: () {
-                    debugPrint('[ArtisanProfileScreen] Edit story tapped -> navigating to /artisan/story-input');
-                    context.push('/artisan/story-input');
-                  },
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: ElevatedButton.icon(
-                              icon: const Icon(Icons.storefront_outlined, size: 16),
-                              label: Text(
-                                isHindi ? 'उत्पाद देखें' : 'View Listings',
-                                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                              ),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.primary,
-                                foregroundColor: Colors.white,
-                                elevation: 0,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                padding: const EdgeInsets.symmetric(vertical: 10),
-                              ),
-                              onPressed: () {
-                    debugPrint('[ArtisanProfileScreen] View shop catalog tapped for artisan: ${artisan.id}');
-                    context.push('/artisan/shop-catalog/${artisan.id}');
-                  },
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Material(
-                            color: AppColors.secondaryContainer.withValues(alpha: 0.3),
-                            borderRadius: BorderRadius.circular(10),
-                            child: InkWell(
-                              borderRadius: BorderRadius.circular(10),
-                              onTap: () {
-                    debugPrint('[ArtisanProfileScreen] Contact artisan tapped -> opening contact dialog');
-                    _showContactDialog(context, artisan, isHindi);
-                  },
-                              child: Padding(
-                                padding: const EdgeInsets.all(10),
-                                child: const Icon(Icons.phone_in_talk, size: 18, color: AppColors.secondary),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // 2. Verified Identity & Contact Details Card
-                Container(
-                  decoration: BoxDecoration(
-                    color: AppColors.surfaceContainerHigh,
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.4)),
-                    boxShadow: const [
-                      BoxShadow(color: Color(0x0A000000), blurRadius: 8, offset: Offset(0, 2)),
-                    ],
-                  ),
-                  padding: const EdgeInsets.all(18),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(6),
-                            decoration: BoxDecoration(
-                              color: AppColors.primary.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: const Icon(Icons.verified_user_outlined, size: 20, color: AppColors.primary),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Text(
-                              ref.tr('identity_contact_title'),
-                              style: const TextStyle(
-                                fontFamily: 'Literata',
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.onSurface,
-                              ),
-                            ),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF6B7A4F).withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(Icons.check_circle, size: 12, color: Color(0xFF6B7A4F)),
-                                const SizedBox(width: 4),
-                                Text(
-                                  isHindi ? 'सत्यापित' : 'Verified',
-                                  style: const TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF6B7A4F),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Aadhaar Item (Masked with toggle reveal)
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                        decoration: BoxDecoration(
-                          color: AppColors.surfaceContainerLowest,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.3)),
-                        ),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 36,
-                              height: 36,
-                              decoration: BoxDecoration(
-                                color: AppColors.secondaryContainer.withValues(alpha: 0.3),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: const Icon(Icons.fingerprint, color: AppColors.secondary, size: 20),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    ref.tr('aadhaar_label'),
-                                    style: const TextStyle(fontSize: 11, color: AppColors.onSurfaceVariant),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    _formatAadhaar(artisan.aadhaarNumber, _isAadhaarRevealed),
-                                    style: const TextStyle(
-                                      fontFamily: 'Be Vietnam Pro',
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                      letterSpacing: 1.2,
-                                      color: AppColors.onSurface,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            InkWell(
-                              borderRadius: BorderRadius.circular(8),
-                              onTap: () {
-                                setState(() {
-                                  _isAadhaarRevealed = !_isAadhaarRevealed;
-                                });
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: AppColors.surfaceContainerHigh,
-                                  borderRadius: BorderRadius.circular(6),
-                                  border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.5)),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      _isAadhaarRevealed ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                                      size: 15,
-                                      color: AppColors.primary,
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      _isAadhaarRevealed ? ref.tr('tap_to_hide') : ref.tr('tap_to_reveal'),
-                                      style: const TextStyle(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.primary,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-
-                      // Location Item
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                        decoration: BoxDecoration(
-                          color: AppColors.surfaceContainerLowest,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.3)),
-                        ),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 36,
-                              height: 36,
-                              decoration: BoxDecoration(
-                                color: AppColors.primary.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: const Icon(Icons.place_outlined, color: AppColors.primary, size: 20),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    ref.tr('craft_location_label'),
-                                    style: const TextStyle(fontSize: 11, color: AppColors.onSurfaceVariant),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    '${artisan.village}, ${artisan.district}, ${artisan.state}',
-                                    style: const TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppColors.onSurface,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-
-                      // Phone Item
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                        decoration: BoxDecoration(
-                          color: AppColors.surfaceContainerLowest,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.3)),
-                        ),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 36,
-                              height: 36,
-                              decoration: BoxDecoration(
-                                color: AppColors.secondary.withValues(alpha: 0.12),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: const Icon(Icons.phone_android, color: AppColors.secondary, size: 20),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    ref.tr('registered_phone_label'),
-                                    style: const TextStyle(fontSize: 11, color: AppColors.onSurfaceVariant),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    artisan.phone,
-                                    style: const TextStyle(
-                                      fontFamily: 'Be Vietnam Pro',
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppColors.onSurface,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      // Email Item (Optional)
-                      if (artisan.email != null && artisan.email!.isNotEmpty) ...[
-                        const SizedBox(height: 10),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                          decoration: BoxDecoration(
-                            color: AppColors.surfaceContainerLowest,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.3)),
-                          ),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 36,
-                                height: 36,
-                                decoration: BoxDecoration(
-                                  color: AppColors.tertiary.withValues(alpha: 0.12),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: const Icon(Icons.mail_outline, color: AppColors.tertiary, size: 20),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      ref.tr('email_label'),
-                                      style: const TextStyle(fontSize: 11, color: AppColors.onSurfaceVariant),
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      artisan.email!,
-                                      style: const TextStyle(
-                                        fontFamily: 'Be Vietnam Pro',
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w600,
-                                        color: AppColors.onSurface,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                // 2. Artisan's Listed Crafts Section
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      isHindi ? 'शिल्पकार के उत्पाद' : "Artisan's Listed Crafts",
-                      style: const TextStyle(
-                        fontFamily: 'Literata',
-                        fontSize: 17,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.onSurface,
-                      ),
                     ),
-                    TextButton(
-                      onPressed: () {
-                    debugPrint('[ArtisanProfileScreen] View shop catalog tapped for artisan: ${artisan.id}');
-                    context.push('/artisan/shop-catalog/${artisan.id}');
-                  },
-                      child: Text(
-                        isHindi ? 'सभी देखें' : 'View All',
-                        style: const TextStyle(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 13,
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                        decoration: BoxDecoration(
+                          color: AppColors.surfaceContainerHigh,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.verified_user, size: 15, color: Color(0xFF805600)),
+                            const SizedBox(width: 5),
+                            Flexible(
+                              child: Text(
+                                isHindi ? 'शिल्प मित्र सत्यापित' : 'KalaSetu Verified',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.onSurface,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
-                Consumer(
-                  builder: (context, ref, _) {
-                    final productsAsync = ref.watch(artisanProductsProvider(artisan.id));
-                    return productsAsync.when(
-                      loading: () => const Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(20),
-                          child: CircularProgressIndicator(color: AppColors.primary),
+                const SizedBox(height: 14),
+                // Action Buttons
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        icon: const Icon(Icons.edit_outlined, size: 16),
+                        label: Text(
+                          isHindi ? 'प्रोफ़ाइल बदलें' : 'Edit Profile',
+                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColors.primary,
+                          side: const BorderSide(color: AppColors.primary),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                        ),
+                        onPressed: () {
+                          debugPrint('[ArtisanProfileScreen] Edit profile tapped -> /artisan/story-input');
+                          context.push('/artisan/story-input');
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        icon: const Icon(Icons.storefront_outlined, size: 16),
+                        label: Text(
+                          isHindi ? 'उत्पाद देखें' : 'View Listings',
+                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                        ),
+                        onPressed: () {
+                          debugPrint('[ArtisanProfileScreen] View listings tapped for artisan: ${artisan.id}');
+                          context.push('/artisan/shop-catalog/${artisan.id}');
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Material(
+                      color: AppColors.secondaryContainer.withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(10),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(10),
+                        onTap: () {
+                          debugPrint('[ArtisanProfileScreen] Contact tapped');
+                          _showContactDialog(context, artisan, isHindi);
+                        },
+                        child: const Padding(
+                          padding: EdgeInsets.all(10),
+                          child: Icon(Icons.phone_in_talk, size: 18, color: AppColors.secondary),
                         ),
                       ),
-                      error: (_, __) => const SizedBox.shrink(),
-                      data: (products) {
-                        if (products.isEmpty) {
-                          return Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: AppColors.surfaceContainerLow,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.3)),
-                            ),
-                            child: Center(
-                              child: Text(
-                                isHindi ? 'कोई उत्पाद उपलब्ध नहीं है' : 'No listings available yet',
-                                style: const TextStyle(color: AppColors.onSurfaceVariant),
-                              ),
-                            ),
-                          );
-                        }
-                        return SizedBox(
-                          height: 190,
-                          child: ListView.separated(
-                            scrollDirection: Axis.horizontal,
-                            itemCount: products.length,
-                            separatorBuilder: (_, __) => const SizedBox(width: 12),
-                            itemBuilder: (context, index) {
-                              final prod = products[index];
-                              final prodTitle = isHindi && prod.nameHi.isNotEmpty ? prod.nameHi : prod.nameEn;
-                              return GestureDetector(
-                                onTap: () {
-                        debugPrint('[ArtisanProfileScreen] Product card tapped: id=${prod.id}');
-                        context.push('/artisan/product/${prod.id}');
-                      },
-                                child: Container(
-                                  width: 140,
-                                  decoration: BoxDecoration(
-                                    color: AppColors.surfaceContainerLow,
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.3)),
-                                  ),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      ClipRRect(
-                                        borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                                        child: Image.network(
-                                          prod.imageUrl,
-                                          height: 105,
-                                          width: double.infinity,
-                                          fit: BoxFit.cover,
-                                          errorBuilder: (_, __, ___) => Container(
-                                            height: 105,
-                                            color: AppColors.surfaceContainer,
-                                            child: const Icon(Icons.image, color: AppColors.outline),
-                                          ),
-                                        ),
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.all(8),
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              prodTitle,
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                                            ),
-                                            const SizedBox(height: 2),
-                                            Text(
-                                              '₹${prod.price.toInt()}',
-                                              style: const TextStyle(
-                                                color: AppColors.primary,
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 13,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                        );
-                      },
-                    );
-                  },
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 20),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
-                // 2. Artisan Craft Story
-                Text(
-                  ref.tr('artisan_story_heading'),
+  Widget _buildStoryAndHeritageCard(
+    BuildContext context,
+    Artisan artisan,
+    bool isHindi,
+  ) {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFFFEF2DF),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.35)),
+        boxShadow: const [
+          BoxShadow(color: Color(0x08000000), blurRadius: 6, offset: Offset(0, 2)),
+        ],
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.history_edu, color: AppColors.primary, size: 22),
+                  const SizedBox(width: 8),
+                  Text(
+                    isHindi ? 'कारीगर की कहानी व धरोहर' : 'Artisan Heritage & Story',
+                    style: const TextStyle(
+                      fontFamily: 'Literata',
+                      fontSize: 17,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.onSurface,
+                    ),
+                  ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFDBCE),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  isHindi ? 'तृतीय पीढ़ी' : '3rd Generation',
                   style: const TextStyle(
-                    fontFamily: 'Literata',
-                    fontSize: 17,
+                    fontSize: 11,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.onSurface,
+                    color: Color(0xFF370E00),
                   ),
                 ),
-                const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: AppColors.surfaceContainerLow,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.4)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            artisan.story,
+            style: const TextStyle(
+              fontFamily: 'Be Vietnam Pro',
+              fontSize: 14,
+              height: 1.55,
+              color: AppColors.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                elevation: 1,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+              ),
+              icon: Icon(_isPlayingStory ? Icons.pause_circle_filled : Icons.volume_up, size: 22),
+              label: Text(
+                _isPlayingStory
+                    ? (isHindi ? 'कहानी रोकें (Pause Story)' : 'Pause Story')
+                    : (isHindi ? 'कहानी सुनें (Audio Story - 1:45 min)' : 'Listen to Story (Audio - 1:45 min)'),
+                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+              ),
+              onPressed: () {
+                final next = !_isPlayingStory;
+                setState(() => _isPlayingStory = next);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      _isPlayingStory
+                          ? (isHindi
+                              ? 'ऑडियो चल रहा है: रमेश जी की कहानी (1:45 मिनट)'
+                              : 'Now Playing: Story of Master Ramesh (1:45 min)')
+                          : (isHindi ? 'स्वर परिचय रोका गया' : 'Voice story paused'),
+                    ),
+                    duration: const Duration(seconds: 2),
                   ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCredentialsTrustCard(bool isHindi) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.35)),
+        boxShadow: const [
+          BoxShadow(color: Color(0x08000000), blurRadius: 6, offset: Offset(0, 2)),
+        ],
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.workspace_premium_outlined, color: AppColors.secondary, size: 22),
+              const SizedBox(width: 8),
+              Text(
+                isHindi ? 'विश्वास एवं शिल्पकला साख' : 'Trust & Artisan Credentials',
+                style: const TextStyle(
+                  fontFamily: 'Literata',
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.onSurface,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceContainerLowest,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.2)),
+                  ),
+                  child: Column(
+                    children: [
+                      const Icon(Icons.star_rounded, color: Color(0xFFFEBA4A), size: 20),
+                      const SizedBox(height: 4),
+                      const Text(
+                        '184+',
+                        style: TextStyle(fontFamily: 'Be Vietnam Pro', fontSize: 14, fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        isHindi ? 'समीक्षाएं' : 'Reviews',
+                        style: const TextStyle(fontSize: 10, color: AppColors.onSurfaceVariant),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceContainerLowest,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.2)),
+                  ),
+                  child: Column(
+                    children: [
+                      const Icon(Icons.inventory_2_outlined, color: AppColors.primary, size: 20),
+                      const SizedBox(height: 4),
+                      const Text(
+                        '520+',
+                        style: TextStyle(fontFamily: 'Be Vietnam Pro', fontSize: 14, fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        isHindi ? 'हस्तशिल्प निर्मित' : 'Pieces Made',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontSize: 10, color: AppColors.onSurfaceVariant),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceContainerLowest,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.2)),
+                  ),
+                  child: Column(
+                    children: [
+                      const Icon(Icons.eco_outlined, color: Color(0xFF6B7A4F), size: 20),
+                      const SizedBox(height: 4),
+                      const Text(
+                        '100%',
+                        style: TextStyle(fontFamily: 'Be Vietnam Pro', fontSize: 14, fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        isHindi ? 'प्राकृतिक मिट्टी' : 'Pure Clay',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontSize: 10, color: AppColors.onSurfaceVariant),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.surfaceContainerLowest,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.2)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.badge_outlined, color: AppColors.secondary, size: 20),
+                const SizedBox(width: 10),
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        story,
-                        style: const TextStyle(
-                          fontFamily: 'Be Vietnam Pro',
-                          fontSize: 13,
-                          height: 1.5,
-                          color: AppColors.onSurface,
-                        ),
+                        isHindi ? 'हस्तशिल्प पहचान पत्र (वस्त्र मंत्रालय)' : 'Artisan Pehchan Card (Ministry of Textiles)',
+                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                       ),
-                      const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          ElevatedButton.icon(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: _isPlayingStory ? AppColors.secondary : AppColors.primary,
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                            ),
-                            icon: Icon(_isPlayingStory ? Icons.pause_circle_filled : Icons.volume_up, size: 18),
-                            label: Text(
-                              _isPlayingStory
-                                  ? (isHindi ? 'कहानी रोकें' : 'Pause Story')
-                                  : (isHindi ? 'कहानी सुनें' : 'Listen to Story'),
-                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                            ),
-                            onPressed: () {
-                              final next = !_isPlayingStory;
-                              debugPrint('[ArtisanProfileScreen] Story audio play toggle: isPlaying=$next');
-                              setState(() {
-                                _isPlayingStory = next;
-                              });
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    _isPlayingStory
-                                        ? (isHindi
-                                            ? 'स्वर परिचय सुनाया जा रहा है...'
-                                            : 'Playing artisan voice story...')
-                                        : (isHindi ? 'स्वर परिचय रोका गया' : 'Voice story paused'),
-                                  ),
-                                  duration: const Duration(seconds: 2),
-                                ),
-                              );
-                            },
-                          ),
-                          const SizedBox(width: 10),
-                          OutlinedButton.icon(
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: AppColors.primary,
-                              side: const BorderSide(color: AppColors.primary),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                            ),
-                            icon: const Icon(Icons.edit_note, size: 18),
-                            label: Text(
-                              isHindi ? 'कहानी बदलें' : 'Edit Story',
-                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                            ),
-                            onPressed: () {
-                      debugPrint('[ArtisanProfileScreen] Voice onboarding button pressed');
-                      context.push('/artisan/voice-onboarding');
-                    },
-                          ),
-                        ],
+                      const SizedBox(height: 2),
+                      Text(
+                        'ID: IND-UP-GKP-9021 • ${isHindi ? 'वैध 2028 तक' : 'Valid until 2028'}',
+                        style: const TextStyle(fontSize: 11, color: AppColors.onSurfaceVariant),
                       ),
-                      if (_isPlayingStory) ...[
-                        const SizedBox(height: 12),
-                        Container(
-                          padding: const EdgeInsets.all(12),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.surfaceContainerLowest,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.2)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.account_balance_outlined, color: Color(0xFF6B7A4F), size: 20),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        isHindi ? 'कारीगर बैंक खाता लिंक (DBT सक्षम)' : 'Linked Bank Account (DBT Active)',
+                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        isHindi
+                            ? 'सरकारी अनुदान एवं बिक्री हेतु प्रत्यक्ष भुगतान चालू'
+                            : 'Direct Benefit Transfer active for sales & subsidies',
+                        style: const TextStyle(fontSize: 11, color: AppColors.onSurfaceVariant),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStudioGalleryCard(
+    BuildContext context,
+    Artisan artisan,
+    bool isHindi,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.palette_outlined, color: AppColors.primary, size: 20),
+                const SizedBox(width: 6),
+                Text(
+                  isHindi ? 'कार्यशाला व कलाकृतियां' : 'Workshop & Craft Studio',
+                  style: const TextStyle(
+                    fontFamily: 'Literata',
+                    fontSize: 17,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.onSurface,
+                  ),
+                ),
+              ],
+            ),
+            TextButton(
+              onPressed: () {
+                debugPrint('[ArtisanProfileScreen] View all crafts tapped -> /artisan/shop-catalog/${artisan.id}');
+                context.push('/artisan/shop-catalog/${artisan.id}');
+              },
+              child: Text(
+                isHindi ? 'सभी देखें' : 'View All',
+                style: const TextStyle(
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Consumer(
+          builder: (context, ref, _) {
+            final productsAsync = ref.watch(artisanProductsProvider(artisan.id));
+            return productsAsync.when(
+              loading: () => const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(20),
+                  child: CircularProgressIndicator(color: AppColors.primary),
+                ),
+              ),
+              error: (_, __) => const SizedBox.shrink(),
+              data: (products) {
+                if (products.isEmpty) {
+                  return Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceContainerLow,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.3)),
+                    ),
+                    child: Center(
+                      child: Text(
+                        isHindi ? 'कोई कलाकृति उपलब्ध नहीं है' : 'No listings available yet',
+                        style: const TextStyle(color: AppColors.onSurfaceVariant),
+                      ),
+                    ),
+                  );
+                }
+                return SizedBox(
+                  height: 195,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: products.length,
+                    separatorBuilder: (_, __) => const SizedBox(width: 12),
+                    itemBuilder: (context, index) {
+                      final prod = products[index];
+                      final prodTitle = isHindi && prod.nameHi.isNotEmpty ? prod.nameHi : prod.nameEn;
+                      return GestureDetector(
+                        onTap: () {
+                          debugPrint('[ArtisanProfileScreen] Product card tapped: id=${prod.id}');
+                          context.push('/artisan/product/${prod.id}');
+                        },
+                        child: Container(
+                          width: 145,
                           decoration: BoxDecoration(
-                            color: AppColors.secondaryFixed.withValues(alpha: 0.6),
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: AppColors.secondary.withValues(alpha: 0.3)),
+                            color: AppColors.surfaceContainerLow,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.3)),
                           ),
-                          child: Row(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Icon(Icons.graphic_eq, color: AppColors.onSecondaryFixed, size: 22),
-                              const SizedBox(width: 10),
-                              Expanded(
+                              ClipRRect(
+                                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                                child: Image.network(
+                                  prod.imageUrl,
+                                  height: 110,
+                                  width: double.infinity,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => Container(
+                                    height: 110,
+                                    color: AppColors.surfaceContainer,
+                                    child: const Icon(Icons.image, color: AppColors.outline),
+                                  ),
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.all(8),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      isHindi ? 'ऑडियो परिचय चल रहा है...' : 'Playing Audio Introduction...',
-                                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.onSecondaryFixed),
+                                      prodTitle,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                                     ),
-                                    const SizedBox(height: 4),
-                                    const LinearProgressIndicator(
-                                      value: 0.38,
-                                      backgroundColor: Colors.black12,
-                                      valueColor: AlwaysStoppedAnimation<Color>(AppColors.secondary),
-                                      minHeight: 3,
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      '₹${prod.price.toInt()}',
+                                      style: const TextStyle(
+                                        fontFamily: 'Be Vietnam Pro',
+                                        color: AppColors.primary,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 13,
+                                      ),
                                     ),
                                   ],
                                 ),
                               ),
-                              const SizedBox(width: 10),
-                              const Text(
-                                '0:24 / 1:15',
-                                style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.onSecondaryFixed),
-                              ),
                             ],
                           ),
                         ),
-                      ],
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 24),
-
-                // 3. Complete Seller Details
-                Text(
-                  isHindi ? 'शिल्पकार पूर्ण विवरण' : 'Seller Profile Details',
-                  style: const TextStyle(
-                    fontFamily: 'Literata',
-                    fontSize: 17,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.onSurface,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: AppColors.surfaceContainerLow,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.4)),
-                  ),
-                  child: Column(
-                    children: [
-                      _buildDetailRow(
-                        icon: Icons.person_pin,
-                        label: isHindi ? 'शिल्पकार का नाम' : 'Artisan Full Name',
-                        value: name,
-                      ),
-                      const Divider(height: 16),
-                      _buildDetailRow(
-                        icon: Icons.palette_outlined,
-                        label: isHindi ? 'शिल्प विधा' : 'Master Craft Specialization',
-                        value: isHindi ? 'पारंपरिक गोरखपुर टेराकोटा शिल्प (Handmade Terracotta)' : 'Traditional Gorakhpur Terracotta Craft',
-                      ),
-                      const Divider(height: 16),
-                      _buildDetailRow(
-                        icon: Icons.place_outlined,
-                        label: isHindi ? 'कार्यशाला का पता' : 'Workshop / Studio Address',
-                        value: isHindi ? 'ग्राम बड़हलगंज, गोरखपुर, उत्तर प्रदेश - 273402' : 'Vill. Barhalganj, Gorakhpur, UP - 273402',
-                      ),
-                      const Divider(height: 16),
-                      _buildDetailRow(
-                        icon: Icons.eco_outlined,
-                        label: isHindi ? 'उपयोग होने वाली सामग्री' : 'Primary Materials Used',
-                        value: isHindi ? 'प्राकृतिक नदी की चिकनी मिट्टी, प्राकृतिक गेरू रंग' : 'River Silt Clay, Natural Mineral Ochre, Wood Kiln',
-                      ),
-                      const Divider(height: 16),
-                      _buildDetailRow(
-                        icon: Icons.history_edu_outlined,
-                        label: isHindi ? 'अनुभव एवं परंपरा' : 'Experience & Heritage',
-                        value: isHindi ? '28 वर्ष (3 पीढ़ियों की पुश्तैनी कला)' : '28 Years (3 Generations of Legacy)',
-                      ),
-                      const Divider(height: 16),
-                      _buildDetailRow(
-                        icon: Icons.verified_user_outlined,
-                        label: isHindi ? 'जी.आई. प्रमाणन संख्या' : 'GI Certification No.',
-                        value: 'UP/TERRA/2021/8492 (Active GI Holder)',
-                      ),
-                      const Divider(height: 16),
-                      _buildDetailRow(
-                        icon: Icons.military_tech_outlined,
-                        label: isHindi ? 'पुरस्कार व सम्मान' : 'Honors & Recognition',
-                        value: isHindi ? 'राज्य हस्तशिल्प पुरस्कार (2018)' : 'State Handicraft Awardee (2018)',
-                      ),
-                      const Divider(height: 16),
-                      _buildDetailRow(
-                        icon: Icons.phone_android_outlined,
-                        label: isHindi ? 'संपर्क मोबाइल' : 'Registered Mobile Number',
-                        value: '+91 98765 43210 (Verified)',
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 24),
-
-                // 4. Quick Actions & Settings
-                Text(
-                  ref.tr('profile_actions_heading'),
-                  style: const TextStyle(
-                    fontFamily: 'Literata',
-                    fontSize: 17,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.onSurface,
-                  ),
-                ),
-                const SizedBox(height: 10),
-
-                // Fairs & Exhibitions Quick Tile
-                _buildActionTile(
-                  icon: Icons.festival,
-                  title: isHindi ? 'शिल्प मेले एवं प्रदर्शनियां' : 'Fairs & Exhibitions',
-                  subtitle: isHindi ? 'आगामी मेलों और स्टॉल के लिए आवेदन करें' : 'Browse upcoming craft fairs & stalls',
-                  onTap: () => context.go('/artisan/fairs'),
-                ),
-                const SizedBox(height: 10),
-
-                // Voice Onboarding Link
-                _buildActionTile(
-                  icon: Icons.record_voice_over,
-                  title: ref.tr('update_voice_intro'),
-                  subtitle: ref.tr('update_voice_intro_desc'),
-                  onTap: () => context.push('/artisan/voice-onboarding'),
-                ),
-                const SizedBox(height: 10),
-
-                // View Shop Catalog Quick Tile
-                _buildActionTile(
-                  icon: Icons.store_mall_directory_outlined,
-                  title: isHindi ? 'दुकान उत्पाद कैटलॉग' : 'My Shop Catalog',
-                  subtitle: isHindi ? 'अपने सभी लिस्टेड क्राफ्ट देखें व प्रबंधित करें' : 'View all products listed by your shop',
-                  onTap: () => context.push('/artisan/shop-catalog/${artisan.id}'),
-                ),
-                const SizedBox(height: 10),
-
-                // Edit Profile Quick Tile
-                _buildActionTile(
-                  icon: Icons.badge_outlined,
-                  title: isHindi ? 'प्रोफ़ाइल विवरण संपादित करें' : 'Edit Profile Details',
-                  subtitle: isHindi ? 'शिल्प विधा, अनुभव और व्यक्तिगत जानकारी बदलें' : 'Update craft details, experience and info',
-                  onTap: () => context.push('/artisan/story-input'),
-                ),
-                const SizedBox(height: 10),
-
-                // Switch to Buyer Track
-                _buildActionTile(
-                  icon: Icons.shopping_bag_outlined,
-                  title: ref.tr('switch_to_buyer'),
-                  subtitle: ref.tr('switch_to_buyer_desc'),
-                  onTap: () {
-                    ref.read(authStateProvider.notifier).selectRole(UserRole.customer);
-                    debugPrint('[ArtisanProfileScreen] Role switch to Buyer confirmed -> navigating to /buyer/home');
-                              context.go('/buyer/home');
-                  },
-                ),
-                const SizedBox(height: 10),
-
-                // Language Setting Tile
-                Container(
-                  decoration: BoxDecoration(
-                    color: AppColors.surfaceContainer,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.3)),
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.language, color: AppColors.primary, size: 24),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Text(
-                          ref.tr('app_language'),
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                        ),
-                      ),
-                      const LanguageTogglePill(),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 10),
-
-                // Helpline Support
-                _buildActionTile(
-                  icon: Icons.support_agent,
-                  title: ref.tr('helpline_support'),
-                  subtitle: ref.tr('helpline_support_desc'),
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          isHindi
-                            ? 'कारीगर हेल्पलाइन 1800-200-8899 पर कॉल की जा रही है...'
-                            : 'Dialing Artisan Helpline 1800-200-8899...',
-                        ),
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 16),
-
-                // Logout Button
-                SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: OutlinedButton.icon(
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.error,
-                      side: const BorderSide(color: AppColors.error),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                    icon: const Icon(Icons.logout, size: 20),
-                    label: Text(
-                      ref.tr('logout'),
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                    ),
-                    onPressed: () {
-                      ref.read(authStateProvider.notifier).signOut();
-                      debugPrint('[ArtisanProfileScreen] Sign out confirmed -> navigating to /login');
-                              context.go('/login');
+                      );
                     },
                   ),
+                );
+              },
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBankPayoutCard(bool isHindi) {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFFFEF2DF),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.35)),
+        boxShadow: const [
+          BoxShadow(color: Color(0x08000000), blurRadius: 6, offset: Offset(0, 2)),
+        ],
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.account_balance_wallet_outlined, color: AppColors.primary, size: 22),
+                  const SizedBox(width: 8),
+                  Text(
+                    isHindi ? 'बैंक एवं भुगतान विवरण' : 'Bank & Payout Summary',
+                    style: const TextStyle(
+                      fontFamily: 'Literata',
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.onSurface,
+                    ),
+                  ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF6B7A4F).withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                const SizedBox(height: 24),
+                child: Text(
+                  isHindi ? 'सक्रिय (DBT)' : 'Active (DBT)',
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF6B7A4F),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            isHindi
+                ? 'भारतीय स्टेट बैंक (SBI) • खाता संख्या: •••• 4821'
+                : 'State Bank of India (SBI) • Account: •••• 4821',
+            style: const TextStyle(fontSize: 12, color: AppColors.onSurfaceVariant),
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.25)),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        isHindi ? 'कुल अर्जित आय' : 'Total Earnings',
+                        style: const TextStyle(fontSize: 11, color: AppColors.onSurfaceVariant),
+                      ),
+                      const SizedBox(height: 3),
+                      const Text(
+                        '₹2,48,600',
+                        style: TextStyle(
+                          fontFamily: 'Be Vietnam Pro',
+                          fontSize: 17,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.onSurface,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(width: 1, height: 36, color: AppColors.outlineVariant.withValues(alpha: 0.4)),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        isHindi ? 'आगामी भुगतान' : 'Next Payout',
+                        style: const TextStyle(fontSize: 11, color: AppColors.onSurfaceVariant),
+                      ),
+                      const SizedBox(height: 3),
+                      const Text(
+                        '₹7,450',
+                        style: TextStyle(
+                          fontFamily: 'Be Vietnam Pro',
+                          fontSize: 17,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
-          );
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              const Icon(Icons.schedule, size: 14, color: Color(0xFF6B7A4F)),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  isHindi
+                      ? 'कल सुबह 10:00 बजे तक आपके बैंक खाते में जमा होगा'
+                      : 'Arriving in your bank account tomorrow by 10:00 AM',
+                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: Color(0xFF6B7A4F)),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildIdentityAndContactCard(
+    BuildContext context,
+    Artisan artisan,
+    bool isHindi,
+  ) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.35)),
+        boxShadow: const [
+          BoxShadow(color: Color(0x08000000), blurRadius: 6, offset: Offset(0, 2)),
+        ],
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.verified_user_outlined, color: AppColors.primary, size: 20),
+                  const SizedBox(width: 8),
+                  Text(
+                    isHindi ? 'पहचान एवं संपर्क विवरण' : 'Identity & Contact Details',
+                    style: const TextStyle(
+                      fontFamily: 'Literata',
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.onSurface,
+                    ),
+                  ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF6B7A4F).withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  isHindi ? 'सत्यापित' : 'Verified',
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF6B7A4F),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+
+          // Aadhaar Box
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: AppColors.surfaceContainerLowest,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.25)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.fingerprint, color: AppColors.secondary, size: 24),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        isHindi ? 'आधार संख्या' : 'Aadhaar Number',
+                        style: const TextStyle(fontSize: 11, color: AppColors.onSurfaceVariant),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        _formatAadhaar(artisan.aadhaarNumber, _isAadhaarRevealed),
+                        style: const TextStyle(
+                          fontFamily: 'Be Vietnam Pro',
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                InkWell(
+                  borderRadius: BorderRadius.circular(8),
+                  onTap: () {
+                    setState(() => _isAadhaarRevealed = !_isAadhaarRevealed);
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceContainerHigh,
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.4)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          _isAadhaarRevealed ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                          size: 15,
+                          color: AppColors.primary,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          _isAadhaarRevealed ? (isHindi ? 'छिपाएं' : 'Hide') : (isHindi ? 'देखें' : 'Reveal'),
+                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.primary),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+
+          // Location Box
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: AppColors.surfaceContainerLowest,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.25)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.place_outlined, color: AppColors.primary, size: 24),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        isHindi ? 'कार्यशाला का पता' : 'Workshop Address',
+                        style: const TextStyle(fontSize: 11, color: AppColors.onSurfaceVariant),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '${artisan.village}, ${artisan.district}, ${artisan.state} - 273001',
+                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+
+          // Mobile Box
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: AppColors.surfaceContainerLowest,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.25)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.phone_android, color: AppColors.secondary, size: 24),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        isHindi ? 'पंजीकृत मोबाइल' : 'Registered Mobile',
+                        style: const TextStyle(fontSize: 11, color: AppColors.onSurfaceVariant),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        artisan.phone,
+                        style: const TextStyle(
+                          fontFamily: 'Be Vietnam Pro',
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.call, size: 20, color: AppColors.primary),
+                  onPressed: () => _showContactDialog(context, artisan, isHindi),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSchemesAndHelplineCard(BuildContext context, bool isHindi) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.35)),
+        boxShadow: const [
+          BoxShadow(color: Color(0x08000000), blurRadius: 6, offset: Offset(0, 2)),
+        ],
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.volunteer_activism_outlined, color: AppColors.primary, size: 22),
+              const SizedBox(width: 8),
+              Text(
+                isHindi ? 'कारीगर कल्याण योजनाएं' : 'Artisan Welfare Schemes',
+                style: const TextStyle(
+                  fontFamily: 'Literata',
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.onSurface,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.surfaceContainerLowest,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.25)),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(Icons.handyman_outlined, color: AppColors.secondary, size: 22),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            isHindi ? 'पीएम विश्वकर्मा योजना' : 'PM Vishwakarma Scheme',
+                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF6B7A4F).withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              isHindi ? 'सक्रिय' : 'Active',
+                              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF6B7A4F)),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        isHindi
+                            ? 'टूलकिट प्रोत्साहन एवं ₹1 लाख ऋण स्वीकृत'
+                            : 'Toolkit incentive & ₹1 Lakh collateral-free loan approved',
+                        style: const TextStyle(fontSize: 11, color: AppColors.onSurfaceVariant),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              icon: const Icon(Icons.phone_in_talk, size: 18),
+              label: Text(
+                isHindi
+                    ? '1800-200-8899 शिल्प मित्र से बात करें'
+                    : '1800-200-8899 Call Craft Friend',
+                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+              ),
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      isHindi
+                          ? 'कारीगर हेल्पलाइन 1800-200-8899 पर कॉल की जा रही है...'
+                          : 'Dialing Artisan Helpline 1800-200-8899...',
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionsSection(
+    BuildContext context,
+    Artisan artisan,
+    bool isHindi,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          isHindi ? 'त्वरित सेटिंग्स व सेवाएं' : 'Quick Actions & Settings',
+          style: const TextStyle(
+            fontFamily: 'Literata',
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: AppColors.onSurface,
+          ),
+        ),
+        const SizedBox(height: 10),
+
+        // Fairs & Exhibitions Tile
+        _buildActionTile(
+          icon: Icons.festival,
+          title: isHindi ? 'शिल्प मेले एवं प्रदर्शनियां' : 'Craft Fairs & Haats',
+          subtitle: isHindi ? 'आगामी मेलों और स्टॉल के लिए आवेदन करें' : 'Browse upcoming craft fairs & stalls',
+          onTap: () => context.go('/artisan/fairs'),
+        ),
+        const SizedBox(height: 10),
+
+        // Voice Onboarding Link
+        _buildActionTile(
+          icon: Icons.record_voice_over,
+          title: ref.tr('update_voice_intro'),
+          subtitle: ref.tr('update_voice_intro_desc'),
+          onTap: () => context.push('/artisan/voice-onboarding'),
+        ),
+        const SizedBox(height: 10),
+
+        // View Shop Catalog Quick Tile
+        _buildActionTile(
+          icon: Icons.store_mall_directory_outlined,
+          title: isHindi ? 'दुकान उत्पाद कैटलॉग' : 'My Shop Catalog',
+          subtitle: isHindi ? 'अपने सभी लिस्टेड क्राफ्ट देखें व प्रबंधित करें' : 'View all products listed by your shop',
+          onTap: () => context.push('/artisan/shop-catalog/${artisan.id}'),
+        ),
+        const SizedBox(height: 10),
+
+        // Switch to Buyer Track
+        _buildActionTile(
+          icon: Icons.shopping_bag_outlined,
+          title: ref.tr('switch_to_buyer'),
+          subtitle: ref.tr('switch_to_buyer_desc'),
+          onTap: () {
+            ref.read(authStateProvider.notifier).selectRole(UserRole.customer);
+            debugPrint('[ArtisanProfileScreen] Role switch to Buyer confirmed -> navigating to /buyer/home');
+            context.go('/buyer/home');
+          },
+        ),
+        const SizedBox(height: 10),
+
+        // Language Setting Tile
+        Container(
+          decoration: BoxDecoration(
+            color: AppColors.surfaceContainer,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.3)),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            children: [
+              const Icon(Icons.language, color: AppColors.primary, size: 24),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Text(
+                  ref.tr('app_language'),
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                ),
+              ),
+              const LanguageTogglePill(),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        // Logout Button
+        SizedBox(
+          width: double.infinity,
+          height: 48,
+          child: OutlinedButton.icon(
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.error,
+              side: const BorderSide(color: AppColors.error),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            icon: const Icon(Icons.logout, size: 20),
+            label: Text(
+              ref.tr('logout'),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+            ),
+            onPressed: () {
+              ref.read(authStateProvider.notifier).signOut();
+              debugPrint('[ArtisanProfileScreen] Sign out confirmed -> navigating to /login');
+              context.go('/login');
+            },
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _buildStatItem({required IconData icon, required String label}) {
