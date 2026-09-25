@@ -19,6 +19,12 @@ class _B2bBulkRequestScreenState extends ConsumerState<B2bBulkRequestScreen> {
   String _selectedCraft = 'Gorakhpur Terracotta';
 
   @override
+  void initState() {
+    super.initState();
+    debugPrint('[B2bBulkRequestScreen] Initialized');
+  }
+
+  @override
   void dispose() {
     _companyCtrl.dispose();
     _quantityCtrl.dispose();
@@ -101,7 +107,10 @@ class _B2bBulkRequestScreenState extends ConsumerState<B2bBulkRequestScreen> {
                   'Moradabad Brass Art',
                   'Kashmiri Pashmina',
                 ].map((c) => DropdownMenuItem(value: c, child: Text(c, style: const TextStyle(fontSize: 14)))).toList(),
-                onChanged: (val) => setState(() => _selectedCraft = val ?? _selectedCraft),
+                onChanged: (val) {
+                  debugPrint('[B2bBulkRequestScreen] Craft category changed: $val');
+                  setState(() => _selectedCraft = val ?? _selectedCraft);
+                },
               ),
             ),
             const SizedBox(height: 14),
@@ -141,6 +150,7 @@ class _B2bBulkRequestScreenState extends ConsumerState<B2bBulkRequestScreen> {
               label: isHindi ? 'कोटेशन अनुरोध भेजें' : 'Submit Quotation Request',
               icon: Icons.send,
               onPressed: () {
+                debugPrint('[B2bBulkRequestScreen] Quotation request submitted: company="${_companyCtrl.text}", craft="$_selectedCraft", qty="${_quantityCtrl.text}"');
                 showDialog(
                   context: context,
                   builder: (_) => AlertDialog(
@@ -151,6 +161,7 @@ class _B2bBulkRequestScreenState extends ConsumerState<B2bBulkRequestScreen> {
                     actions: [
                       TextButton(
                         onPressed: () {
+                          debugPrint('[B2bBulkRequestScreen] Request dialog OK pressed -> popping screen');
                           Navigator.pop(context);
                           context.pop();
                         },

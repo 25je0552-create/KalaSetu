@@ -11,6 +11,7 @@ class RoleSelectScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    debugPrint('[RoleSelectScreen] Rendered role selection screen');
     return Scaffold(
       backgroundColor: AppColors.surface,
       appBar: AppBar(
@@ -51,6 +52,7 @@ class RoleSelectScreen extends ConsumerWidget {
               PotteryCard(
                 backgroundColor: AppColors.surfaceContainerLow,
                 onTap: () {
+                  debugPrint('[RoleSelectScreen] Selected UserRole.artisan -> routing to /artisan/home');
                   ref.read(authStateProvider.notifier).selectRole(UserRole.artisan);
                   context.go('/artisan/home');
                 },
@@ -116,6 +118,7 @@ class RoleSelectScreen extends ConsumerWidget {
               PotteryCard(
                 backgroundColor: AppColors.surfaceContainerHigh,
                 onTap: () {
+                  debugPrint('[RoleSelectScreen] Selected UserRole.customer -> routing to /customer/home');
                   ref.read(authStateProvider.notifier).selectRole(UserRole.customer);
                   context.go('/customer/home');
                 },

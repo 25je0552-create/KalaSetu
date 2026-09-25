@@ -27,6 +27,21 @@ String toEnglishDigits(String input) {
   return result;
 }
 
+String extractLocalizedText(String input, bool isHindi) {
+  if (!input.contains('(') || !input.contains(')')) {
+    return input;
+  }
+  final regex = RegExp(r'^(.*?)\s*\((.*?)\)');
+  final match = regex.firstMatch(input);
+  if (match != null) {
+    final hindiPart = match.group(1)?.trim() ?? '';
+    final englishPart = match.group(2)?.trim() ?? '';
+    if (isHindi && hindiPart.isNotEmpty) return hindiPart;
+    if (!isHindi && englishPart.isNotEmpty) return englishPart;
+  }
+  return input;
+}
+
 class AppStrings {
   static const Map<String, Map<String, String>> _strings = {
     // Brand & Top Navigation
@@ -416,6 +431,46 @@ class AppStrings {
       'hi': 'ठीक है, धन्यवाद',
       'en': 'Understood, Thank You',
     },
+    'buyer_fairs_heading': {
+      'hi': 'शिल्प मेले व हाट',
+      'en': 'Craft Fairs & Haats',
+    },
+    'buyer_fairs_subheading': {
+      'hi': 'देश भर के प्रसिद्ध मेलों से प्रामाणिक हस्तशिल्प और कारीगर खोजें',
+      'en': 'Discover authentic handcrafts from premier craft fairs across India',
+    },
+    'buyer_badge': {
+      'hi': 'कारीगरों से सीधा जुड़ाव',
+      'en': 'Direct from Artisans',
+    },
+    'tab_all_fairs': {
+      'hi': 'सभी मेले',
+      'en': 'All Fairs',
+    },
+    'tab_saved_fairs': {
+      'hi': 'सहेजे गए',
+      'en': 'Saved Fairs',
+    },
+    'participating_artisans': {
+      'hi': 'कारीगर व दुकानें',
+      'en': 'Artisans & Shops',
+    },
+    'browse_fair_crafts': {
+      'hi': 'शिल्प कैटलॉग देखें',
+      'en': 'Browse Fair Crafts',
+    },
+    'buyer_help_title': {
+      'hi': 'मेला यात्रा व सहायता चाहिए?',
+      'en': 'Need Fair Visit or Stall Assistance?',
+    },
+    'buyer_help_desc': {
+      'hi': 'कलासेतु शिल्प मित्र से निःशुल्क मार्गदर्शिका व स्टॉल सूची प्राप्त करें।',
+      'en': 'Get free visitor guides, artisan stall directories & venue information.',
+    },
+    'talk_customer_helpline': {
+      'hi': 'शिल्प मित्र से बात करें',
+      'en': 'Contact Craft Friend',
+    },
 
     // Camera Add Item Screen
     'center_craft_hint': {
@@ -604,6 +659,34 @@ class AppStrings {
       'hi': 'कारीगर प्रोफ़ाइल',
       'en': 'Artisan Profile',
     },
+    'identity_contact_title': {
+      'hi': 'पहचान व संपर्क विवरण',
+      'en': 'Verified Identity & Contact Details',
+    },
+    'aadhaar_label': {
+      'hi': 'आधार कार्ड संख्या',
+      'en': 'Aadhaar ID (UIDAI)',
+    },
+    'tap_to_reveal': {
+      'hi': 'दिखाएँ',
+      'en': 'Show',
+    },
+    'tap_to_hide': {
+      'hi': 'छिपाएँ',
+      'en': 'Hide',
+    },
+    'craft_location_label': {
+      'hi': 'शिल्प केंद्र व स्थान',
+      'en': 'Craft Location',
+    },
+    'registered_phone_label': {
+      'hi': 'पंजीकृत मोबाइल नंबर',
+      'en': 'Registered Mobile Number',
+    },
+    'email_label': {
+      'hi': 'ईमेल पता (वैकल्पिक)',
+      'en': 'Email Address (Optional)',
+    },
     'gi_card_number': {
       'hi': 'जी.आई. कार्ड संख्या: UP/TERRA/2021/8492',
       'en': 'GI Card No: UP/TERRA/2021/8492',
@@ -751,6 +834,18 @@ class AppStrings {
     'suggested_price_label': {
       'hi': 'सुझाया गया विक्रय मूल्य:',
       'en': 'Suggested Selling Price:',
+    },
+    'suggested_market_price': {
+      'hi': 'सुझाया गया बाज़ार मूल्य',
+      'en': 'Suggested Market Price',
+    },
+    'your_price_label': {
+      'hi': 'आपका विक्रय मूल्य (रु.)',
+      'en': 'Your Selling Price (₹)',
+    },
+    'price_override_hint': {
+      'hi': 'आप अपने अनुसार विक्रय मूल्य निर्धारित कर सकते हैं',
+      'en': 'You can adjust or override the suggested market price',
     },
     'stock_quantity_label': {
       'hi': 'उपलब्ध संख्या',

@@ -27,6 +27,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   @override
   Widget build(BuildContext context) {
     ref.watch(localeProvider);
+    debugPrint('[SignupScreen] Rendered signup screen');
 
     return Scaffold(
       backgroundColor: AppColors.surface,
@@ -106,7 +107,10 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                 label: ref.tr('continue_btn'),
                 isLoading: _isLoading,
                 onPressed: () {
-                  context.push('/otp-verify', extra: '+91${_phoneController.text.trim()}');
+                  final phone = _phoneController.text.trim();
+                  final name = _nameController.text.trim();
+                  debugPrint('[SignupScreen] Submitting signup: name="$name", phone="+91$phone" -> routing to /otp-verify');
+                  context.push('/otp-verify', extra: '+91$phone');
                 },
               ),
               const SizedBox(height: 24),

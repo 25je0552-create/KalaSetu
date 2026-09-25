@@ -32,6 +32,7 @@ class ArtisanOrdersScreen extends ConsumerWidget {
         loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
         error: (err, _) => Center(child: Text('त्रुटि / Error: $err')),
         data: (orders) {
+          debugPrint('[ArtisanOrdersScreen] Orders loaded: count=${orders.length}');
           if (orders.isEmpty) {
             return Center(
               child: Column(
@@ -53,7 +54,10 @@ class ArtisanOrdersScreen extends ConsumerWidget {
             separatorBuilder: (_, __) => const SizedBox(height: 12),
             itemBuilder: (context, index) {
               final ord = orders[index];
-              return Container(
+              return InkWell(
+                onTap: () => debugPrint('[ArtisanOrdersScreen] Order tapped: orderNumber=${ord.orderNumber}, status=${ord.status}, customer=${ord.customerName}'),
+                borderRadius: BorderRadius.circular(14),
+                child: Container(
                 decoration: BoxDecoration(
                   color: AppColors.surfaceContainer,
                   borderRadius: BorderRadius.circular(14),
@@ -129,7 +133,7 @@ class ArtisanOrdersScreen extends ConsumerWidget {
                     ),
                   ],
                 ),
-              );
+              ),);
             },
           );
         },

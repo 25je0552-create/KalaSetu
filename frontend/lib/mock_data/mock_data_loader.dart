@@ -83,6 +83,8 @@ class Artisan {
   final int activeProductsCount;
   final double rating;
   final int yearsOfExperience;
+  final String aadhaarNumber;
+  final String? email;
 
   Artisan({
     required this.id,
@@ -99,6 +101,8 @@ class Artisan {
     required this.activeProductsCount,
     required this.rating,
     required this.yearsOfExperience,
+    this.aadhaarNumber = '5842-9134-8492',
+    this.email = 'ramesh.prajapati@kalasetu.in',
   });
 
   factory Artisan.fromJson(Map<String, dynamic> json) {
@@ -117,6 +121,8 @@ class Artisan {
       activeProductsCount: json['activeProductsCount'] as int,
       rating: (json['rating'] as num).toDouble(),
       yearsOfExperience: json['yearsOfExperience'] as int,
+      aadhaarNumber: (json['aadhaarNumber'] as String?) ?? '5842-9134-8492',
+      email: (json['email'] as String?) ?? 'ramesh.prajapati@kalasetu.in',
     );
   }
 }

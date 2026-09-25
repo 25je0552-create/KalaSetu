@@ -21,7 +21,14 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
   final Set<String> _bookmarkedFairIds = {};
   final Set<String> _appliedFairIds = {};
 
+  @override
+  void initState() {
+    super.initState();
+    debugPrint('[ArtisanFairsScreen] Initialized. Current tab index: $_selectedTabIndex');
+  }
+
   void _showApplicationSuccessDialog(CraftFair fair, bool isHindi) {
+    debugPrint('[ArtisanFairsScreen] Stall application submitted for fair: id=${fair.id}, title=${fair.titleEn}');
     setState(() {
       _appliedFairIds.add(fair.id);
     });
@@ -86,6 +93,7 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
   }
 
   void _showVoiceSearchModal(bool isHindi) {
+    debugPrint('[ArtisanFairsScreen] Opening voice search modal');
     showModalBottomSheet(
       context: context,
       backgroundColor: const Color(0xFF363023),
@@ -191,6 +199,7 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
   Widget build(BuildContext context) {
     final fairsAsync = ref.watch(craftFairsProvider);
     final isHindi = ref.watch(localeProvider) == AppLocale.hindi;
+    final isBuyer = GoRouterState.of(context).uri.path.startsWith('/customer');
 
     return Scaffold(
       backgroundColor: AppColors.surface,
@@ -234,7 +243,9 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
                         ),
                       ),
                       Text(
-                        ref.tr('header_fairs_subtitle'),
+                        isBuyer
+                            ? (isHindi ? 'शिल्प मेले व हाट' : 'Craft Fairs & Haats')
+                            : ref.tr('header_fairs_subtitle'),
                         style: const TextStyle(fontSize: 11, color: AppColors.onSurfaceVariant),
                       ),
                     ],
@@ -243,7 +254,7 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
                   const LanguageTogglePill(),
                   const SizedBox(width: 10),
                   GestureDetector(
-                    onTap: () => context.push('/artisan/profile'),
+                    onTap: () => context.push(isBuyer ? '/customer/profile' : '/artisan/profile'),
                     child: Container(
                       width: 38,
                       height: 38,
@@ -273,7 +284,11 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
           if (_selectedTabIndex == 1) {
             filteredFairs = fairs.where((f) => !f.applied && !_appliedFairIds.contains(f.id)).toList();
           } else if (_selectedTabIndex == 2) {
-            filteredFairs = fairs.where((f) => f.applied || _appliedFairIds.contains(f.id)).toList();
+            if (isBuyer) {
+              filteredFairs = fairs.where((f) => _bookmarkedFairIds.contains(f.id)).toList();
+            } else {
+              filteredFairs = fairs.where((f) => f.applied || _appliedFairIds.contains(f.id)).toList();
+            }
           } else if (_selectedTabIndex == 3) {
             filteredFairs = fairs.where((f) => f.subsidized).toList();
           }
@@ -290,6 +305,7 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
           }
 
           final appliedCount = fairs.where((f) => f.applied || _appliedFairIds.contains(f.id)).length;
+          final savedCount = fairs.where((f) => _bookmarkedFairIds.contains(f.id)).length;
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16),
@@ -322,7 +338,7 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
                                   const Icon(Icons.celebration, size: 14, color: AppColors.onSecondaryFixed),
                                   const SizedBox(width: 4),
                                   Text(
-                                    ref.tr('govt_support_badge'),
+                                    isBuyer ? ref.tr('buyer_badge') : ref.tr('govt_support_badge'),
                                     style: const TextStyle(
                                       fontSize: 11,
                                       fontWeight: FontWeight.bold,
@@ -334,7 +350,7 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
                             ),
                             const SizedBox(height: 6),
                             Text(
-                              ref.tr('fairs_heading'),
+                              isBuyer ? ref.tr('buyer_fairs_heading') : ref.tr('fairs_heading'),
                               style: const TextStyle(
                                 fontFamily: 'Literata',
                                 fontSize: 24,
@@ -344,7 +360,7 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              ref.tr('fairs_subheading'),
+                              isBuyer ? ref.tr('buyer_fairs_subheading') : ref.tr('fairs_subheading'),
                               style: const TextStyle(fontSize: 12, color: AppColors.onSurfaceVariant),
                             ),
                           ],
@@ -385,7 +401,10 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
                       const SizedBox(width: 10),
                       Expanded(
                         child: TextField(
-                          onChanged: (val) => setState(() => _searchQuery = val),
+                          onChanged: (val) {
+                            debugPrint('[ArtisanFairsScreen] Search query changed: "$val"');
+                            setState(() => _searchQuery = val);
+                          },
                           decoration: InputDecoration(
                             hintText: ref.tr('fairs_search_placeholder'),
                             border: InputBorder.none,
@@ -409,11 +428,17 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     children: [
-                      _buildTab(0, ref.tr('nav_fairs'), Icons.festival),
+                      _buildTab(0, isBuyer ? ref.tr('tab_all_fairs') : ref.tr('nav_fairs'), Icons.festival),
                       const SizedBox(width: 8),
                       _buildTab(1, ref.tr('tab_upcoming_fairs'), Icons.event),
                       const SizedBox(width: 8),
-                      _buildTab(2, '${ref.tr('tab_my_applications')} ($appliedCount)', Icons.assignment_turned_in),
+                      _buildTab(
+                        2,
+                        isBuyer
+                            ? '${ref.tr('tab_saved_fairs')} ($savedCount)'
+                            : '${ref.tr('tab_my_applications')} ($appliedCount)',
+                        isBuyer ? Icons.bookmark : Icons.assignment_turned_in,
+                      ),
                       const SizedBox(width: 8),
                       _buildTab(3, ref.tr('tab_govt_subsidies'), Icons.verified),
                     ],
@@ -446,7 +471,7 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
                     separatorBuilder: (_, __) => const SizedBox(height: 20),
                     itemBuilder: (context, index) {
                       final fair = filteredFairs[index];
-                      return _buildTicketCard(fair, isHindi);
+                      return _buildTicketCard(fair, isHindi, isBuyer);
                     },
                   ),
 
@@ -478,23 +503,26 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              ref.tr('need_help_form'),
+                              isBuyer ? ref.tr('buyer_help_title') : ref.tr('need_help_form'),
                               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.onSurface),
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              ref.tr('help_desc_fairs'),
+                              isBuyer ? ref.tr('buyer_help_desc') : ref.tr('help_desc_fairs'),
                               style: const TextStyle(fontSize: 12, color: AppColors.onSurfaceVariant),
                             ),
                             const SizedBox(height: 8),
                             GestureDetector(
                               onTap: () {
+                                debugPrint('[ArtisanFairsScreen] Calling helpline 1800-200-8899');
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: Text(
                                       isHindi
-                                          ? 'कारीगर हेल्पलाइन 1800-200-8899 पर कॉल की जा रही है...'
-                                          : 'Calling Artisan Helpline 1800-200-8899...',
+                                          ? (isBuyer
+                                              ? 'कलासेतु शिल्प मित्र केंद्र 1800-200-8899 पर कॉल की जा रही है...'
+                                              : 'कारीगर हेल्पलाइन 1800-200-8899 पर कॉल की जा रही है...')
+                                          : 'Calling KalaSetu Support 1800-200-8899...',
                                     ),
                                   ),
                                 );
@@ -504,7 +532,7 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
                                   const Icon(Icons.call, size: 16, color: AppColors.primary),
                                   const SizedBox(width: 6),
                                   Text(
-                                    ref.tr('talk_artisan_helpline'),
+                                    isBuyer ? ref.tr('talk_customer_helpline') : ref.tr('talk_artisan_helpline'),
                                     style: const TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.bold,
@@ -532,7 +560,10 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
   Widget _buildTab(int index, String label, IconData icon) {
     final isSelected = _selectedTabIndex == index;
     return GestureDetector(
-      onTap: () => setState(() => _selectedTabIndex = index),
+      onTap: () {
+        debugPrint('[ArtisanFairsScreen] Tab selected: index=$index, label="$label"');
+        setState(() => _selectedTabIndex = index);
+      },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
@@ -559,7 +590,7 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
     );
   }
 
-  Widget _buildTicketCard(CraftFair fair, bool isHindi) {
+  Widget _buildTicketCard(CraftFair fair, bool isHindi, bool isBuyer) {
     final title = isHindi ? fair.titleHi : fair.titleEn;
     final category = isHindi ? fair.categoryHi : fair.categoryEn;
     final badge = isHindi ? fair.badgeHi : fair.badgeEn;
@@ -567,7 +598,8 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
     final location = isHindi ? fair.locationHi : fair.locationEn;
     final dateRange = isHindi ? fair.dateRangeHi : fair.dateRangeEn;
     final subsidyNote = isHindi ? fair.subsidyNoteHi : fair.subsidyNoteEn;
-    final expectedVisitors = isHindi ? fair.expectedVisitorsHi : fair.expectedVisitorsEn;
+    final expectedVisitorsRaw = isHindi ? fair.expectedVisitorsHi : fair.expectedVisitorsEn;
+    final expectedVisitors = toEnglishDigits(expectedVisitorsRaw);
 
     final isApplied = fair.applied || _appliedFairIds.contains(fair.id);
     final isBookmarked = _bookmarkedFairIds.contains(fair.id);
@@ -653,6 +685,7 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
                     ),
                     GestureDetector(
                       onTap: () {
+                        debugPrint('[ArtisanFairsScreen] Bookmark toggled for fair: id=${fair.id}, newState=${!isBookmarked}');
                         setState(() {
                           if (isBookmarked) {
                             _bookmarkedFairIds.remove(fair.id);
@@ -703,14 +736,19 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
                     const Icon(Icons.storefront_outlined, size: 16, color: Color(0xFFD4A373)),
                     const SizedBox(width: 6),
                     Text(
-                      '${fair.participatingShopsCount} ${isHindi ? 'प्रतिभागी दुकानें' : 'Participating Shops'}',
+                      '${fair.participatingShopsCount > 0 ? fair.participatingShopsCount : 124} ${ref.tr('participating_artisans')}',
                       style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.onSurface),
                     ),
                     const Spacer(),
                     GestureDetector(
-                      onTap: () => context.push('/fair/${fair.id}'),
+                      onTap: () {
+                        debugPrint('[ArtisanFairsScreen] Navigating to fair details: /fair/${fair.id}');
+                        context.push('/fair/${fair.id}');
+                      },
                       child: Text(
-                        isHindi ? 'विवरण देखें →' : 'View Details →',
+                        isBuyer
+                            ? (isHindi ? 'कैटलॉग देखें →' : 'View Catalog →')
+                            : (isHindi ? 'विवरण देखें →' : 'View Details →'),
                         style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.primary),
                       ),
                     ),
@@ -803,24 +841,43 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
                 ),
                 SizedBox(
                   height: 44,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: isApplied ? AppColors.secondary : AppColors.primary,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                    ),
-                    onPressed: () => _showApplicationSuccessDialog(fair, isHindi),
-                    child: Row(
-                      children: [
-                        Icon(isApplied ? Icons.check_circle : Icons.how_to_reg, size: 18, color: Colors.white),
-                        const SizedBox(width: 6),
-                        Text(
-                          isApplied ? ref.tr('applied') : ref.tr('apply_now'),
-                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
+                  child: isBuyer
+                      ? ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            padding: const EdgeInsets.symmetric(horizontal: 18),
+                          ),
+                          onPressed: () => context.push('/fair/${fair.id}'),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.storefront, size: 18, color: Colors.white),
+                              const SizedBox(width: 6),
+                              Text(
+                                ref.tr('browse_fair_crafts'),
+                                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
+                              ),
+                            ],
+                          ),
+                        )
+                      : ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: isApplied ? AppColors.secondary : AppColors.primary,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                          ),
+                          onPressed: () => _showApplicationSuccessDialog(fair, isHindi),
+                          child: Row(
+                            children: [
+                              Icon(isApplied ? Icons.check_circle : Icons.how_to_reg, size: 18, color: Colors.white),
+                              const SizedBox(width: 6),
+                              Text(
+                                isApplied ? ref.tr('applied') : ref.tr('apply_now'),
+                                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
+                              ),
+                            ],
+                          ),
                         ),
-                      ],
-                    ),
-                  ),
                 ),
               ],
             ),

@@ -22,6 +22,8 @@ class _PhotoReviewScreenState extends ConsumerState<PhotoReviewScreen> {
   @override
   void initState() {
     super.initState();
+    final currentPath = ref.read(addItemWizardProvider).capturedPhotoPath;
+    debugPrint('[PhotoReviewScreen] Initialized. photoPath: $currentPath');
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _resolveImageAspectRatio();
     });
@@ -43,8 +45,10 @@ class _PhotoReviewScreenState extends ConsumerState<PhotoReviewScreen> {
             final width = info.image.width.toDouble();
             final height = info.image.height.toDouble();
             if (width > 0 && height > 0) {
+              final ratio = width / height;
+              debugPrint('[PhotoReviewScreen] Aspect ratio resolved: $ratio (dimensions: ${width}x${height})');
               setState(() {
-                _imageAspectRatio = width / height;
+                _imageAspectRatio = ratio;
               });
             }
           }
@@ -95,7 +99,10 @@ class _PhotoReviewScreenState extends ConsumerState<PhotoReviewScreen> {
                   children: [
                     Expanded(
                       child: GestureDetector(
-                        onTap: () => setState(() => _showAfter = false),
+                        onTap: () {
+                          debugPrint('[PhotoReviewScreen] Switched to Original Photo view');
+                          setState(() => _showAfter = false);
+                        },
                         child: Container(
                           padding: const EdgeInsets.symmetric(vertical: 8),
                           decoration: BoxDecoration(
@@ -117,7 +124,10 @@ class _PhotoReviewScreenState extends ConsumerState<PhotoReviewScreen> {
                     ),
                     Expanded(
                       child: GestureDetector(
-                        onTap: () => setState(() => _showAfter = true),
+                        onTap: () {
+                          debugPrint('[PhotoReviewScreen] Switched to AI Studio Backdrop view');
+                          setState(() => _showAfter = true);
+                        },
                         child: Container(
                           padding: const EdgeInsets.symmetric(vertical: 8),
                           decoration: BoxDecoration(
@@ -142,69 +152,109 @@ class _PhotoReviewScreenState extends ConsumerState<PhotoReviewScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Visual Display Stage: dynamically sized to the photo's natural aspect ratio
+              // Visual Display Stage: dynamically sized to the photo's natural aspect ratio, opens cropper on tap
               Expanded(
                 child: Center(
-                  child: AspectRatio(
-                    aspectRatio: _imageAspectRatio ?? (4 / 5),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: _showAfter ? AppColors.surfaceBright : Colors.black87,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.5)),
-                        boxShadow: [
-                          BoxShadow(
-                            color: _showAfter ? const Color(0x1F785440) : Colors.black26,
-                            blurRadius: 18,
-                            offset: const Offset(0, 6),
-                          ),
-                        ],
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(20),
-                        child: Stack(
-                          fit: StackFit.expand,
-                          children: [
-                            photoPath != null && File(photoPath).existsSync()
-                                ? Image.file(
-                                    File(photoPath),
-                                    fit: BoxFit.cover,
-                                  )
-                                : Image.network(
-                                    'https://images.unsplash.com/photo-1615865417491-9941019fbc00?auto=format&fit=crop&w=800&q=80',
-                                    fit: BoxFit.cover,
+                  child: GestureDetector(
+                    onTap: () async {
+                      final effectivePath = photoPath ??
+                          'https://images.unsplash.com/photo-1615865417491-9941019fbc00?auto=format&fit=crop&w=800&q=80';
+                      debugPrint('[PhotoReviewScreen] Tapped photo to crop -> opening /artisan/add-item/crop');
+                      final result = await context.push<String>('/artisan/add-item/crop', extra: effectivePath);
+                      debugPrint('[PhotoReviewScreen] Returned from cropper: result=$result');
+                      if (result != null && mounted) {
+                        _resolveImageAspectRatio();
+                      }
+                    },
+                    child: AspectRatio(
+                      aspectRatio: _imageAspectRatio ?? (4 / 5),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: _showAfter ? AppColors.surfaceBright : Colors.black87,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.5)),
+                          boxShadow: [
+                            BoxShadow(
+                              color: _showAfter ? const Color(0x1F785440) : Colors.black26,
+                              blurRadius: 18,
+                              offset: const Offset(0, 6),
+                            ),
+                          ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(20),
+                          child: Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              photoPath != null && File(photoPath).existsSync()
+                                  ? Image.file(
+                                      File(photoPath),
+                                      fit: BoxFit.cover,
+                                    )
+                                  : Image.network(
+                                      'https://images.unsplash.com/photo-1615865417491-9941019fbc00?auto=format&fit=crop&w=800&q=80',
+                                      fit: BoxFit.cover,
+                                    ),
+                              // AI Studio subtle depth vignette
+                              if (_showAfter)
+                                Container(
+                                  decoration: BoxDecoration(
+                                    gradient: RadialGradient(
+                                      center: Alignment.center,
+                                      radius: 0.9,
+                                      colors: [
+                                        Colors.transparent,
+                                        Colors.brown.withValues(alpha: 0.10),
+                                      ],
+                                    ),
                                   ),
-                            // AI Studio subtle depth vignette
-                            if (_showAfter)
-                              Container(
-                                decoration: BoxDecoration(
-                                  gradient: RadialGradient(
-                                    center: Alignment.center,
-                                    radius: 0.9,
-                                    colors: [
-                                      Colors.transparent,
-                                      Colors.brown.withValues(alpha: 0.10),
+                                ),
+                              // Harmonized craft detection bounding box overlay aligned dynamically to photo ratio
+                              Center(
+                                child: FractionallySizedBox(
+                                  widthFactor: 0.78,
+                                  heightFactor: 0.78,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      border: Border.all(
+                                        color: _showAfter ? AppColors.primary : AppColors.secondaryContainer,
+                                        width: 2,
+                                      ),
+                                      borderRadius: BorderRadius.circular(14),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              // Dedicated Crop & Adjust Prompt Badge
+                              Positioned(
+                                top: 12,
+                                right: 12,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withValues(alpha: 0.65),
+                                    borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(color: Colors.white24),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(Icons.crop, size: 13, color: Colors.white),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        ref.watch(localeProvider) == AppLocale.hindi ? 'क्रॉप करें' : 'Tap to Crop',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
                                     ],
                                   ),
                                 ),
                               ),
-                            // Harmonized craft detection bounding box overlay aligned dynamically to photo ratio
-                            Center(
-                              child: FractionallySizedBox(
-                                widthFactor: 0.78,
-                                heightFactor: 0.78,
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    border: Border.all(
-                                      color: _showAfter ? AppColors.primary : AppColors.secondaryContainer,
-                                      width: 2,
-                                    ),
-                                    borderRadius: BorderRadius.circular(14),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -246,7 +296,10 @@ class _PhotoReviewScreenState extends ConsumerState<PhotoReviewScreen> {
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         side: const BorderSide(color: AppColors.outlineVariant),
                       ),
-                      onPressed: () => context.pop(),
+                      onPressed: () {
+                        debugPrint('[PhotoReviewScreen] Retake button tapped -> popping to camera');
+                        context.pop();
+                      },
                       child: Text(ref.tr('retake_btn')),
                     ),
                   ),
@@ -256,7 +309,10 @@ class _PhotoReviewScreenState extends ConsumerState<PhotoReviewScreen> {
                       label: ref.tr('next_btn'),
                       height: 54,
                       icon: Icons.arrow_forward,
-                      onPressed: () => context.push('/artisan/add-item/voice-describe'),
+                      onPressed: () {
+                        debugPrint('[PhotoReviewScreen] Next button tapped -> navigating to voice describe');
+                        context.push('/artisan/add-item/voice-describe');
+                      },
                     ),
                   ),
                 ],

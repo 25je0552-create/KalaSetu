@@ -7,16 +7,35 @@ import '../../../core/widgets/clay_widgets.dart';
 import '../data/product_repository.dart';
 import '../../cart_checkout/presentation/cart_controller.dart';
 
+import '../../../core/services/auth_service.dart';
+
 class ProductDetailScreen extends ConsumerWidget {
   final String productId;
+  final bool? isBuyerContext;
 
-  const ProductDetailScreen({super.key, required this.productId});
+  const ProductDetailScreen({
+    super.key,
+    required this.productId,
+    this.isBuyerContext,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final productAsync = ref.watch(productDetailProvider(productId));
     final locale = ref.watch(localeProvider);
     final isHindi = locale == AppLocale.hindi;
+    final user = ref.watch(authStateProvider);
+
+    String currentPath = '';
+    try {
+      currentPath = GoRouterState.of(context).uri.path;
+    } catch (_) {}
+
+    final isBuyer = isBuyerContext ??
+        (currentPath.startsWith('/buyer') ||
+            currentPath.startsWith('/customer') ||
+            user?.role == UserRole.customer);
+    debugPrint('[ProductDetailScreen] Rendered. productId=$productId, isBuyer=$isBuyer');
 
     return Scaffold(
       backgroundColor: AppColors.surface,
@@ -115,17 +134,68 @@ class ProductDetailScreen extends ConsumerWidget {
                 Text(secondaryDesc, style: const TextStyle(fontSize: 13, height: 1.4, color: AppColors.onSurfaceVariant)),
                 const SizedBox(height: 24),
 
-                TerracottaButton(
-                  label: '${ref.tr("add_to_cart_btn")} (₹${p.price.toInt()})',
-                  icon: Icons.shopping_bag_outlined,
-                  onPressed: () {
-                    ref.read(cartControllerProvider.notifier).addItem(p);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('$primaryName ${ref.tr("added_to_cart_msg")}')),
-                    );
-                    context.push('/customer/cart');
-                  },
-                ),
+                // Conditional action: Add to Cart ONLY on Buyer side; artisan sees live listing status
+                if (isBuyer) ...[
+                  TerracottaButton(
+                    label: '${ref.tr("add_to_cart_btn")} (₹${p.price.toInt()})',
+                    icon: Icons.shopping_bag_outlined,
+                    onPressed: () {
+                      debugPrint('[ProductDetailScreen] Add to cart pressed: productId=$productId, price=${p.price.toInt()}');
+                      ref.read(cartControllerProvider.notifier).addItem(p);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('$primaryName ${ref.tr("added_to_cart_msg")}')),
+                      );
+                      context.push('/buyer/cart');
+                    },
+                  ),
+                ] else ...[
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceContainerLow,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.4)),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.inventory_2_outlined, color: AppColors.primary, size: 22),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                isHindi ? 'शिल्पकार लाइव लिस्टिंग' : 'Artisan Live Listing',
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                isHindi
+                                    ? 'स्टॉक: ${p.stock} उपलब्ध | मूल्य: ₹${p.price.toInt()}'
+                                    : 'Stock: ${p.stock} units available | Price: ₹${p.price.toInt()}',
+                                style: const TextStyle(fontSize: 12, color: AppColors.onSurfaceVariant),
+                              ),
+                            ],
+                          ),
+                        ),
+                        OutlinedButton.icon(
+                          icon: const Icon(Icons.edit_note, size: 16),
+                          label: Text(isHindi ? 'बदलें' : 'Edit', style: const TextStyle(fontSize: 12)),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppColors.primary,
+                            side: const BorderSide(color: AppColors.primary),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          ),
+                          onPressed: () {
+                            debugPrint('[ProductDetailScreen] Artisan edit listing tapped -> navigating to pricing');
+                            context.push('/artisan/add-item/pricing');
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 16),
               ],
             ),

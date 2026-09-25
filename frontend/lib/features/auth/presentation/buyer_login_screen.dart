@@ -27,6 +27,7 @@ class _BuyerLoginScreenState extends ConsumerState<BuyerLoginScreen> {
   }
 
   void _signInAsBuyer({String? phone}) {
+    debugPrint('[BuyerLoginScreen] Authenticating as buyer: phone=${phone ?? "+91 98111 22334"} -> routing to /buyer/home');
     ref.read(authStateProvider.notifier).setAuthenticatedUser(
       AppUser(
         id: 'buyer_usr_${DateTime.now().millisecondsSinceEpoch}',
@@ -41,6 +42,7 @@ class _BuyerLoginScreenState extends ConsumerState<BuyerLoginScreen> {
   Future<void> _handleSendOtp() async {
     final phone = _phoneController.text.trim();
     if (phone.length < 10) {
+      debugPrint('[BuyerLoginScreen] Phone validation failed for input: "$phone"');
       setState(() => _errorMessage = ref.tr('phone_error'));
       return;
     }
@@ -51,12 +53,15 @@ class _BuyerLoginScreenState extends ConsumerState<BuyerLoginScreen> {
     });
 
     try {
+      debugPrint('[BuyerLoginScreen] Sending buyer OTP to +91$phone');
       final authService = ref.read(authServiceProvider);
       await authService.sendOtp('+91$phone');
+      debugPrint('[BuyerLoginScreen] OTP sent successfully to +91$phone');
       if (mounted) {
         _signInAsBuyer(phone: '+91$phone');
       }
     } catch (e) {
+      debugPrint('[BuyerLoginScreen] Buyer OTP send failed: $e');
       final isHindi = ref.read(localeProvider) == AppLocale.hindi;
       setState(() => _errorMessage = isHindi ? 'ओटीपी भेजने में त्रुटि: $e' : 'Error sending OTP: $e');
     } finally {
@@ -71,6 +76,7 @@ class _BuyerLoginScreenState extends ConsumerState<BuyerLoginScreen> {
     });
 
     try {
+      debugPrint('[BuyerLoginScreen] Initiating Google Sign-In for buyer');
       final authService = ref.read(authServiceProvider);
       await authService.signInWithGoogle();
 
@@ -83,10 +89,12 @@ class _BuyerLoginScreenState extends ConsumerState<BuyerLoginScreen> {
         ),
       );
 
+      debugPrint('[BuyerLoginScreen] Google Sign-In succeeded -> routing to /buyer/home');
       if (mounted) {
         context.go('/buyer/home');
       }
     } catch (e) {
+      debugPrint('[BuyerLoginScreen] Buyer Google Sign-In failed: $e');
       final isHindi = ref.read(localeProvider) == AppLocale.hindi;
       setState(() => _errorMessage = isHindi ? 'Google साइन-इन त्रुटि: $e' : 'Google sign-in error: $e');
     } finally {

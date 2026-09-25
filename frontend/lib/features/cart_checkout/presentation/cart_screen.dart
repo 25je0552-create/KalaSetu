@@ -15,6 +15,7 @@ class CartScreen extends ConsumerWidget {
     final total = ref.watch(cartTotalAmountProvider);
     final locale = ref.watch(localeProvider);
     final isHindi = locale == AppLocale.hindi;
+    debugPrint('[CartScreen] Rendered. cartItemsCount=${cartItems.length}, total=₹${total.toInt()}');
 
     return Scaffold(
       backgroundColor: AppColors.surface,
@@ -42,7 +43,10 @@ class CartScreen extends ConsumerWidget {
                     width: 200,
                     child: TerracottaButton(
                       label: ref.tr('shop_crafts_btn'),
-                      onPressed: () => context.go('/customer/home'),
+                      onPressed: () {
+                        debugPrint('[CartScreen] Empty cart button tapped -> navigating to /customer/home');
+                        context.go('/customer/home');
+                      },
                     ),
                   ),
                 ],
@@ -93,12 +97,18 @@ class CartScreen extends ConsumerWidget {
                               children: [
                                 IconButton(
                                   icon: const Icon(Icons.remove_circle_outline, size: 20),
-                                  onPressed: () => ref.read(cartControllerProvider.notifier).updateQuantity(item.product.id, -1),
+                                  onPressed: () {
+                                    debugPrint('[CartScreen] Quantity decreased for product: ${item.product.id}');
+                                    ref.read(cartControllerProvider.notifier).updateQuantity(item.product.id, -1);
+                                  },
                                 ),
                                 Text('${item.quantity}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                                 IconButton(
                                   icon: const Icon(Icons.add_circle_outline, size: 20),
-                                  onPressed: () => ref.read(cartControllerProvider.notifier).updateQuantity(item.product.id, 1),
+                                  onPressed: () {
+                                    debugPrint('[CartScreen] Quantity increased for product: ${item.product.id}');
+                                    ref.read(cartControllerProvider.notifier).updateQuantity(item.product.id, 1);
+                                  },
                                 ),
                               ],
                             ),
@@ -148,6 +158,7 @@ class CartScreen extends ConsumerWidget {
                     label: '${ref.tr("checkout_btn")} (₹${total.toInt()})',
                     icon: Icons.lock_outline,
                     onPressed: () {
+                      debugPrint('[CartScreen] Checkout confirmed for total: ₹${total.toInt()}');
                       ref.read(cartControllerProvider.notifier).clear();
                       showDialog(
                         context: context,
@@ -160,6 +171,7 @@ class CartScreen extends ConsumerWidget {
                           actions: [
                             TextButton(
                               onPressed: () {
+                                debugPrint('[CartScreen] Order success dialog OK pressed -> navigating to /customer/home');
                                 Navigator.pop(context);
                                 context.go('/customer/home');
                               },

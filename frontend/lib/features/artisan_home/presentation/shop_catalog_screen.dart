@@ -26,6 +26,25 @@ class _ShopCatalogScreenState extends ConsumerState<ShopCatalogScreen> {
   String _selectedCategory = 'All';
 
   @override
+  void initState() {
+    super.initState();
+    debugPrint('[ShopCatalogScreen] Initialized for artisanId: ${widget.artisanId}');
+  }
+
+  String _localizeCategory(String category, bool isHindi) {
+    if (category == 'All') return isHindi ? 'सभी सामान' : 'All Items';
+    final map = {
+      'Clay Pottery': isHindi ? 'मिट्टी के बर्तन' : 'Clay Pottery',
+      'Sarees & Handloom': isHindi ? 'साड़ियां और हथकरघा' : 'Sarees & Handloom',
+      'Woodcraft': isHindi ? 'काष्ठ शिल्प' : 'Woodcraft',
+      'Jewelry': isHindi ? 'हस्तनिर्मित आभूषण' : 'Handmade Jewelry',
+      'Brassware': isHindi ? 'पीतल शिल्प' : 'Brassware',
+      'Textiles': isHindi ? 'वस्त्र शिल्प' : 'Textiles',
+    };
+    return map[category] ?? extractLocalizedText(category, isHindi);
+  }
+
+  @override
   Widget build(BuildContext context) {
     final isHindi = ref.watch(localeProvider) == AppLocale.hindi;
     final artisanAsync = ref.watch(artisanByIdProvider(widget.artisanId));
@@ -48,6 +67,7 @@ class _ShopCatalogScreenState extends ConsumerState<ShopCatalogScreen> {
                   IconButton(
                     icon: const Icon(Icons.arrow_back, color: AppColors.onSurface),
                     onPressed: () {
+                      debugPrint('[ShopCatalogScreen] Back button tapped');
                       if (context.canPop()) {
                         context.pop();
                       } else {
@@ -104,11 +124,14 @@ class _ShopCatalogScreenState extends ConsumerState<ShopCatalogScreen> {
                   loading: () => const SizedBox(height: 100, child: Center(child: CircularProgressIndicator())),
                   error: (_, __) => const SizedBox.shrink(),
                   data: (artisan) {
-                    final name = artisan?.name ?? (isHindi ? 'रमेश प्रजापति' : 'Ramesh Prajapati');
-                    final craft = artisan?.craftType ?? (isHindi ? 'माटी शिल्पी' : 'Terracotta Artisan');
-                    final location = artisan != null
+                    final rawName = artisan?.name ?? (isHindi ? 'रमेश प्रजापति' : 'Ramesh Prajapati');
+                    final name = extractLocalizedText(rawName, isHindi);
+                    final rawCraft = artisan?.craftType ?? (isHindi ? 'माटी शिल्पी' : 'Terracotta Artisan');
+                    final craft = extractLocalizedText(rawCraft, isHindi);
+                    final rawLocation = artisan != null
                         ? '${artisan.village}, ${artisan.district}'
                         : (isHindi ? 'औरंगाबाद, गोरखपुर' : 'Aurangabad, Gorakhpur');
+                    final location = extractLocalizedText(rawLocation, isHindi);
 
                     return Container(
                       decoration: BoxDecoration(
@@ -213,7 +236,10 @@ class _ShopCatalogScreenState extends ConsumerState<ShopCatalogScreen> {
                       const SizedBox(width: 10),
                       Expanded(
                         child: TextField(
-                          onChanged: (val) => setState(() => _searchQuery = val),
+                          onChanged: (val) {
+                            debugPrint('[ShopCatalogScreen] Search query changed: "$val"');
+                            setState(() => _searchQuery = val);
+                          },
                           decoration: InputDecoration(
                             hintText: isHindi ? 'इस दुकान में खोजें...' : 'Search within shop catalog...',
                             border: InputBorder.none,
@@ -224,7 +250,10 @@ class _ShopCatalogScreenState extends ConsumerState<ShopCatalogScreen> {
                       if (_searchQuery.isNotEmpty)
                         IconButton(
                           icon: const Icon(Icons.clear, size: 16, color: AppColors.outline),
-                          onPressed: () => setState(() => _searchQuery = ''),
+                          onPressed: () {
+                            debugPrint('[ShopCatalogScreen] Search query cleared');
+                            setState(() => _searchQuery = '');
+                          },
                         ),
                     ],
                   ),
@@ -238,11 +267,12 @@ class _ShopCatalogScreenState extends ConsumerState<ShopCatalogScreen> {
                     child: Row(
                       children: categories.map((cat) {
                         final isSel = _selectedCategory == cat;
+                        final localizedCat = _localizeCategory(cat, isHindi);
                         return Padding(
                           padding: const EdgeInsets.only(right: 8),
                           child: ChoiceChip(
                             label: Text(
-                              cat == 'All' ? (isHindi ? 'सभी सामान' : 'All Items') : cat,
+                              localizedCat,
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: isSel ? FontWeight.bold : FontWeight.normal,
@@ -253,7 +283,10 @@ class _ShopCatalogScreenState extends ConsumerState<ShopCatalogScreen> {
                             selectedColor: AppColors.primary,
                             backgroundColor: AppColors.surfaceContainerHigh,
                             onSelected: (val) {
-                              if (val) setState(() => _selectedCategory = cat);
+                              if (val) {
+                                debugPrint('[ShopCatalogScreen] Category filter selected: $cat');
+                                setState(() => _selectedCategory = cat);
+                              }
                             },
                           ),
                         );
@@ -313,12 +346,18 @@ class _ShopCatalogScreenState extends ConsumerState<ShopCatalogScreen> {
                     itemCount: filtered.length,
                     itemBuilder: (context, index) {
                       final p = filtered[index];
-                      final pName = isHindi ? p.nameHi : p.nameEn;
+                      final pName = isHindi
+                          ? (p.nameHi.isNotEmpty ? p.nameHi : extractLocalizedText(p.name, true))
+                          : (p.nameEn.isNotEmpty ? p.nameEn : extractLocalizedText(p.name, false));
                       final priceStr = '₹${p.price.toInt()}';
-                      final stockStr = '${p.stock} ${ref.tr('stock_left')}';
+                      final stockStr = isHindi ? '${p.stock} उपलब्ध' : '${p.stock} in stock';
 
                       return GestureDetector(
-                        onTap: () => context.push('/customer/product/${p.id}'),
+                        onTap: () {
+                          final isBuyer = ref.read(authStateProvider)?.role == UserRole.customer;
+                          debugPrint('[ShopCatalogScreen] Product card tapped: id=${p.id}, nameEn="${p.nameEn}", isBuyer=$isBuyer');
+                          context.push(isBuyer ? '/buyer/product/${p.id}' : '/artisan/product/${p.id}');
+                        },
                         child: Container(
                           decoration: BoxDecoration(
                             color: AppColors.surfaceContainerHigh,
@@ -353,9 +392,9 @@ class _ShopCatalogScreenState extends ConsumerState<ShopCatalogScreen> {
                                             color: AppColors.secondary,
                                             borderRadius: BorderRadius.circular(4),
                                           ),
-                                          child: const Text(
-                                            'GI CERTIFIED',
-                                            style: TextStyle(
+                                          child: Text(
+                                            isHindi ? 'जी.आई. प्रमाणित' : 'GI CERTIFIED',
+                                            style: const TextStyle(
                                               fontSize: 9,
                                               fontWeight: FontWeight.bold,
                                               color: Colors.white,
@@ -445,7 +484,10 @@ class _ShopCatalogScreenState extends ConsumerState<ShopCatalogScreen> {
           isHindi ? 'नया शिल्प जोड़ें' : 'Add Craft',
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
-        onPressed: () => context.push('/artisan/add-item/camera'),
+        onPressed: () {
+          debugPrint('[ShopCatalogScreen] Add Craft FAB pressed -> navigating to /artisan/add-item/camera');
+          context.push('/artisan/add-item/camera');
+        },
       ),
     );
   }

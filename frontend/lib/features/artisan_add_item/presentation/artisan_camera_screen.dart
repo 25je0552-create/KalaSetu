@@ -28,12 +28,14 @@ class _ArtisanCameraScreenState extends ConsumerState<ArtisanCameraScreen> with 
   @override
   void initState() {
     super.initState();
+    debugPrint('[ArtisanCameraScreen] Initialized');
     WidgetsBinding.instance.addObserver(this);
     _initCamera();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    debugPrint('[ArtisanCameraScreen] AppLifecycleState changed to: $state');
     if (!_cameraService.isInitialized) return;
     if (state == AppLifecycleState.inactive) {
       _cameraService.dispose();
@@ -43,15 +45,19 @@ class _ArtisanCameraScreenState extends ConsumerState<ArtisanCameraScreen> with 
   }
 
   Future<void> _initCamera() async {
+    debugPrint('[ArtisanCameraScreen] Requesting camera permissions...');
     final granted = await _cameraService.requestPermissions();
+    debugPrint('[ArtisanCameraScreen] Camera permission granted: $granted');
     if (granted) {
       await _cameraService.initialize();
+      debugPrint('[ArtisanCameraScreen] Camera initialized. Ready: ${_cameraService.isInitialized}');
       if (mounted) setState(() {});
     }
   }
 
   Future<void> _onShutterPressed() async {
     if (_isCapturing) return;
+    debugPrint('[ArtisanCameraScreen] Shutter pressed. Flash state: $_flashState');
     setState(() {
       _isCapturing = true;
       _showFlashOverlay = true;
@@ -72,29 +78,34 @@ class _ArtisanCameraScreenState extends ConsumerState<ArtisanCameraScreen> with 
       }
 
       final photoPath = photo?.path ?? 'sample_kulhad_craft.jpg';
+      debugPrint('[ArtisanCameraScreen] Photo captured: $photoPath, navigating to photo review');
       ref.read(addItemWizardProvider.notifier).setPhoto(photoPath);
 
       if (mounted) {
         context.push('/artisan/add-item/photo-review');
       }
     } catch (e) {
-      debugPrint('[Camera] Capture error: $e');
+      debugPrint('[ArtisanCameraScreen] Capture error: $e');
     } finally {
       if (mounted) setState(() => _isCapturing = false);
     }
   }
 
   Future<void> _pickFromGallery() async {
+    debugPrint('[ArtisanCameraScreen] Pick from gallery tapped');
     try {
       final picked = await _picker.pickImage(source: ImageSource.gallery);
       if (picked != null) {
+        debugPrint('[ArtisanCameraScreen] Gallery photo selected: ${picked.path}');
         ref.read(addItemWizardProvider.notifier).setPhoto(picked.path);
         if (mounted) {
           context.push('/artisan/add-item/photo-review');
         }
+      } else {
+        debugPrint('[ArtisanCameraScreen] Gallery pick cancelled');
       }
     } catch (e) {
-      debugPrint('[Camera] Gallery pick error: $e');
+      debugPrint('[ArtisanCameraScreen] Gallery pick error: $e');
     }
   }
 
@@ -106,6 +117,7 @@ class _ArtisanCameraScreenState extends ConsumerState<ArtisanCameraScreen> with 
     final mode = nextState == 1
         ? FlashMode.always
         : (nextState == 2 ? FlashMode.auto : FlashMode.off);
+    debugPrint('[ArtisanCameraScreen] Flash toggled: state=$nextState, mode=$mode');
     await _cameraService.setFlashMode(mode);
   }
 
@@ -113,6 +125,7 @@ class _ArtisanCameraScreenState extends ConsumerState<ArtisanCameraScreen> with 
     setState(() {
       _isVoiceRecording = !_isVoiceRecording;
     });
+    debugPrint('[ArtisanCameraScreen] Voice note toggled: isRecording=$_isVoiceRecording');
     final isHindi = ref.read(localeProvider) == AppLocale.hindi;
     if (_isVoiceRecording) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -168,7 +181,10 @@ class _ArtisanCameraScreenState extends ConsumerState<ArtisanCameraScreen> with 
                 children: [
                   IconButton(
                     icon: const Icon(Icons.arrow_back, color: AppColors.onSurface),
-                    onPressed: () => context.pop(),
+                    onPressed: () {
+                      debugPrint('[ArtisanCameraScreen] Back button tapped');
+                      context.pop();
+                    },
                   ),
                   Container(
                     width: 32,
@@ -187,7 +203,10 @@ class _ArtisanCameraScreenState extends ConsumerState<ArtisanCameraScreen> with 
                   const LanguageTogglePill(),
                   const SizedBox(width: 8),
                   GestureDetector(
-                    onTap: () => context.push('/artisan/profile'),
+                    onTap: () {
+                      debugPrint('[ArtisanCameraScreen] Profile button tapped -> navigating to /artisan/profile');
+                      context.push('/artisan/profile');
+                    },
                     child: Container(
                       width: 32,
                       height: 32,
@@ -364,7 +383,9 @@ class _ArtisanCameraScreenState extends ConsumerState<ArtisanCameraScreen> with 
                                     if (_cameraService.hasTorchSupport) ...[
                                       GestureDetector(
                                         onTap: () async {
+                                          debugPrint('[ArtisanCameraScreen] Toggling torch...');
                                           await _cameraService.toggleTorch();
+                                          debugPrint('[ArtisanCameraScreen] Torch is now: ${_cameraService.isTorchOn}');
                                           if (mounted) setState(() {});
                                         },
                                         child: Container(
@@ -386,8 +407,9 @@ class _ArtisanCameraScreenState extends ConsumerState<ArtisanCameraScreen> with 
                                       const SizedBox(width: 8),
                                     ],
                                     GestureDetector(
-                                      onTap: () async {
-                                        if (!_cameraService.hasMultipleCameras) {
+                                       onTap: () async {
+                                         debugPrint('[ArtisanCameraScreen] Switch camera requested');
+                                         if (!_cameraService.hasMultipleCameras) {
                                           final isHindi = ref.read(localeProvider) == AppLocale.hindi;
                                           ScaffoldMessenger.of(context).showSnackBar(
                                             SnackBar(
@@ -401,7 +423,8 @@ class _ArtisanCameraScreenState extends ConsumerState<ArtisanCameraScreen> with 
                                           );
                                           return;
                                         }
-                                        final switched = await _cameraService.switchCamera();
+                                         final switched = await _cameraService.switchCamera();
+                                         debugPrint('[ArtisanCameraScreen] Switch camera result: $switched');
                                         if (mounted) {
                                           setState(() {});
                                           if (!switched) {
@@ -636,20 +659,36 @@ class _ArtisanCameraScreenState extends ConsumerState<ArtisanCameraScreen> with 
                             width: 54,
                             height: 54,
                             decoration: BoxDecoration(
-                              color: _isVoiceRecording ? AppColors.primary : AppColors.surfaceContainerHigh,
+                              color: _isVoiceRecording ? AppColors.error : AppColors.surfaceContainerHigh,
                               borderRadius: BorderRadius.circular(14),
-                              border: Border.all(color: AppColors.secondary.withValues(alpha: 0.3)),
+                              border: Border.all(
+                                color: _isVoiceRecording ? AppColors.error : AppColors.secondary.withValues(alpha: 0.5),
+                                width: 1.5,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: (_isVoiceRecording ? AppColors.error : Colors.black12).withValues(alpha: 0.25),
+                                  blurRadius: 6,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
                             ),
                             child: Icon(
-                              _isVoiceRecording ? Icons.graphic_eq : Icons.mic,
+                              _isVoiceRecording ? Icons.stop_rounded : Icons.mic_rounded,
                               color: _isVoiceRecording ? Colors.white : AppColors.primary,
-                              size: 26,
+                              size: 28,
                             ),
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            ref.tr('voice_add_btn'),
-                            style: const TextStyle(fontSize: 11, color: AppColors.onSurfaceVariant),
+                            _isVoiceRecording
+                                ? (ref.watch(localeProvider) == AppLocale.hindi ? 'रोकें' : 'Stop')
+                                : ref.tr('voice_add_btn'),
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: _isVoiceRecording ? AppColors.error : AppColors.onSurfaceVariant,
+                            ),
                           ),
                         ],
                       ),

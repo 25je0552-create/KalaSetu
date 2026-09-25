@@ -17,10 +17,17 @@ class ArtisanHomeScreen extends ConsumerStatefulWidget {
 class _ArtisanHomeScreenState extends ConsumerState<ArtisanHomeScreen> {
   bool _isPlayingAudioGuide = false;
 
+  @override
+  void initState() {
+    super.initState();
+    debugPrint('[ArtisanHomeScreen] Initialized');
+  }
+
   void _toggleAudioGuide() {
     setState(() {
       _isPlayingAudioGuide = !_isPlayingAudioGuide;
     });
+    debugPrint('[ArtisanHomeScreen] Audio guide state changed: isPlaying=$_isPlayingAudioGuide');
     final isHindi = ref.read(localeProvider) == AppLocale.hindi;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -215,7 +222,10 @@ class _ArtisanHomeScreenState extends ConsumerState<ArtisanHomeScreen> {
 
               // 2. Primary Action: Camera-First Artisan Upload Card
               GestureDetector(
-                onTap: () => context.push('/artisan/add-item/camera'),
+                onTap: () {
+                  debugPrint('[ArtisanHomeScreen] "Open Camera" card tapped -> routing to /artisan/add-item/camera');
+                  context.push('/artisan/add-item/camera');
+                },
                 child: Container(
                   decoration: BoxDecoration(
                     color: AppColors.primary,
@@ -273,79 +283,6 @@ class _ArtisanHomeScreenState extends ConsumerState<ArtisanHomeScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 12),
-
-              // 3. Secondary Action: Artisanal Voice Input Card
-              GestureDetector(
-                onTap: () => context.push('/artisan/add-item/voice-describe'),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: AppColors.surfaceContainerHigh,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.5)),
-                  ),
-                  padding: const EdgeInsets.all(14),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 48,
-                        height: 48,
-                        decoration: const BoxDecoration(
-                          color: AppColors.secondary,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(Icons.mic, size: 26, color: Colors.white),
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Container(
-                                  width: 6,
-                                  height: 6,
-                                  decoration: const BoxDecoration(
-                                    color: AppColors.primary,
-                                    shape: BoxShape.circle,
-                                  ),
-                                ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  ref.tr('add_by_voice'),
-                                  style: const TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.tertiary,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              ref.tr('speak_story'),
-                              style: const TextStyle(
-                                fontFamily: 'Literata',
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.onSurface,
-                              ),
-                            ),
-                            Text(
-                              ref.tr('voice_desc'),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(fontSize: 12, color: AppColors.onSurfaceVariant),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const Icon(Icons.graphic_eq, color: AppColors.tertiary, size: 22),
-                    ],
-                  ),
-                ),
-              ),
               const SizedBox(height: 24),
 
               // 4. Summary Tiles (आज का लेखा-जोखा)
@@ -367,7 +304,10 @@ class _ArtisanHomeScreenState extends ConsumerState<ArtisanHomeScreen> {
                     period: ref.tr('period_today'),
                     value: '₹3,450',
                     label: ref.tr('today_earnings'),
-                    onTap: () => context.push('/artisan/earnings'),
+                    onTap: () {
+                      debugPrint('[ArtisanHomeScreen] Metric tile "Earnings" tapped -> routing to /artisan/earnings');
+                      context.push('/artisan/earnings');
+                    },
                   ),
                   const SizedBox(width: 8),
                   _buildMetricTile(
@@ -376,7 +316,10 @@ class _ArtisanHomeScreenState extends ConsumerState<ArtisanHomeScreen> {
                     period: isHindi ? 'नया' : 'New',
                     value: ref.tr('orders_count_4'),
                     label: ref.tr('new_orders'),
-                    onTap: () => context.push('/artisan/orders'),
+                    onTap: () {
+                      debugPrint('[ArtisanHomeScreen] Metric tile "Orders" tapped -> routing to /artisan/orders');
+                      context.push('/artisan/orders');
+                    },
                   ),
                   const SizedBox(width: 8),
                   _buildMetricTile(
@@ -385,7 +328,10 @@ class _ArtisanHomeScreenState extends ConsumerState<ArtisanHomeScreen> {
                     period: ref.tr('period_week'),
                     value: ref.tr('fairs_count_2'),
                     label: ref.tr('craft_fairs'),
-                    onTap: () => context.push('/artisan/fairs'),
+                    onTap: () {
+                      debugPrint('[ArtisanHomeScreen] Metric tile "Fairs" tapped -> routing to /artisan/fairs');
+                      context.push('/artisan/fairs');
+                    },
                   ),
                 ],
               ),
@@ -405,7 +351,10 @@ class _ArtisanHomeScreenState extends ConsumerState<ArtisanHomeScreen> {
                     ),
                   ),
                   GestureDetector(
-                    onTap: () => context.push('/artisan/shop-catalog/art_1'),
+                    onTap: () {
+                      debugPrint('[ArtisanHomeScreen] "View All" products tapped -> routing to /artisan/shop-catalog/art_1');
+                      context.push('/artisan/shop-catalog/art_1');
+                    },
                     child: Text(
                       '${ref.tr('view_all')} (18)',
                       style: const TextStyle(
@@ -462,7 +411,10 @@ class _ArtisanHomeScreenState extends ConsumerState<ArtisanHomeScreen> {
                       final stockStr = '${p.stock} ${ref.tr('stock_left')}';
 
                       return GestureDetector(
-                        onTap: () => context.push('/customer/product/${p.id}'),
+                        onTap: () {
+                          debugPrint('[ArtisanHomeScreen] Product tapped: id=${p.id}, name="${p.nameEn}" -> routing to /artisan/product/${p.id}');
+                          context.push('/artisan/product/${p.id}');
+                        },
                         child: Container(
                           width: 148,
                           decoration: BoxDecoration(

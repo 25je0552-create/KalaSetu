@@ -20,6 +20,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
   @override
   void initState() {
     super.initState();
+    debugPrint('[SplashScreen] Initialized - launching logo animation & evaluating auth destination');
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1400),
@@ -43,12 +44,16 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
 
     final user = ref.read(authStateProvider);
     if (user == null) {
+      debugPrint('[SplashScreen] No active session found. Routing to /login');
       context.go('/login');
     } else if (user.role == UserRole.artisan) {
+      debugPrint('[SplashScreen] Active artisan session (${user.id}). Routing to /artisan/home');
       context.go('/artisan/home');
     } else if (user.role == UserRole.customer) {
+      debugPrint('[SplashScreen] Active customer session (${user.id}). Routing to /customer/home');
       context.go('/customer/home');
     } else {
+      debugPrint('[SplashScreen] User without assigned role (${user.id}). Routing to /role-select');
       context.go('/role-select');
     }
   }

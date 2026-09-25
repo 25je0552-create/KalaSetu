@@ -26,7 +26,14 @@ class FairDetailScreen extends ConsumerStatefulWidget {
 class _FairDetailScreenState extends ConsumerState<FairDetailScreen> {
   bool _isApplied = false;
 
+  @override
+  void initState() {
+    super.initState();
+    debugPrint('[FairDetailScreen] Initialized for fairId: ${widget.fairId}');
+  }
+
   void _showApplyDialog(CraftFair fair, bool isHindi) {
+    debugPrint('[FairDetailScreen] Opening stall application dialog for fair: ${fair.id}');
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -68,6 +75,7 @@ class _FairDetailScreenState extends ConsumerState<FairDetailScreen> {
             TerracottaButton(
               label: isHindi ? 'ठीक है' : 'Done',
               onPressed: () {
+                debugPrint('[FairDetailScreen] Stall application completed for fair: ${fair.id}');
                 setState(() => _isApplied = true);
                 Navigator.pop(ctx);
               },
@@ -102,6 +110,7 @@ class _FairDetailScreenState extends ConsumerState<FairDetailScreen> {
                   IconButton(
                     icon: const Icon(Icons.arrow_back, color: AppColors.onSurface),
                     onPressed: () {
+                      debugPrint('[FairDetailScreen] Back button tapped');
                       if (context.canPop()) {
                         context.pop();
                       } else {
@@ -431,6 +440,7 @@ class _FairDetailScreenState extends ConsumerState<FairDetailScreen> {
                                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                                         ),
                                         onPressed: () {
+                                          debugPrint('[FairDetailScreen] View Shop clicked for artisan: ${artisan.id}');
                                           context.push('/artisan/shop-catalog/${artisan.id}');
                                         },
                                         child: Text(
@@ -483,7 +493,10 @@ class _FairDetailScreenState extends ConsumerState<FairDetailScreen> {
                                   final pName = isHindi ? p.nameHi : p.nameEn;
 
                                   return GestureDetector(
-                                    onTap: () => context.push('/customer/product/${p.id}'),
+                                    onTap: () {
+                                      debugPrint('[FairDetailScreen] Featured product card tapped: id=${p.id}, name="${p.nameEn}"');
+                                      context.push('/customer/product/${p.id}');
+                                    },
                                     child: Container(
                                       decoration: BoxDecoration(
                                         color: AppColors.surfaceContainerHigh,

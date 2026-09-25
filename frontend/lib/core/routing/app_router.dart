@@ -22,6 +22,7 @@ import '../../features/artisan_profile/presentation/voice_onboarding_screen.dart
 import '../../features/artisan_profile/presentation/artisan_story_text_screen.dart';
 import '../../features/artisan_add_item/presentation/artisan_camera_screen.dart';
 import '../../features/artisan_add_item/presentation/photo_review_screen.dart';
+import '../../features/artisan_add_item/presentation/image_cropper_screen.dart';
 import '../../features/artisan_add_item/presentation/voice_describe_screen.dart';
 import '../../features/artisan_add_item/presentation/ai_review_screen.dart';
 import '../../features/artisan_add_item/presentation/pricing_screen.dart';
@@ -151,6 +152,14 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const PhotoReviewScreen(),
       ),
       GoRoute(
+        path: '/artisan/add-item/crop',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final path = state.extra as String? ?? 'sample_kulhad_craft.jpg';
+          return ImageCropperScreen(imagePath: path);
+        },
+      ),
+      GoRoute(
         path: '/artisan/add-item/voice-describe',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const VoiceDescribeScreen(),
@@ -194,6 +203,22 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final aid = state.uri.queryParameters['id'] ?? 'art_1';
           return ShopCatalogScreen(artisanId: aid);
+        },
+      ),
+      GoRoute(
+        path: '/artisan/product/:productId',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final pid = state.pathParameters['productId'] ?? 'prod_1';
+          return ProductDetailScreen(productId: pid, isBuyerContext: false);
+        },
+      ),
+      GoRoute(
+        path: '/product/:productId',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final pid = state.pathParameters['productId'] ?? 'prod_1';
+          return ProductDetailScreen(productId: pid);
         },
       ),
 

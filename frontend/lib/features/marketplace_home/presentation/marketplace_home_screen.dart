@@ -17,6 +17,12 @@ class MarketplaceHomeScreen extends ConsumerStatefulWidget {
 
 class _MarketplaceHomeScreenState extends ConsumerState<MarketplaceHomeScreen> {
   String _selectedCluster = '';
+
+  @override
+  void initState() {
+    super.initState();
+    debugPrint('[MarketplaceHomeScreen] Initialized');
+  }
   final List<String> _clusters = [
     'सभी (All)',
     'Gorakhpur Terracotta',
@@ -67,14 +73,20 @@ class _MarketplaceHomeScreenState extends ConsumerState<MarketplaceHomeScreen> {
                   ),
               ],
             ),
-            onPressed: () => context.push('/customer/cart'),
+            onPressed: () {
+              debugPrint('[MarketplaceHomeScreen] Cart icon tapped (count=$cartCount) -> navigating to /customer/cart');
+              context.push('/customer/cart');
+            },
           ),
           const SizedBox(width: 8),
         ],
       ),
       body: RefreshIndicator(
         color: AppColors.primary,
-        onRefresh: () async => ref.refresh(featuredProductsProvider),
+        onRefresh: () async {
+          debugPrint('[MarketplaceHomeScreen] Pull-to-refresh triggered');
+          return ref.refresh(featuredProductsProvider);
+        },
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Column(
@@ -128,7 +140,10 @@ class _MarketplaceHomeScreenState extends ConsumerState<MarketplaceHomeScreen> {
                       ),
                     ),
                     TextButton(
-                      onPressed: () => context.push('/customer/b2b/bulk-request'),
+                      onPressed: () {
+                        debugPrint('[MarketplaceHomeScreen] B2B wholesale tapped -> navigating to /customer/b2b/bulk-request');
+                        context.push('/customer/b2b/bulk-request');
+                      },
                       child: Text(ref.tr('get_quote_btn'), style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary)),
                     ),
                   ],
@@ -156,7 +171,10 @@ class _MarketplaceHomeScreenState extends ConsumerState<MarketplaceHomeScreen> {
                         label: Text(displayName, style: TextStyle(fontSize: 12, color: isSel ? Colors.white : AppColors.onSurface)),
                         selectedColor: AppColors.primary,
                         backgroundColor: AppColors.surfaceContainerHigh,
-                        onSelected: (_) => setState(() => _selectedCluster = isAll ? '' : c),
+                        onSelected: (_) {
+                          debugPrint('[MarketplaceHomeScreen] Cluster selected: "$c"');
+                          setState(() => _selectedCluster = isAll ? '' : c);
+                        },
                       ),
                     );
                   }).toList(),
@@ -193,7 +211,10 @@ class _MarketplaceHomeScreenState extends ConsumerState<MarketplaceHomeScreen> {
                       final p = filtered[index];
                       final name = isHindi ? p.nameHi : p.nameEn;
                       return GestureDetector(
-                        onTap: () => context.push('/customer/product/${p.id}'),
+                        onTap: () {
+                        debugPrint('[MarketplaceHomeScreen] Product card tapped: id=${p.id}, name="${p.nameEn}"');
+                        context.push('/customer/product/${p.id}');
+                      },
                         child: Container(
                           decoration: BoxDecoration(
                             color: AppColors.surfaceContainer,
@@ -261,6 +282,7 @@ class _MarketplaceHomeScreenState extends ConsumerState<MarketplaceHomeScreen> {
                                   ),
                                   GestureDetector(
                                     onTap: () {
+                                      debugPrint('[MarketplaceHomeScreen] Quick add to cart: id=${p.id}, price=${p.price.toInt()}');
                                       ref.read(cartControllerProvider.notifier).addItem(p);
                                       ScaffoldMessenger.of(context).showSnackBar(
                                         SnackBar(

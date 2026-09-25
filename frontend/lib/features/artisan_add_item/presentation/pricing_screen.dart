@@ -19,14 +19,37 @@ class _PricingScreenState extends ConsumerState<PricingScreen> {
   final double _hourlyRate = 120;
   int _stock = 1;
   bool _isPublishing = false;
+  late TextEditingController _priceController;
 
   double get _laborCost => _laborHours * _hourlyRate;
   double get _minimumFairPrice => _rawMaterial + _laborCost;
   double get _suggestedListingPrice => (_minimumFairPrice * 1.25).roundToDouble();
 
+  @override
+  void initState() {
+    super.initState();
+    _priceController = TextEditingController(text: _suggestedListingPrice.toInt().toString());
+    debugPrint('[PricingScreen] Initialized. suggestedPrice=$_suggestedListingPrice, rawMaterial=$_rawMaterial, laborHours=$_laborHours');
+  }
+
+  @override
+  void dispose() {
+    _priceController.dispose();
+    super.dispose();
+  }
+
   Future<void> _handlePublish() async {
+    final enteredPrice = double.tryParse(_priceController.text.trim()) ?? _suggestedListingPrice;
+    debugPrint('[PricingScreen] Publishing item with price: ₹$enteredPrice, stock: $_stock');
     setState(() => _isPublishing = true);
+    ref.read(addItemWizardProvider.notifier).updateDetails(
+      rawMaterialCost: _rawMaterial,
+      laborHours: _laborHours,
+      suggestedPrice: enteredPrice,
+      stock: _stock,
+    );
     await ref.read(addItemWizardProvider.notifier).publishItem();
+    debugPrint('[PricingScreen] Item published successfully. Showing confirmation modal.');
 
     if (mounted) {
       setState(() => _isPublishing = false);
@@ -64,6 +87,7 @@ class _PricingScreenState extends ConsumerState<PricingScreen> {
               TerracottaButton(
                 label: ref.tr('back_to_home_btn'),
                 onPressed: () {
+                  debugPrint('[PricingScreen] Back to home tapped -> resetting wizard and navigating to /artisan/home');
                   ref.read(addItemWizardProvider.notifier).reset();
                   Navigator.pop(context);
                   context.go('/artisan/home');
@@ -161,23 +185,99 @@ class _PricingScreenState extends ConsumerState<PricingScreen> {
                       ],
                     ),
                     const Divider(height: 24, thickness: 1.5, color: AppColors.outlineVariant),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          ref.tr('suggested_price_label'),
-                          style: const TextStyle(fontFamily: 'Literata', fontSize: 16, fontWeight: FontWeight.bold),
-                        ),
-                        Text(
-                          '₹${_suggestedListingPrice.toInt()}',
-                          style: const TextStyle(
-                            fontFamily: 'Be Vietnam Pro',
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.primary,
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(Icons.auto_awesome, size: 16, color: AppColors.primary),
+                              const SizedBox(width: 8),
+                              Text(
+                                '${ref.tr('suggested_market_price')}:',
+                                style: const TextStyle(
+                                  fontFamily: 'Literata',
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.onSurface,
+                                ),
+                              ),
+                            ],
                           ),
+                          Text(
+                            '₹${_suggestedListingPrice.toInt()}',
+                            style: const TextStyle(
+                              fontFamily: 'Be Vietnam Pro',
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Artisan Custom Listing Price Input
+              Text(
+                ref.tr('your_price_label'),
+                style: const TextStyle(
+                  fontFamily: 'Literata',
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.onSurface,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                ref.tr('price_override_hint'),
+                style: const TextStyle(fontSize: 12, color: AppColors.onSurfaceVariant),
+              ),
+              const SizedBox(height: 10),
+              Container(
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceContainerHigh,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.6)),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+                child: Row(
+                  children: [
+                    const Text(
+                      '₹',
+                      style: TextStyle(
+                        fontFamily: 'Be Vietnam Pro',
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: TextFormField(
+                        controller: _priceController,
+                        keyboardType: TextInputType.number,
+                        style: const TextStyle(
+                          fontFamily: 'Be Vietnam Pro',
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.onSurface,
                         ),
-                      ],
+                        decoration: const InputDecoration(
+                          border: InputBorder.none,
+                          hintText: '0',
+                          contentPadding: EdgeInsets.symmetric(vertical: 10),
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -200,13 +300,19 @@ class _PricingScreenState extends ConsumerState<PricingScreen> {
                         IconButton(
                           icon: const Icon(Icons.remove, size: 18),
                           onPressed: () {
-                            if (_stock > 1) setState(() => _stock--);
+                            if (_stock > 1) {
+                              debugPrint('[PricingScreen] Stock decreased to: ${_stock - 1}');
+                              setState(() => _stock--);
+                            }
                           },
                         ),
                         Text('$_stock', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                         IconButton(
                           icon: const Icon(Icons.add, size: 18),
-                          onPressed: () => setState(() => _stock++),
+                          onPressed: () {
+                            debugPrint('[PricingScreen] Stock increased to: ${_stock + 1}');
+                            setState(() => _stock++);
+                          },
                         ),
                       ],
                     ),

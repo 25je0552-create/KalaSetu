@@ -18,6 +18,25 @@ class ArtisanProfileScreen extends ConsumerStatefulWidget {
 
 class _ArtisanProfileScreenState extends ConsumerState<ArtisanProfileScreen> {
   bool _isPlayingStory = false;
+  bool _isAadhaarRevealed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    debugPrint('[ArtisanProfileScreen] Initialized');
+  }
+
+  String _formatAadhaar(String raw, bool revealed) {
+    final clean = raw.replaceAll(RegExp(r'\D'), '');
+    final last4 = clean.length >= 4 ? clean.substring(clean.length - 4) : '8492';
+    if (!revealed) {
+      return 'XXXX-XXXX-$last4';
+    }
+    if (clean.length == 12) {
+      return '${clean.substring(0, 4)}-${clean.substring(4, 8)}-$last4';
+    }
+    return raw;
+  }
 
   Artisan _getFallbackArtisan(bool isHindi) {
     return Artisan(
@@ -25,11 +44,13 @@ class _ArtisanProfileScreenState extends ConsumerState<ArtisanProfileScreen> {
       name: isHindi ? 'रमेश प्रजापति' : 'Ramesh Prajapati',
       phone: '+91 98765 43210',
       craftType: isHindi ? 'टेराकोटा शिल्प' : 'Terracotta Pottery',
-      village: 'बड़हलगंज',
-      district: 'गोरखपुर',
-      state: 'उत्तर प्रदेश',
+      village: isHindi ? 'बड़हलगंज' : 'Barhalganj',
+      district: isHindi ? 'गोरखपुर' : 'Gorakhpur',
+      state: isHindi ? 'उत्तर प्रदेश' : 'Uttar Pradesh',
       isCertified: true,
       artisanCardNumber: 'UP/TERRA/2021/8492',
+      aadhaarNumber: '5842-9134-8492',
+      email: 'ramesh.prajapati@kalasetu.in',
       avatarUrl:
           'https://lh3.googleusercontent.com/aida-public/AB6AXuB3sV-GYA0lx00uY-wcyCGKIEJi1pJCzJy99rDKdTCu56nL130Frmkp11Rh59MuH1zyK5xZArvcRK1kGahDZgyXtpcykw8v4zHQunxg9abSMFOOhRUtNSTvmhZNK5fzaDbTxY5nJKoZlJdbDCs503FQbB1tagmI-Q4DcAC-NQZYx5c1khH0XtdtrkYgC22-Kb8h_emvmrzgw24ZjROCv0EKo6c1BNt_it-hfswbRFnjlPD2h_o3izQs',
       story: isHindi
@@ -125,11 +146,8 @@ class _ArtisanProfileScreenState extends ConsumerState<ArtisanProfileScreen> {
                   IconButton(
                     icon: const Icon(Icons.arrow_back, color: AppColors.onSurface),
                     onPressed: () {
-                      if (context.canPop()) {
-                        context.pop();
-                      } else {
-                        context.go('/artisan/home');
-                      }
+                      debugPrint('[ArtisanProfileScreen] Back button tapped -> navigating to /artisan/home');
+                      context.go('/artisan/home');
                     },
                   ),
                   Text(
@@ -310,7 +328,10 @@ class _ArtisanProfileScreenState extends ConsumerState<ArtisanProfileScreen> {
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                                 padding: const EdgeInsets.symmetric(vertical: 10),
                               ),
-                              onPressed: () => context.push('/artisan/story-input'),
+                              onPressed: () {
+                    debugPrint('[ArtisanProfileScreen] Edit story tapped -> navigating to /artisan/story-input');
+                    context.push('/artisan/story-input');
+                  },
                             ),
                           ),
                           const SizedBox(width: 8),
@@ -328,7 +349,10 @@ class _ArtisanProfileScreenState extends ConsumerState<ArtisanProfileScreen> {
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                                 padding: const EdgeInsets.symmetric(vertical: 10),
                               ),
-                              onPressed: () => context.push('/artisan/shop-catalog/${artisan.id}'),
+                              onPressed: () {
+                    debugPrint('[ArtisanProfileScreen] View shop catalog tapped for artisan: ${artisan.id}');
+                    context.push('/artisan/shop-catalog/${artisan.id}');
+                  },
                             ),
                           ),
                           const SizedBox(width: 8),
@@ -337,7 +361,10 @@ class _ArtisanProfileScreenState extends ConsumerState<ArtisanProfileScreen> {
                             borderRadius: BorderRadius.circular(10),
                             child: InkWell(
                               borderRadius: BorderRadius.circular(10),
-                              onTap: () => _showContactDialog(context, artisan, isHindi),
+                              onTap: () {
+                    debugPrint('[ArtisanProfileScreen] Contact artisan tapped -> opening contact dialog');
+                    _showContactDialog(context, artisan, isHindi);
+                  },
                               child: Padding(
                                 padding: const EdgeInsets.all(10),
                                 child: const Icon(Icons.phone_in_talk, size: 18, color: AppColors.secondary),
@@ -346,6 +373,292 @@ class _ArtisanProfileScreenState extends ConsumerState<ArtisanProfileScreen> {
                           ),
                         ],
                       ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // 2. Verified Identity & Contact Details Card
+                Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceContainerHigh,
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.4)),
+                    boxShadow: const [
+                      BoxShadow(color: Color(0x0A000000), blurRadius: 8, offset: Offset(0, 2)),
+                    ],
+                  ),
+                  padding: const EdgeInsets.all(18),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(Icons.verified_user_outlined, size: 20, color: AppColors.primary),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              ref.tr('identity_contact_title'),
+                              style: const TextStyle(
+                                fontFamily: 'Literata',
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.onSurface,
+                              ),
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF6B7A4F).withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.check_circle, size: 12, color: Color(0xFF6B7A4F)),
+                                const SizedBox(width: 4),
+                                Text(
+                                  isHindi ? 'सत्यापित' : 'Verified',
+                                  style: const TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF6B7A4F),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Aadhaar Item (Masked with toggle reveal)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: AppColors.surfaceContainerLowest,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.3)),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 36,
+                              height: 36,
+                              decoration: BoxDecoration(
+                                color: AppColors.secondaryContainer.withValues(alpha: 0.3),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(Icons.fingerprint, color: AppColors.secondary, size: 20),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    ref.tr('aadhaar_label'),
+                                    style: const TextStyle(fontSize: 11, color: AppColors.onSurfaceVariant),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    _formatAadhaar(artisan.aadhaarNumber, _isAadhaarRevealed),
+                                    style: const TextStyle(
+                                      fontFamily: 'Be Vietnam Pro',
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 1.2,
+                                      color: AppColors.onSurface,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            InkWell(
+                              borderRadius: BorderRadius.circular(8),
+                              onTap: () {
+                                setState(() {
+                                  _isAadhaarRevealed = !_isAadhaarRevealed;
+                                });
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: AppColors.surfaceContainerHigh,
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.5)),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      _isAadhaarRevealed ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                                      size: 15,
+                                      color: AppColors.primary,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      _isAadhaarRevealed ? ref.tr('tap_to_hide') : ref.tr('tap_to_reveal'),
+                                      style: const TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.primary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+
+                      // Location Item
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: AppColors.surfaceContainerLowest,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.3)),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 36,
+                              height: 36,
+                              decoration: BoxDecoration(
+                                color: AppColors.primary.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(Icons.place_outlined, color: AppColors.primary, size: 20),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    ref.tr('craft_location_label'),
+                                    style: const TextStyle(fontSize: 11, color: AppColors.onSurfaceVariant),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    '${artisan.village}, ${artisan.district}, ${artisan.state}',
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.onSurface,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+
+                      // Phone Item
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: AppColors.surfaceContainerLowest,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.3)),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 36,
+                              height: 36,
+                              decoration: BoxDecoration(
+                                color: AppColors.secondary.withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(Icons.phone_android, color: AppColors.secondary, size: 20),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    ref.tr('registered_phone_label'),
+                                    style: const TextStyle(fontSize: 11, color: AppColors.onSurfaceVariant),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    artisan.phone,
+                                    style: const TextStyle(
+                                      fontFamily: 'Be Vietnam Pro',
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.onSurface,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // Email Item (Optional)
+                      if (artisan.email != null && artisan.email!.isNotEmpty) ...[
+                        const SizedBox(height: 10),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: AppColors.surfaceContainerLowest,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.3)),
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 36,
+                                height: 36,
+                                decoration: BoxDecoration(
+                                  color: AppColors.tertiary.withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Icon(Icons.mail_outline, color: AppColors.tertiary, size: 20),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      ref.tr('email_label'),
+                                      style: const TextStyle(fontSize: 11, color: AppColors.onSurfaceVariant),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      artisan.email!,
+                                      style: const TextStyle(
+                                        fontFamily: 'Be Vietnam Pro',
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                        color: AppColors.onSurface,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -365,7 +678,10 @@ class _ArtisanProfileScreenState extends ConsumerState<ArtisanProfileScreen> {
                       ),
                     ),
                     TextButton(
-                      onPressed: () => context.push('/artisan/shop-catalog/${artisan.id}'),
+                      onPressed: () {
+                    debugPrint('[ArtisanProfileScreen] View shop catalog tapped for artisan: ${artisan.id}');
+                    context.push('/artisan/shop-catalog/${artisan.id}');
+                  },
                       child: Text(
                         isHindi ? 'सभी देखें' : 'View All',
                         style: const TextStyle(
@@ -417,7 +733,10 @@ class _ArtisanProfileScreenState extends ConsumerState<ArtisanProfileScreen> {
                               final prod = products[index];
                               final prodTitle = isHindi && prod.nameHi.isNotEmpty ? prod.nameHi : prod.nameEn;
                               return GestureDetector(
-                                onTap: () => context.push('/product/${prod.id}'),
+                                onTap: () {
+                        debugPrint('[ArtisanProfileScreen] Product card tapped: id=${prod.id}');
+                        context.push('/artisan/product/${prod.id}');
+                      },
                                 child: Container(
                                   width: 140,
                                   decoration: BoxDecoration(
@@ -526,8 +845,10 @@ class _ArtisanProfileScreenState extends ConsumerState<ArtisanProfileScreen> {
                               style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                             ),
                             onPressed: () {
+                              final next = !_isPlayingStory;
+                              debugPrint('[ArtisanProfileScreen] Story audio play toggle: isPlaying=$next');
                               setState(() {
-                                _isPlayingStory = !_isPlayingStory;
+                                _isPlayingStory = next;
                               });
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
@@ -556,7 +877,10 @@ class _ArtisanProfileScreenState extends ConsumerState<ArtisanProfileScreen> {
                               isHindi ? 'कहानी बदलें' : 'Edit Story',
                               style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                             ),
-                            onPressed: () => context.push('/artisan/voice-onboarding'),
+                            onPressed: () {
+                      debugPrint('[ArtisanProfileScreen] Voice onboarding button pressed');
+                      context.push('/artisan/voice-onboarding');
+                    },
                           ),
                         ],
                       ),
@@ -732,7 +1056,8 @@ class _ArtisanProfileScreenState extends ConsumerState<ArtisanProfileScreen> {
                   subtitle: ref.tr('switch_to_buyer_desc'),
                   onTap: () {
                     ref.read(authStateProvider.notifier).selectRole(UserRole.customer);
-                    context.go('/buyer/home');
+                    debugPrint('[ArtisanProfileScreen] Role switch to Buyer confirmed -> navigating to /buyer/home');
+                              context.go('/buyer/home');
                   },
                 ),
                 const SizedBox(height: 10),
@@ -797,7 +1122,8 @@ class _ArtisanProfileScreenState extends ConsumerState<ArtisanProfileScreen> {
                     ),
                     onPressed: () {
                       ref.read(authStateProvider.notifier).signOut();
-                      context.go('/login');
+                      debugPrint('[ArtisanProfileScreen] Sign out confirmed -> navigating to /login');
+                              context.go('/login');
                     },
                   ),
                 ),

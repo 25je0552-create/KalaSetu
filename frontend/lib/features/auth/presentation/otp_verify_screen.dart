@@ -28,12 +28,14 @@ class _OtpVerifyScreenState extends ConsumerState<OtpVerifyScreen> {
   @override
   void initState() {
     super.initState();
+    debugPrint('[OtpVerifyScreen] Initialized for phone: ${widget.phoneNumber}');
     _startTimer();
   }
 
   void _startTimer() {
     _timer?.cancel();
     _secondsLeft = 30;
+    debugPrint('[OtpVerifyScreen] Countdown timer started (30s)');
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_secondsLeft > 0) {
         setState(() => _secondsLeft--);
@@ -48,6 +50,8 @@ class _OtpVerifyScreenState extends ConsumerState<OtpVerifyScreen> {
   Future<void> _handleVerify() async {
     final code = _otpCode;
     if (code.length < 6) return;
+
+    debugPrint('[OtpVerifyScreen] Verifying OTP: "$code" for phone: ${widget.phoneNumber}');
 
     setState(() {
       _isLoading = true;
@@ -67,10 +71,12 @@ class _OtpVerifyScreenState extends ConsumerState<OtpVerifyScreen> {
         ),
       );
 
+      debugPrint('[OtpVerifyScreen] OTP verified successfully -> navigating to /role-select');
       if (mounted) {
         context.go('/role-select');
       }
     } catch (e) {
+      debugPrint('[OtpVerifyScreen] OTP verification failed: $e');
       setState(() => _errorMessage = ref.tr('invalid_otp'));
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -204,7 +210,10 @@ class _OtpVerifyScreenState extends ConsumerState<OtpVerifyScreen> {
                         style: const TextStyle(color: AppColors.onSurfaceVariant, fontSize: 13),
                       )
                     : TextButton(
-                        onPressed: _startTimer,
+                        onPressed: () {
+                          debugPrint('[OtpVerifyScreen] Resend OTP requested for ${widget.phoneNumber}');
+                          _startTimer();
+                        },
                         child: Text(
                           ref.tr('resend_otp'),
                           style: const TextStyle(

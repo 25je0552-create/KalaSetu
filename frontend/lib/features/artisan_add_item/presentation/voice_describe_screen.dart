@@ -26,6 +26,7 @@ class _VoiceDescribeScreenState extends ConsumerState<VoiceDescribeScreen> with 
   @override
   void initState() {
     super.initState();
+    debugPrint('[VoiceDescribeScreen] Initialized. Starting recording setup...');
     _audioRecorder = AudioRecorder();
     _waveAnim = AnimationController(
       vsync: this,
@@ -35,9 +36,11 @@ class _VoiceDescribeScreenState extends ConsumerState<VoiceDescribeScreen> with 
   }
 
   Future<void> _startRecording() async {
+    debugPrint('[VoiceDescribeScreen] Requesting microphone permission to record...');
     try {
       final hasPerm = await _audioRecorder.hasPermission();
       if (!hasPerm) {
+        debugPrint('[VoiceDescribeScreen] Microphone permission denied');
         if (mounted) {
           setState(() {
             _isPaused = false;
@@ -55,6 +58,7 @@ class _VoiceDescribeScreenState extends ConsumerState<VoiceDescribeScreen> with 
         const RecordConfig(encoder: AudioEncoder.aacLc),
         path: filePath,
       );
+      debugPrint('[VoiceDescribeScreen] Audio recording active at path: $filePath');
       _isRecordingActive = true;
       if (mounted) {
         setState(() {
@@ -75,6 +79,7 @@ class _VoiceDescribeScreenState extends ConsumerState<VoiceDescribeScreen> with 
   }
 
   Future<void> _togglePause() async {
+    debugPrint('[VoiceDescribeScreen] Toggle pause. Current isPaused: $_isPaused');
     try {
       if (_isPaused) {
         if (_isRecordingActive && await _audioRecorder.isRecording()) {
@@ -94,6 +99,7 @@ class _VoiceDescribeScreenState extends ConsumerState<VoiceDescribeScreen> with 
   }
 
   Future<void> _finishRecording() async {
+    debugPrint('[VoiceDescribeScreen] Finish recording called');
     if (mounted) setState(() => _isDone = true);
     String? path;
     try {
@@ -105,6 +111,7 @@ class _VoiceDescribeScreenState extends ConsumerState<VoiceDescribeScreen> with 
     }
     _isRecordingActive = false;
 
+    debugPrint('[VoiceDescribeScreen] Recorded audio saved: $path. Navigating to AI review');
     ref.read(addItemWizardProvider.notifier).setAudio(path ?? 'audio_sample.m4a');
     await Future.delayed(const Duration(milliseconds: 600));
     if (mounted) {
@@ -126,6 +133,8 @@ class _VoiceDescribeScreenState extends ConsumerState<VoiceDescribeScreen> with 
   @override
   Widget build(BuildContext context) {
     ref.watch(localeProvider);
+    final wizardState = ref.watch(addItemWizardProvider);
+    final photoPath = wizardState.capturedPhotoPath;
 
     return Scaffold(
       backgroundColor: AppColors.surface,
@@ -143,7 +152,10 @@ class _VoiceDescribeScreenState extends ConsumerState<VoiceDescribeScreen> with 
                 children: [
                   IconButton(
                     icon: const Icon(Icons.arrow_back, color: AppColors.onSurface),
-                    onPressed: () => context.pop(),
+                    onPressed: () {
+                      debugPrint('[VoiceDescribeScreen] Back button tapped');
+                      context.pop();
+                    },
                   ),
                   Text(
                     ref.tr('header_voice_subtitle'),
@@ -384,38 +396,51 @@ class _VoiceDescribeScreenState extends ConsumerState<VoiceDescribeScreen> with 
                     const SizedBox(height: 12),
 
                     // Attached Photo Thumbnail
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: AppColors.surfaceContainerHigh.withValues(alpha: 0.6),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 44,
-                            height: 44,
-                            decoration: BoxDecoration(
-                              color: AppColors.surfaceContainer,
+                    GestureDetector(
+                      onTap: () => context.push('/artisan/add-item/photo-review'),
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppColors.surfaceContainerHigh.withValues(alpha: 0.6),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.4)),
+                        ),
+                        child: Row(
+                          children: [
+                            ClipRRect(
                               borderRadius: BorderRadius.circular(6),
+                              child: (photoPath != null && File(photoPath).existsSync())
+                                  ? Image.file(File(photoPath), width: 44, height: 44, fit: BoxFit.cover)
+                                  : Container(
+                                      width: 44,
+                                      height: 44,
+                                      color: AppColors.surfaceContainer,
+                                      child: const Icon(Icons.image, color: AppColors.outline),
+                                    ),
                             ),
-                            child: const Icon(Icons.image, color: AppColors.outline),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(ref.tr('photo_attached'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                                Text(ref.tr('photo_attached_desc'), style: const TextStyle(fontSize: 11, color: AppColors.onSurfaceVariant)),
-                              ],
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(ref.tr('photo_attached'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                                  Text(
+                                    ref.tr('photo_attached_desc'),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(fontSize: 11, color: AppColors.onSurfaceVariant),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.cached, size: 20, color: AppColors.primary),
-                            onPressed: () => context.pop(),
-                          ),
-                        ],
+                            const Icon(Icons.crop, size: 18, color: AppColors.primary),
+                            const SizedBox(width: 6),
+                            IconButton(
+                              icon: const Icon(Icons.cached, size: 20, color: AppColors.primary),
+                              onPressed: () => context.pop(),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ],
@@ -423,12 +448,64 @@ class _VoiceDescribeScreenState extends ConsumerState<VoiceDescribeScreen> with 
               ),
               const SizedBox(height: 20),
 
-              // Pause / Re-record buttons
+              // Dedicated High-Visibility Start / Stop Mic Recording Button
+              GestureDetector(
+                onTap: () {
+                  if (_isRecordingActive && !_isPaused) {
+                    _togglePause();
+                  } else if (_isPaused) {
+                    _togglePause();
+                  } else {
+                    _startRecording();
+                  }
+                },
+                child: Column(
+                  children: [
+                    Container(
+                      width: 76,
+                      height: 76,
+                      decoration: BoxDecoration(
+                        color: (_isRecordingActive && !_isPaused) ? AppColors.error : AppColors.primary,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: ((_isRecordingActive && !_isPaused) ? AppColors.error : AppColors.primary)
+                                .withValues(alpha: 0.38),
+                            blurRadius: 18,
+                            offset: const Offset(0, 6),
+                          ),
+                        ],
+                        border: Border.all(color: Colors.white, width: 3.5),
+                      ),
+                      child: Icon(
+                        (_isRecordingActive && !_isPaused) ? Icons.stop_rounded : Icons.mic_rounded,
+                        size: 40,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      (_isRecordingActive && !_isPaused)
+                          ? (ref.watch(localeProvider) == AppLocale.hindi ? 'रिकॉर्डिंग रोकें' : 'Stop Recording')
+                          : (ref.watch(localeProvider) == AppLocale.hindi ? 'रिकॉर्ड करें' : 'Start Recording'),
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: (_isRecordingActive && !_isPaused) ? AppColors.error : AppColors.primary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Re-record and Pause action options
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   TextButton.icon(
                     onPressed: () {
+                      debugPrint('[VoiceDescribeScreen] Re-record button tapped');
                       _startRecording();
                       final isHindi = ref.read(localeProvider) == AppLocale.hindi;
                       ScaffoldMessenger.of(context).showSnackBar(

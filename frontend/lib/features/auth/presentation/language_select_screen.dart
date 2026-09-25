@@ -11,6 +11,7 @@ class LanguageSelectScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    debugPrint('[LanguageSelectScreen] Rendered language selection screen');
     return Scaffold(
       backgroundColor: AppColors.surface,
       body: SafeArea(
@@ -58,6 +59,7 @@ class LanguageSelectScreen extends ConsumerWidget {
               PotteryCard(
                 backgroundColor: AppColors.surfaceContainerHigh,
                 onTap: () {
+                  debugPrint('[LanguageSelectScreen] Selected Hindi (AppLocale.hindi) -> navigating to /login');
                   ref.read(localeProvider.notifier).setLocale(AppLocale.hindi);
                   context.go('/login');
                 },
@@ -115,6 +117,7 @@ class LanguageSelectScreen extends ConsumerWidget {
               PotteryCard(
                 backgroundColor: AppColors.surfaceContainerHigh,
                 onTap: () {
+                  debugPrint('[LanguageSelectScreen] Selected English (AppLocale.english) -> navigating to /login');
                   ref.read(localeProvider.notifier).setLocale(AppLocale.english);
                   context.go('/login');
                 },

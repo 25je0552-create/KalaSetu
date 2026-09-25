@@ -20,6 +20,7 @@ class _VoiceOnboardingScreenState extends ConsumerState<VoiceOnboardingScreen> w
   @override
   void initState() {
     super.initState();
+    debugPrint('[VoiceOnboardingScreen] Initialized');
     _animController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1600),
@@ -33,6 +34,7 @@ class _VoiceOnboardingScreenState extends ConsumerState<VoiceOnboardingScreen> w
   }
 
   void _startListening() {
+    debugPrint('[VoiceOnboardingScreen] Mic pressed down -> listening started');
     setState(() {
       _isListening = true;
       _isRecorded = false;
@@ -40,6 +42,7 @@ class _VoiceOnboardingScreenState extends ConsumerState<VoiceOnboardingScreen> w
   }
 
   void _stopListening() {
+    debugPrint('[VoiceOnboardingScreen] Mic released -> listening stopped, voice recorded');
     setState(() {
       _isListening = false;
       _isRecorded = true;
@@ -115,6 +118,7 @@ class _VoiceOnboardingScreenState extends ConsumerState<VoiceOnboardingScreen> w
                   IconButton(
                     icon: const Icon(Icons.arrow_back, color: AppColors.onSurface),
                     onPressed: () {
+                      debugPrint('[VoiceOnboardingScreen] Back button tapped');
                       if (context.canPop()) {
                         context.pop();
                       } else {
@@ -307,6 +311,7 @@ class _VoiceOnboardingScreenState extends ConsumerState<VoiceOnboardingScreen> w
               // Fallback text form link
               TextButton(
                 onPressed: () {
+                  debugPrint('[VoiceOnboardingScreen] Prefer typing pressed -> navigating to /artisan/story-input');
                   context.push('/artisan/story-input');
                 },
                 child: Column(

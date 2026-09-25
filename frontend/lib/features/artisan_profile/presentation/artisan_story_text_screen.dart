@@ -14,13 +14,31 @@ class ArtisanStoryTextInputScreen extends ConsumerStatefulWidget {
 
 class _ArtisanStoryTextInputScreenState extends ConsumerState<ArtisanStoryTextInputScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController(text: 'रमेश प्रजापति (Ramesh Prajapati)');
-  final _craftController = TextEditingController(text: 'पारंपरिक टेराकोटा शिल्प (Terracotta)');
-  final _locationController = TextEditingController(text: 'गोरखपुर (Gorakhpur, Uttar Pradesh)');
-  final _storyController = TextEditingController(
-    text: 'गोरखपुर के पारंपरिक टेराकोटा शिल्प में 3 पीढ़ियों से हमारा परिवार लगा हुआ है। प्राकृतिक नदी किनारे की चिकनी मिट्टी और हाथ की चाक से हम कलश, हाथी-घोड़े और सजावटी दीप बनाते हैं।',
-  );
+  late final TextEditingController _nameController;
+  late final TextEditingController _craftController;
+  late final TextEditingController _locationController;
+  late final TextEditingController _storyController;
   bool _isSubmitting = false;
+  AppLocale? _lastLocale;
+
+  @override
+  void initState() {
+    super.initState();
+    debugPrint('[ArtisanStoryTextInputScreen] Initialized');
+    _nameController = TextEditingController();
+    _craftController = TextEditingController();
+    _locationController = TextEditingController();
+    _storyController = TextEditingController();
+  }
+
+  void _updateFieldsForLocale(bool isHindi) {
+    _nameController.text = isHindi ? 'रमेश प्रजापति' : 'Ramesh Prajapati';
+    _craftController.text = isHindi ? 'पारंपरिक टेराकोटा शिल्प' : 'Traditional Terracotta Craft';
+    _locationController.text = isHindi ? 'गोरखपुर, उत्तर प्रदेश' : 'Gorakhpur, Uttar Pradesh';
+    _storyController.text = isHindi
+        ? 'गोरखपुर के पारंपरिक टेराकोटा शिल्प में 3 पीढ़ियों से हमारा परिवार लगा हुआ है। प्राकृतिक नदी किनारे की चिकनी मिट्टी और हाथ की चाक से हम कलश, हाथी-घोड़े और सजावटी दीप बनाते हैं।'
+        : 'Our family has been preserving the traditional terracotta heritage of Gorakhpur for 3 generations. Using fine riverbank silt clay and manual pottery wheels, we sculpt authentic earthen pots, elephants, horses, and festive diyas.';
+  }
 
   @override
   void dispose() {
@@ -32,8 +50,11 @@ class _ArtisanStoryTextInputScreenState extends ConsumerState<ArtisanStoryTextIn
   }
 
   void _submitForm() async {
-    if (!_formKey.currentState!.validate()) return;
-
+    if (!_formKey.currentState!.validate()) {
+      debugPrint('[ArtisanStoryTextInputScreen] Form validation failed');
+      return;
+    }
+    debugPrint('[ArtisanStoryTextInputScreen] Submitting story form: name="${_nameController.text}", craft="${_craftController.text}", storyLength=${_storyController.text.length}');
     setState(() => _isSubmitting = true);
     await Future.delayed(const Duration(milliseconds: 700));
 
@@ -83,6 +104,7 @@ class _ArtisanStoryTextInputScreenState extends ConsumerState<ArtisanStoryTextIn
             TerracottaButton(
               label: isHindi ? 'प्रोफ़ाइल पर लौटें' : 'Back to Profile',
               onPressed: () {
+                debugPrint('[ArtisanStoryTextInputScreen] Returned to profile from dialog');
                 Navigator.pop(ctx);
                 context.go('/artisan/profile');
               },
@@ -95,7 +117,13 @@ class _ArtisanStoryTextInputScreenState extends ConsumerState<ArtisanStoryTextIn
 
   @override
   Widget build(BuildContext context) {
-    final isHindi = ref.watch(localeProvider) == AppLocale.hindi;
+    final currentLocale = ref.watch(localeProvider);
+    final isHindi = currentLocale == AppLocale.hindi;
+
+    if (_lastLocale != currentLocale) {
+      _lastLocale = currentLocale;
+      _updateFieldsForLocale(isHindi);
+    }
 
     return Scaffold(
       backgroundColor: AppColors.surface,
@@ -113,7 +141,10 @@ class _ArtisanStoryTextInputScreenState extends ConsumerState<ArtisanStoryTextIn
                 children: [
                   IconButton(
                     icon: const Icon(Icons.arrow_back, color: AppColors.onSurface),
-                    onPressed: () => context.pop(),
+                    onPressed: () {
+                      debugPrint('[ArtisanStoryTextInputScreen] Back button tapped');
+                      context.pop();
+                    },
                   ),
                   Text(
                     isHindi ? 'लिखित शिल्प कथा' : 'Written Story Submission',

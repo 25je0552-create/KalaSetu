@@ -29,6 +29,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Future<void> _handleSendOtp() async {
     final phone = _phoneController.text.trim();
     if (phone.length < 10) {
+      debugPrint('[LoginScreen] Phone validation failed for input: "$phone"');
       setState(() => _errorMessage = ref.tr('phone_error'));
       return;
     }
@@ -39,12 +40,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     });
 
     try {
+      debugPrint('[LoginScreen] Requesting OTP send for phone: +91$phone');
       final authService = ref.read(authServiceProvider);
       await authService.sendOtp('+91$phone');
+      debugPrint('[LoginScreen] OTP sent successfully to +91$phone -> navigating to /otp-verify');
       if (mounted) {
         context.push('/otp-verify', extra: '+91$phone');
       }
     } catch (e) {
+      debugPrint('[LoginScreen] OTP send failed: $e');
       final isHindi = ref.read(localeProvider) == AppLocale.hindi;
       setState(() => _errorMessage = isHindi ? 'ओटीपी भेजने में त्रुटि: $e' : 'Error sending OTP: $e');
     } finally {
@@ -59,6 +63,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     });
 
     try {
+      debugPrint('[LoginScreen] Initiating Google Sign-In');
       final authService = ref.read(authServiceProvider);
       await authService.signInWithGoogle();
 
@@ -72,10 +77,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         ),
       );
 
+      debugPrint('[LoginScreen] Google Sign-In authenticated successfully -> navigating to /role-select');
       if (mounted) {
         context.go('/role-select');
       }
     } catch (e) {
+      debugPrint('[LoginScreen] Google Sign-In failed: $e');
       final isHindi = ref.read(localeProvider) == AppLocale.hindi;
       setState(() => _errorMessage = isHindi ? 'Google साइन-इन त्रुटि: $e' : 'Google sign-in error: $e');
     } finally {

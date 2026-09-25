@@ -11,6 +11,7 @@ class CustomerAccountScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(authStateProvider);
+    debugPrint('[CustomerAccountScreen] Rendered for user: ${user?.name ?? "Guest"}');
 
     return Scaffold(
       backgroundColor: AppColors.surface,
@@ -47,6 +48,7 @@ class CustomerAccountScreen extends ConsumerWidget {
             PotteryCard(
               backgroundColor: AppColors.surfaceContainerLow,
               onTap: () {
+                debugPrint('[CustomerAccountScreen] Role switch to Artisan -> navigating to /artisan/home');
                 ref.read(authStateProvider.notifier).selectRole(UserRole.artisan);
                 context.go('/artisan/home');
               },
@@ -71,6 +73,7 @@ class CustomerAccountScreen extends ConsumerWidget {
 
             PotteryCard(
               onTap: () {
+                debugPrint('[CustomerAccountScreen] Sign out confirmed -> navigating to /login');
                 ref.read(authStateProvider.notifier).signOut();
                 context.go('/login');
               },

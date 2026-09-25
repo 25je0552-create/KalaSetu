@@ -11,6 +11,7 @@ class ArtisanEarningsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final locale = ref.watch(localeProvider);
     final isHindi = locale == AppLocale.hindi;
+    debugPrint('[ArtisanEarningsScreen] Rendered. Available balance: ₹8,720, isHindi: $isHindi');
 
     return Scaffold(
       backgroundColor: AppColors.surface,
@@ -128,7 +129,10 @@ class ArtisanEarningsScreen extends ConsumerWidget {
   }
 
   Widget _buildWeekRow(String week, String amount, String orders, bool isCurrent) {
-    return Container(
+    return InkWell(
+      onTap: () => debugPrint('[ArtisanEarningsScreen] Weekly summary tapped: week=$week, amount=$amount, orders=$orders'),
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
@@ -157,6 +161,6 @@ class ArtisanEarningsScreen extends ConsumerWidget {
           ),
         ],
       ),
-    );
+    ),);
   }
 }
