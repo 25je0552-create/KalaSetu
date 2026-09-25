@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/localization/app_localizations.dart';
+import '../../../core/services/auth_service.dart';
 import '../../../core/widgets/clay_widgets.dart';
 import '../../marketplace_home/data/product_repository.dart';
 import '../../artisan_profile/data/artisan_repository.dart';

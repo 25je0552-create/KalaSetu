@@ -1,0 +1,1181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>KalaSetu — Log Messages Study Sheet</title>
+  <style>
+    @page {
+      size: A4 landscape;
+      margin: 10mm 12mm 10mm 12mm;
+    }
+    * {
+      box-sizing: border-box;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-size: 11px;
+      line-height: 1.45;
+      color: #2D2424;
+      background: #FFFFFF;
+      margin: 0;
+      padding: 0;
+    }
+    h1 {
+      font-size: 20px;
+      color: #9D3E14;
+      border-bottom: 2.5px solid #9D3E14;
+      padding-bottom: 6px;
+      margin-top: 0;
+      margin-bottom: 8px;
+    }
+    h2 {
+      font-size: 15px;
+      color: #9D3E14;
+      border-bottom: 1.5px solid #D4A373;
+      padding-bottom: 4px;
+      margin-top: 14px;
+      margin-bottom: 8px;
+      page-break-after: avoid;
+    }
+    h3 {
+      font-size: 13px;
+      color: #5C3D2E;
+      margin-top: 12px;
+      margin-bottom: 6px;
+      page-break-after: avoid;
+    }
+    p {
+      margin: 4px 0 8px 0;
+    }
+    pre {
+      background: #F4EAE1;
+      border: 1px solid #DDB892;
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 10px;
+      font-family: "Cascadia Code", Consolas, "Courier New", monospace;
+      color: #6B2D0C;
+      margin: 6px 0 10px 0;
+      page-break-inside: avoid;
+    }
+    code {
+      background: #F5EFEB;
+      padding: 1px 4px;
+      border-radius: 3px;
+      font-family: "Cascadia Code", Consolas, monospace;
+      font-size: 9.5px;
+      color: #9D3E14;
+      border: 1px solid #E6D5C7;
+    }
+    pre code {
+      background: none;
+      padding: 0;
+      border: none;
+      color: inherit;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #E0D3C7;
+      margin: 12px 0;
+    }
+    .table-container {
+      width: 100%;
+      margin: 8px 0 14px 0;
+      page-break-inside: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 9.5px;
+      page-break-inside: auto;
+    }
+    tr {
+      page-break-inside: avoid;
+      page-break-after: auto;
+    }
+    th {
+      background-color: #9D3E14;
+      color: #FFFFFF;
+      font-weight: 600;
+      text-align: left;
+      padding: 6px 8px;
+      border: 1px solid #85330E;
+    }
+    td {
+      padding: 5px 8px;
+      border: 1px solid #E8DBD0;
+      vertical-align: top;
+    }
+    tbody tr:nth-child(even) {
+      background-color: #FDFBF9;
+    }
+    tbody tr:hover {
+      background-color: #F9F0E8;
+    }
+    .col-num {
+      width: 25px;
+      text-align: center;
+      font-weight: bold;
+    }
+    .col-code {
+      font-family: "Cascadia Code", Consolas, monospace;
+      font-size: 9px;
+      color: #7B241C;
+    }
+    li {
+      margin-bottom: 3px;
+    }
+  </style>
+</head>
+<body>
+  <h1>KalaSetu Mobile Application — Log Messages Study Sheet</h1>
+<p>This document catalogs every <code>debugPrint</code> log message instrumented across the 27 presentation screens of the <strong>KalaSetu</strong> Flutter mobile application. It is designed for developer onboarding, QA verification, debugging, and production telemetry monitoring.</p>
+<hr/>
+<h2>1. Logging Strategy &amp; Tagging Architecture</h2>
+<p>Every log statement follows a structured, searchable convention:</p>
+<pre><code>[ScreenClassName] ActionOrEvent: Contextual parameters</code></pre>
+<h3>Filtering in Terminal or IDE</h3>
+<li><strong>Filter by Screen</strong>: <code>debugPrint(&#x27;[ArtisanCameraScreen]&#x27;)</code></li>
+<li><strong>Filter by Flow</strong>: <code>debugPrint(&#x27;[LoginScreen]&#x27;)</code>, <code>debugPrint(&#x27;[ShopCatalogScreen]&#x27;)</code></li>
+<li><strong>Via Terminal (ADB/macOS/Linux/Windows PowerShell)</strong>:</li>
+<pre><code>  flutter logs | Select-String &quot;\[Artisan&quot;</code></pre>
+<pre><code>  adb logcat -s flutter | grep &quot;\[&quot;</code></pre>
+<hr/>
+<h2>2. Master Log Messages Reference Table</h2>
+<h3>Group 1: Auth, Roles &amp; Onboarding (7 Screens)</h3>
+<div class="table-container"><table><thead><tr>
+<th>#</th>
+<th>Screen Name</th>
+<th>File Path</th>
+<th>Event Trigger / Lifecycle</th>
+<th>Log Message Pattern</th>
+<th>Diagnostic / Study Purpose</th>
+</tr></thead><tbody>
+<tr>
+<td class="col-num">1</td>
+<td class=""><strong>SplashScreen</strong></td>
+<td class=""><code>features/auth/presentation/splash_screen.dart</code></td>
+<td class=""><code>initState</code> / App Mount</td>
+<td class="col-code"><code>[SplashScreen] Initializing splash screen...</code></td>
+<td class="">Tracks initial launch and cold start sequence.</td>
+</tr>
+<tr>
+<td class="col-num">1</td>
+<td class=""><strong>SplashScreen</strong></td>
+<td class=""><code>features/auth/presentation/splash_screen.dart</code></td>
+<td class="">Auth Check (Authenticated)</td>
+<td class="col-code"><code>[SplashScreen] Authenticated user found (role: $role) -&gt; routing to $destination</code></td>
+<td class="">Validates session persistence and role-based redirect.</td>
+</tr>
+<tr>
+<td class="col-num">1</td>
+<td class=""><strong>SplashScreen</strong></td>
+<td class=""><code>features/auth/presentation/splash_screen.dart</code></td>
+<td class="">Auth Check (Unauthenticated)</td>
+<td class="col-code"><code>[SplashScreen] No session found -&gt; navigating to /language</code></td>
+<td class="">Confirms onboarding kickoff for first-time / logged-out users.</td>
+</tr>
+<tr>
+<td class="col-num">2</td>
+<td class=""><strong>LanguageSelectScreen</strong></td>
+<td class=""><code>features/auth/presentation/language_select_screen.dart</code></td>
+<td class=""><code>build</code> render</td>
+<td class="col-code"><code>[LanguageSelectScreen] Rendered. Selected: $selectedLocale</code></td>
+<td class="">Confirms locale detection on boot.</td>
+</tr>
+<tr>
+<td class="col-num">2</td>
+<td class=""><strong>LanguageSelectScreen</strong></td>
+<td class=""><code>features/auth/presentation/language_select_screen.dart</code></td>
+<td class="">Language Option Tap</td>
+<td class="col-code"><code>[LanguageSelectScreen] Selected language: Hindi / English</code></td>
+<td class="">Captures language preference toggle.</td>
+</tr>
+<tr>
+<td class="col-num">2</td>
+<td class=""><strong>LanguageSelectScreen</strong></td>
+<td class=""><code>features/auth/presentation/language_select_screen.dart</code></td>
+<td class="">Continue Button</td>
+<td class="col-code"><code>[LanguageSelectScreen] Language saved ($selectedLocale) -&gt; navigating to /role-select</code></td>
+<td class="">Confirms locale state commit before role selection.</td>
+</tr>
+<tr>
+<td class="col-num">3</td>
+<td class=""><strong>RoleSelectScreen</strong></td>
+<td class=""><code>features/auth/presentation/role_select_screen.dart</code></td>
+<td class=""><code>build</code> render</td>
+<td class="col-code"><code>[RoleSelectScreen] Rendered</code></td>
+<td class="">Tracks role selection screen presentation.</td>
+</tr>
+<tr>
+<td class="col-num">3</td>
+<td class=""><strong>RoleSelectScreen</strong></td>
+<td class=""><code>features/auth/presentation/role_select_screen.dart</code></td>
+<td class="">Role Card Tap</td>
+<td class="col-code"><code>[RoleSelectScreen] Selected role: Artisan / Customer</code></td>
+<td class="">Captures user persona selection before login.</td>
+</tr>
+<tr>
+<td class="col-num">3</td>
+<td class=""><strong>RoleSelectScreen</strong></td>
+<td class=""><code>features/auth/presentation/role_select_screen.dart</code></td>
+<td class="">Role Confirmation</td>
+<td class="col-code"><code>[RoleSelectScreen] Navigating to role destination: /login or /buyer/login</code></td>
+<td class="">Tracks bifurcation into Artisan or Buyer authentication flow.</td>
+</tr>
+<tr>
+<td class="col-num">4</td>
+<td class=""><strong>LoginScreen</strong> (Artisan)</td>
+<td class=""><code>features/auth/presentation/login_screen.dart</code></td>
+<td class="">Phone Validation Error</td>
+<td class="col-code"><code>[LoginScreen] Phone validation error: Phone number must be 10 digits</code></td>
+<td class="">Monitors validation drop-off points.</td>
+</tr>
+<tr>
+<td class="col-num">4</td>
+<td class=""><strong>LoginScreen</strong> (Artisan)</td>
+<td class=""><code>features/auth/presentation/login_screen.dart</code></td>
+<td class="">Send OTP Attempt</td>
+<td class="col-code"><code>[LoginScreen] Attempting OTP send for phone: $phone</code></td>
+<td class="">Diagnoses authentication network requests.</td>
+</tr>
+<tr>
+<td class="col-num">4</td>
+<td class=""><strong>LoginScreen</strong> (Artisan)</td>
+<td class=""><code>features/auth/presentation/login_screen.dart</code></td>
+<td class="">OTP Sent Success</td>
+<td class="col-code"><code>[LoginScreen] OTP sent successfully -&gt; navigating to /otp-verify</code></td>
+<td class="">Confirms SMS gateway handshake.</td>
+</tr>
+<tr>
+<td class="col-num">4</td>
+<td class=""><strong>LoginScreen</strong> (Artisan)</td>
+<td class=""><code>features/auth/presentation/login_screen.dart</code></td>
+<td class="">OTP Failure</td>
+<td class="col-code"><code>[LoginScreen] Failed to send OTP: $error</code></td>
+<td class="">Error tracking for gateway failures.</td>
+</tr>
+<tr>
+<td class="col-num">4</td>
+<td class=""><strong>LoginScreen</strong> (Artisan)</td>
+<td class=""><code>features/auth/presentation/login_screen.dart</code></td>
+<td class="">Google Sign-In</td>
+<td class="col-code"><code>[LoginScreen] Google Sign-In tapped</code></td>
+<td class="">Monitors third-party OAuth entry.</td>
+</tr>
+<tr>
+<td class="col-num">5</td>
+<td class=""><strong>BuyerLoginScreen</strong></td>
+<td class=""><code>features/auth/presentation/buyer_login_screen.dart</code></td>
+<td class="">Send OTP Attempt</td>
+<td class="col-code"><code>[BuyerLoginScreen] Attempting OTP send for phone: $phone</code></td>
+<td class="">Tracks buyer-specific authentication traffic.</td>
+</tr>
+<tr>
+<td class="col-num">5</td>
+<td class=""><strong>BuyerLoginScreen</strong></td>
+<td class=""><code>features/auth/presentation/buyer_login_screen.dart</code></td>
+<td class="">OTP Sent Success</td>
+<td class="col-code"><code>[BuyerLoginScreen] OTP sent successfully -&gt; navigating to /otp-verify</code></td>
+<td class="">Tracks buyer OTP routing.</td>
+</tr>
+<tr>
+<td class="col-num">5</td>
+<td class=""><strong>BuyerLoginScreen</strong></td>
+<td class=""><code>features/auth/presentation/buyer_login_screen.dart</code></td>
+<td class="">Google Sign-In</td>
+<td class="col-code"><code>[BuyerLoginScreen] Google Sign-In tapped</code></td>
+<td class="">Tracks buyer OAuth login.</td>
+</tr>
+<tr>
+<td class="col-num">6</td>
+<td class=""><strong>SignupScreen</strong></td>
+<td class=""><code>features/auth/presentation/signup_screen.dart</code></td>
+<td class="">Screen Render</td>
+<td class="col-code"><code>[SignupScreen] Rendered</code></td>
+<td class="">Monitors artisan self-registration funnel.</td>
+</tr>
+<tr>
+<td class="col-num">6</td>
+<td class=""><strong>SignupScreen</strong></td>
+<td class=""><code>features/auth/presentation/signup_screen.dart</code></td>
+<td class="">Form Submission</td>
+<td class="col-code"><code>[SignupScreen] Submitting registration for name: $name, phone: $phone, craft: $craft</code></td>
+<td class="">Audits artisan registration inputs and craft taxonomy.</td>
+</tr>
+<tr>
+<td class="col-num">7</td>
+<td class=""><strong>OtpVerifyScreen</strong></td>
+<td class=""><code>features/auth/presentation/otp_verify_screen.dart</code></td>
+<td class=""><code>initState</code></td>
+<td class="col-code"><code>[OtpVerifyScreen] Initialized. Phone: $phone, destination: $destination</code></td>
+<td class="">Validates target parameters passed to verification view.</td>
+</tr>
+<tr>
+<td class="col-num">7</td>
+<td class=""><strong>OtpVerifyScreen</strong></td>
+<td class=""><code>features/auth/presentation/otp_verify_screen.dart</code></td>
+<td class="">Verify Button</td>
+<td class="col-code"><code>[OtpVerifyScreen] Verifying code: $code for phone: $phone</code></td>
+<td class="">Tracks verification attempts.</td>
+</tr>
+<tr>
+<td class="col-num">7</td>
+<td class=""><strong>OtpVerifyScreen</strong></td>
+<td class=""><code>features/auth/presentation/otp_verify_screen.dart</code></td>
+<td class="">Verification Success</td>
+<td class="col-code"><code>[OtpVerifyScreen] OTP verified successfully -&gt; routing to $destination</code></td>
+<td class="">Confirms authentication grant and dashboard routing.</td>
+</tr>
+<tr>
+<td class="col-num">7</td>
+<td class=""><strong>OtpVerifyScreen</strong></td>
+<td class=""><code>features/auth/presentation/otp_verify_screen.dart</code></td>
+<td class="">Verification Failure</td>
+<td class="col-code"><code>[OtpVerifyScreen] OTP verification failed: $error</code></td>
+<td class="">Captures wrong code or timeout errors.</td>
+</tr>
+<tr>
+<td class="col-num">7</td>
+<td class=""><strong>OtpVerifyScreen</strong></td>
+<td class=""><code>features/auth/presentation/otp_verify_screen.dart</code></td>
+<td class="">Resend OTP</td>
+<td class="col-code"><code>[OtpVerifyScreen] Resending OTP to $phone</code></td>
+<td class="">Telemetry for OTP resend fatigue and SMS retry logic.</td>
+</tr>
+</tbody></table></div>
+<hr/>
+<h3>Group 2: Artisan Studio &amp; Add Item Wizard (8 Screens)</h3>
+<div class="table-container"><table><thead><tr>
+<th>#</th>
+<th>Screen Name</th>
+<th>File Path</th>
+<th>Event Trigger / Lifecycle</th>
+<th>Log Message Pattern</th>
+<th>Diagnostic / Study Purpose</th>
+</tr></thead><tbody>
+<tr>
+<td class="col-num">8</td>
+<td class=""><strong>ArtisanHomeScreen</strong></td>
+<td class=""><code>features/artisan_home/presentation/artisan_home_screen.dart</code></td>
+<td class=""><code>initState</code></td>
+<td class="col-code"><code>[ArtisanHomeScreen] Initialized</code></td>
+<td class="">Verifies artisan home dashboard mount.</td>
+</tr>
+<tr>
+<td class="col-num">8</td>
+<td class=""><strong>ArtisanHomeScreen</strong></td>
+<td class=""><code>features/artisan_home/presentation/artisan_home_screen.dart</code></td>
+<td class="">Audio Guide Toggle</td>
+<td class="col-code"><code>[ArtisanHomeScreen] Audio guide playback toggled: isPlaying=$isPlaying</code></td>
+<td class="">Tracks voice assistance usage among artisans.</td>
+</tr>
+<tr>
+<td class="col-num">8</td>
+<td class=""><strong>ArtisanHomeScreen</strong></td>
+<td class=""><code>features/artisan_home/presentation/artisan_home_screen.dart</code></td>
+<td class="">Camera Hero Card</td>
+<td class="col-code"><code>[ArtisanHomeScreen] Camera hero card tapped -&gt; /artisan/add-item/camera</code></td>
+<td class="">Funnel tracking: Start of product creation.</td>
+</tr>
+<tr>
+<td class="col-num">8</td>
+<td class=""><strong>ArtisanHomeScreen</strong></td>
+<td class=""><code>features/artisan_home/presentation/artisan_home_screen.dart</code></td>
+<td class="">Metric Tile Click</td>
+<td class="col-code"><code>[ArtisanHomeScreen] Metric tile tapped: earnings / orders / fairs</code></td>
+<td class="">Telemetry for dashboard tile interest.</td>
+</tr>
+<tr>
+<td class="col-num">8</td>
+<td class=""><strong>ArtisanHomeScreen</strong></td>
+<td class=""><code>features/artisan_home/presentation/artisan_home_screen.dart</code></td>
+<td class="">View All Crafts</td>
+<td class="col-code"><code>[ArtisanHomeScreen] View All Crafts tapped -&gt; /artisan/shop-catalog/art_1</code></td>
+<td class="">Verifies catalog navigation fix.</td>
+</tr>
+<tr>
+<td class="col-num">8</td>
+<td class=""><strong>ArtisanHomeScreen</strong></td>
+<td class=""><code>features/artisan_home/presentation/artisan_home_screen.dart</code></td>
+<td class="">Product Card Tap</td>
+<td class="col-code"><code>[ArtisanHomeScreen] Product tapped: id=$id, nameEn=&quot;$name&quot;</code></td>
+<td class="">Tracks specific item management clicks.</td>
+</tr>
+<tr>
+<td class="col-num">9</td>
+<td class=""><strong>ShopCatalogScreen</strong></td>
+<td class=""><code>features/artisan_home/presentation/shop_catalog_screen.dart</code></td>
+<td class=""><code>initState</code></td>
+<td class="col-code"><code>[ShopCatalogScreen] Initialized for artisanId: $artisanId</code></td>
+<td class="">Validates shop ID mapping and catalog data loading.</td>
+</tr>
+<tr>
+<td class="col-num">9</td>
+<td class=""><strong>ShopCatalogScreen</strong></td>
+<td class=""><code>features/artisan_home/presentation/shop_catalog_screen.dart</code></td>
+<td class="">Search Query Changed</td>
+<td class="col-code"><code>[ShopCatalogScreen] Search query changed: &quot;$query&quot;</code></td>
+<td class="">Monitors live in-catalog search queries.</td>
+</tr>
+<tr>
+<td class="col-num">9</td>
+<td class=""><strong>ShopCatalogScreen</strong></td>
+<td class=""><code>features/artisan_home/presentation/shop_catalog_screen.dart</code></td>
+<td class="">Search Cleared</td>
+<td class="col-code"><code>[ShopCatalogScreen] Search query cleared</code></td>
+<td class="">Search reset interaction tracking.</td>
+</tr>
+<tr>
+<td class="col-num">9</td>
+<td class=""><strong>ShopCatalogScreen</strong></td>
+<td class=""><code>features/artisan_home/presentation/shop_catalog_screen.dart</code></td>
+<td class="">Category Chip</td>
+<td class="col-code"><code>[ShopCatalogScreen] Category filter selected: $category</code></td>
+<td class="">Audits craft category filtering behavior.</td>
+</tr>
+<tr>
+<td class="col-num">9</td>
+<td class=""><strong>ShopCatalogScreen</strong></td>
+<td class=""><code>features/artisan_home/presentation/shop_catalog_screen.dart</code></td>
+<td class="">Product Card Tap</td>
+<td class="col-code"><code>[ShopCatalogScreen] Product card tapped: id=$id, nameEn=&quot;$name&quot;, isBuyer=$isBuyer</code></td>
+<td class="">Verifies contextual routing between artisan and buyer views.</td>
+</tr>
+<tr>
+<td class="col-num">9</td>
+<td class=""><strong>ShopCatalogScreen</strong></td>
+<td class=""><code>features/artisan_home/presentation/shop_catalog_screen.dart</code></td>
+<td class="">Add Craft FAB</td>
+<td class="col-code"><code>[ShopCatalogScreen] Add Craft FAB pressed -&gt; navigating to /artisan/add-item/camera</code></td>
+<td class="">Funnel tracking: New craft creation entry.</td>
+</tr>
+<tr>
+<td class="col-num">10</td>
+<td class=""><strong>ArtisanCameraScreen</strong></td>
+<td class=""><code>features/artisan_add_item/presentation/artisan_camera_screen.dart</code></td>
+<td class=""><code>initState</code> / Permissions</td>
+<td class="col-code"><code>[ArtisanCameraScreen] Requesting camera permissions... Granted: $granted</code></td>
+<td class="">Diagnoses device hardware camera permissions.</td>
+</tr>
+<tr>
+<td class="col-num">10</td>
+<td class=""><strong>ArtisanCameraScreen</strong></td>
+<td class=""><code>features/artisan_add_item/presentation/artisan_camera_screen.dart</code></td>
+<td class="">Camera Initialized</td>
+<td class="col-code"><code>[ArtisanCameraScreen] Camera initialized. Ready: $isInitialized</code></td>
+<td class="">Verifies live camera preview controller readiness.</td>
+</tr>
+<tr>
+<td class="col-num">10</td>
+<td class=""><strong>ArtisanCameraScreen</strong></td>
+<td class=""><code>features/artisan_add_item/presentation/artisan_camera_screen.dart</code></td>
+<td class="">Shutter Button Tap</td>
+<td class="col-code"><code>[ArtisanCameraScreen] Shutter pressed. Flash state: $flashState</code></td>
+<td class="">Audits camera shutter latency and flash configuration.</td>
+</tr>
+<tr>
+<td class="col-num">10</td>
+<td class=""><strong>ArtisanCameraScreen</strong></td>
+<td class=""><code>features/artisan_add_item/presentation/artisan_camera_screen.dart</code></td>
+<td class="">Photo Capture Result</td>
+<td class="col-code"><code>[ArtisanCameraScreen] Photo captured: $photoPath, navigating to photo review</code></td>
+<td class="">Captures saved image file URI and wizard state transition.</td>
+</tr>
+<tr>
+<td class="col-num">10</td>
+<td class=""><strong>ArtisanCameraScreen</strong></td>
+<td class=""><code>features/artisan_add_item/presentation/artisan_camera_screen.dart</code></td>
+<td class="">Gallery Pick</td>
+<td class="col-code"><code>[ArtisanCameraScreen] Gallery photo selected: $path</code></td>
+<td class="">Tracks gallery image importation.</td>
+</tr>
+<tr>
+<td class="col-num">10</td>
+<td class=""><strong>ArtisanCameraScreen</strong></td>
+<td class=""><code>features/artisan_add_item/presentation/artisan_camera_screen.dart</code></td>
+<td class="">Flash Toggle</td>
+<td class="col-code"><code>[ArtisanCameraScreen] Flash toggled: state=$state, mode=$mode</code></td>
+<td class="">Audits flash cycle (off, on, auto).</td>
+</tr>
+<tr>
+<td class="col-num">10</td>
+<td class=""><strong>ArtisanCameraScreen</strong></td>
+<td class=""><code>features/artisan_add_item/presentation/artisan_camera_screen.dart</code></td>
+<td class="">Torch Toggle</td>
+<td class="col-code"><code>[ArtisanCameraScreen] Toggling torch... Torch is now: $isTorchOn</code></td>
+<td class="">Verifies torch light state.</td>
+</tr>
+<tr>
+<td class="col-num">10</td>
+<td class=""><strong>ArtisanCameraScreen</strong></td>
+<td class=""><code>features/artisan_add_item/presentation/artisan_camera_screen.dart</code></td>
+<td class="">Flip Camera</td>
+<td class="col-code"><code>[ArtisanCameraScreen] Switch camera requested. Result: $switched</code></td>
+<td class="">Verifies front/back camera lens switching.</td>
+</tr>
+<tr>
+<td class="col-num">10</td>
+<td class=""><strong>ArtisanCameraScreen</strong></td>
+<td class=""><code>features/artisan_add_item/presentation/artisan_camera_screen.dart</code></td>
+<td class="">Voice Note Toggle</td>
+<td class="col-code"><code>[ArtisanCameraScreen] Voice note toggled: isRecording=$isVoiceRecording</code></td>
+<td class="">Quick audio description toggle on camera viewfinder.</td>
+</tr>
+<tr>
+<td class="col-num">11</td>
+<td class=""><strong>ImageCropperScreen</strong></td>
+<td class=""><code>features/artisan_add_item/presentation/image_cropper_screen.dart</code></td>
+<td class=""><code>initState</code></td>
+<td class="col-code"><code>[ImageCropperScreen] Initialized with image: $imagePath</code></td>
+<td class="">Validates target image passed to cropper.</td>
+</tr>
+<tr>
+<td class="col-num">11</td>
+<td class=""><strong>ImageCropperScreen</strong></td>
+<td class=""><code>features/artisan_add_item/presentation/image_cropper_screen.dart</code></td>
+<td class="">Aspect Ratio Select</td>
+<td class="col-code"><code>[ImageCropperScreen] Aspect ratio selected: $ratio</code></td>
+<td class="">Logs preset ratio selection (1:1, 4:5, 16:9, free).</td>
+</tr>
+<tr>
+<td class="col-num">11</td>
+<td class=""><strong>ImageCropperScreen</strong></td>
+<td class=""><code>features/artisan_add_item/presentation/image_cropper_screen.dart</code></td>
+<td class="">Reset Crop</td>
+<td class="col-code"><code>[ImageCropperScreen] Reset crop parameters</code></td>
+<td class="">Tracks user resetting cropping box.</td>
+</tr>
+<tr>
+<td class="col-num">11</td>
+<td class=""><strong>ImageCropperScreen</strong></td>
+<td class=""><code>features/artisan_add_item/presentation/image_cropper_screen.dart</code></td>
+<td class="">Rotate Clockwise</td>
+<td class="col-code"><code>[ImageCropperScreen] Rotate 90 deg clockwise. New turns: $turns</code></td>
+<td class="">Tracks 90-degree image rotation steps.</td>
+</tr>
+<tr>
+<td class="col-num">11</td>
+<td class=""><strong>ImageCropperScreen</strong></td>
+<td class=""><code>features/artisan_add_item/presentation/image_cropper_screen.dart</code></td>
+<td class="">Crop Confirmed</td>
+<td class="col-code"><code>[ImageCropperScreen] Crop confirmed: rect=($l, $t, $r, $b), rotation=$turns</code></td>
+<td class="">Logs final bounding crop box coordinates.</td>
+</tr>
+<tr>
+<td class="col-num">12</td>
+<td class=""><strong>PhotoReviewScreen</strong></td>
+<td class=""><code>features/artisan_add_item/presentation/photo_review_screen.dart</code></td>
+<td class=""><code>initState</code></td>
+<td class="col-code"><code>[PhotoReviewScreen] Initialized. photoPath: $path</code></td>
+<td class="">Verifies preview stage mount with captured photo.</td>
+</tr>
+<tr>
+<td class="col-num">12</td>
+<td class=""><strong>PhotoReviewScreen</strong></td>
+<td class=""><code>features/artisan_add_item/presentation/photo_review_screen.dart</code></td>
+<td class="">Aspect Ratio Resolved</td>
+<td class="col-code"><code>[PhotoReviewScreen] Aspect ratio resolved: $ratio (dimensions: ${w}x${h})</code></td>
+<td class="">Prevents yellow distortion by logging dimensions.</td>
+</tr>
+<tr>
+<td class="col-num">12</td>
+<td class=""><strong>PhotoReviewScreen</strong></td>
+<td class=""><code>features/artisan_add_item/presentation/photo_review_screen.dart</code></td>
+<td class="">Before/After Toggle</td>
+<td class="col-code"><code>[PhotoReviewScreen] Switched to AI Studio Backdrop / Original Photo view</code></td>
+<td class="">Tracks artisan comparison of AI background treatment.</td>
+</tr>
+<tr>
+<td class="col-num">12</td>
+<td class=""><strong>PhotoReviewScreen</strong></td>
+<td class=""><code>features/artisan_add_item/presentation/photo_review_screen.dart</code></td>
+<td class="">Tap to Crop</td>
+<td class="col-code"><code>[PhotoReviewScreen] Tapped photo to crop -&gt; opening /artisan/add-item/crop</code></td>
+<td class="">Cropping workflow transition.</td>
+</tr>
+<tr>
+<td class="col-num">12</td>
+<td class=""><strong>PhotoReviewScreen</strong></td>
+<td class=""><code>features/artisan_add_item/presentation/photo_review_screen.dart</code></td>
+<td class="">Retake Button</td>
+<td class="col-code"><code>[PhotoReviewScreen] Retake button tapped -&gt; popping to camera</code></td>
+<td class="">Audits photo retake rate.</td>
+</tr>
+<tr>
+<td class="col-num">12</td>
+<td class=""><strong>PhotoReviewScreen</strong></td>
+<td class=""><code>features/artisan_add_item/presentation/photo_review_screen.dart</code></td>
+<td class="">Next Button</td>
+<td class="col-code"><code>[PhotoReviewScreen] Next button tapped -&gt; navigating to voice describe</code></td>
+<td class="">Step completion tracking.</td>
+</tr>
+<tr>
+<td class="col-num">13</td>
+<td class=""><strong>VoiceDescribeScreen</strong></td>
+<td class=""><code>features/artisan_add_item/presentation/voice_describe_screen.dart</code></td>
+<td class=""><code>initState</code></td>
+<td class="col-code"><code>[VoiceDescribeScreen] Initialized. Starting recording setup...</code></td>
+<td class="">Mount audit for microphone recorder.</td>
+</tr>
+<tr>
+<td class="col-num">13</td>
+<td class=""><strong>VoiceDescribeScreen</strong></td>
+<td class=""><code>features/artisan_add_item/presentation/voice_describe_screen.dart</code></td>
+<td class="">Record Start</td>
+<td class="col-code"><code>[VoiceDescribeScreen] Audio recording active at path: $filePath</code></td>
+<td class="">Logs temporary audio file creation.</td>
+</tr>
+<tr>
+<td class="col-num">13</td>
+<td class=""><strong>VoiceDescribeScreen</strong></td>
+<td class=""><code>features/artisan_add_item/presentation/voice_describe_screen.dart</code></td>
+<td class="">Pause / Resume</td>
+<td class="col-code"><code>[VoiceDescribeScreen] Toggle pause. Current isPaused: $isPaused</code></td>
+<td class="">Tracks audio pause/resume states.</td>
+</tr>
+<tr>
+<td class="col-num">13</td>
+<td class=""><strong>VoiceDescribeScreen</strong></td>
+<td class=""><code>features/artisan_add_item/presentation/voice_describe_screen.dart</code></td>
+<td class="">Re-record Button</td>
+<td class="col-code"><code>[VoiceDescribeScreen] Re-record button tapped</code></td>
+<td class="">Tracks audio retake rate.</td>
+</tr>
+<tr>
+<td class="col-num">13</td>
+<td class=""><strong>VoiceDescribeScreen</strong></td>
+<td class=""><code>features/artisan_add_item/presentation/voice_describe_screen.dart</code></td>
+<td class="">Finish Recording</td>
+<td class="col-code"><code>[VoiceDescribeScreen] Recorded audio saved: $path. Navigating to AI review</code></td>
+<td class="">Saves audio note to wizard and navigates to AI analysis.</td>
+</tr>
+<tr>
+<td class="col-num">14</td>
+<td class=""><strong>AiReviewScreen</strong></td>
+<td class=""><code>features/artisan_add_item/presentation/ai_review_screen.dart</code></td>
+<td class=""><code>initState</code></td>
+<td class="col-code"><code>[AiReviewScreen] Initialized. Prepopulated AI title &amp; description ready for review.</code></td>
+<td class="">Audits AI generation arrival.</td>
+</tr>
+<tr>
+<td class="col-num">14</td>
+<td class=""><strong>AiReviewScreen</strong></td>
+<td class=""><code>features/artisan_add_item/presentation/ai_review_screen.dart</code></td>
+<td class="">Set Pricing Tap</td>
+<td class="col-code"><code>[AiReviewScreen] Set Pricing tapped. nameHi: &quot;$nameHi&quot;, nameEn: &quot;$nameEn&quot;</code></td>
+<td class="">Captures artisan overrides of AI-generated titles.</td>
+</tr>
+<tr>
+<td class="col-num">15</td>
+<td class=""><strong>PricingScreen</strong></td>
+<td class=""><code>features/artisan_add_item/presentation/pricing_screen.dart</code></td>
+<td class=""><code>initState</code></td>
+<td class="col-code"><code>[PricingScreen] Initialized. suggestedPrice=$price, rawMaterial=$mat, laborHours=$hrs</code></td>
+<td class="">Audits fair price cost calculation.</td>
+</tr>
+<tr>
+<td class="col-num">15</td>
+<td class=""><strong>PricingScreen</strong></td>
+<td class=""><code>features/artisan_add_item/presentation/pricing_screen.dart</code></td>
+<td class="">Stock Counter +/-</td>
+<td class="col-code"><code>[PricingScreen] Stock increased / decreased to: $stock</code></td>
+<td class="">Tracks inventory stock adjustments.</td>
+</tr>
+<tr>
+<td class="col-num">15</td>
+<td class=""><strong>PricingScreen</strong></td>
+<td class=""><code>features/artisan_add_item/presentation/pricing_screen.dart</code></td>
+<td class="">Publish Item</td>
+<td class="col-code"><code>[PricingScreen] Publishing item with price: ₹$price, stock: $stock</code></td>
+<td class="">Captures final listing commit.</td>
+</tr>
+<tr>
+<td class="col-num">15</td>
+<td class=""><strong>PricingScreen</strong></td>
+<td class=""><code>features/artisan_add_item/presentation/pricing_screen.dart</code></td>
+<td class="">Publish Success Dialog</td>
+<td class="col-code"><code>[PricingScreen] Item published successfully. Showing confirmation modal.</code></td>
+<td class="">Confirms marketplace listing publication.</td>
+</tr>
+<tr>
+<td class="col-num">15</td>
+<td class=""><strong>PricingScreen</strong></td>
+<td class=""><code>features/artisan_add_item/presentation/pricing_screen.dart</code></td>
+<td class="">Back to Home</td>
+<td class="col-code"><code>[PricingScreen] Back to home tapped -&gt; resetting wizard and navigating to /artisan/home</code></td>
+<td class="">Confirms wizard cleanup and return to studio.</td>
+</tr>
+</tbody></table></div>
+<hr/>
+<h3>Group 3: Artisan Management &amp; Profile (5 Screens)</h3>
+<div class="table-container"><table><thead><tr>
+<th>#</th>
+<th>Screen Name</th>
+<th>File Path</th>
+<th>Event Trigger / Lifecycle</th>
+<th>Log Message Pattern</th>
+<th>Diagnostic / Study Purpose</th>
+</tr></thead><tbody>
+<tr>
+<td class="col-num">16</td>
+<td class=""><strong>ArtisanOrdersScreen</strong></td>
+<td class=""><code>features/artisan_orders/presentation/artisan_orders_screen.dart</code></td>
+<td class="">Orders Loaded</td>
+<td class="col-code"><code>[ArtisanOrdersScreen] Orders loaded: count=$count</code></td>
+<td class="">Audits order repository load performance.</td>
+</tr>
+<tr>
+<td class="col-num">16</td>
+<td class=""><strong>ArtisanOrdersScreen</strong></td>
+<td class=""><code>features/artisan_orders/presentation/artisan_orders_screen.dart</code></td>
+<td class="">Order Item Click</td>
+<td class="col-code"><code>[ArtisanOrdersScreen] Order tapped: orderNumber=$num, status=$status, customer=$customer</code></td>
+<td class="">Tracks order detail inspection.</td>
+</tr>
+<tr>
+<td class="col-num">17</td>
+<td class=""><strong>ArtisanEarningsScreen</strong></td>
+<td class=""><code>features/artisan_earnings/presentation/artisan_earnings_screen.dart</code></td>
+<td class=""><code>build</code> render</td>
+<td class="col-code"><code>[ArtisanEarningsScreen] Rendered. Available balance: ₹8,720, isHindi: $isHindi</code></td>
+<td class="">Audits balance presentation and localization.</td>
+</tr>
+<tr>
+<td class="col-num">17</td>
+<td class=""><strong>ArtisanEarningsScreen</strong></td>
+<td class=""><code>features/artisan_earnings/presentation/artisan_earnings_screen.dart</code></td>
+<td class="">Weekly Row Click</td>
+<td class="col-code"><code>[ArtisanEarningsScreen] Weekly summary tapped: week=$week, amount=$amount, orders=$orders</code></td>
+<td class="">Audits weekly payout analysis.</td>
+</tr>
+<tr>
+<td class="col-num">18</td>
+<td class=""><strong>ArtisanProfileScreen</strong></td>
+<td class=""><code>features/artisan_profile/presentation/artisan_profile_screen.dart</code></td>
+<td class=""><code>initState</code></td>
+<td class="col-code"><code>[ArtisanProfileScreen] Initialized</code></td>
+<td class="">Validates profile mount.</td>
+</tr>
+<tr>
+<td class="col-num">18</td>
+<td class=""><strong>ArtisanProfileScreen</strong></td>
+<td class=""><code>features/artisan_profile/presentation/artisan_profile_screen.dart</code></td>
+<td class="">Aadhaar Toggle</td>
+<td class="col-code"><code>[ArtisanProfileScreen] Aadhaar toggle tapped. isRevealed: $isRevealed</code></td>
+<td class="">Audits security mask on sensitive artisan Aadhaar number.</td>
+</tr>
+<tr>
+<td class="col-num">18</td>
+<td class=""><strong>ArtisanProfileScreen</strong></td>
+<td class=""><code>features/artisan_profile/presentation/artisan_profile_screen.dart</code></td>
+<td class="">Play Story Audio</td>
+<td class="col-code"><code>[ArtisanProfileScreen] Story audio play toggle: isPlaying=$isPlaying</code></td>
+<td class="">Audits artisan bio audio narration engagement.</td>
+</tr>
+<tr>
+<td class="col-num">18</td>
+<td class=""><strong>ArtisanProfileScreen</strong></td>
+<td class=""><code>features/artisan_profile/presentation/artisan_profile_screen.dart</code></td>
+<td class="">Edit Story Tap</td>
+<td class="col-code"><code>[ArtisanProfileScreen] Edit story tapped -&gt; navigating to /artisan/story-input</code></td>
+<td class="">Tracks story editing entry point.</td>
+</tr>
+<tr>
+<td class="col-num">18</td>
+<td class=""><strong>ArtisanProfileScreen</strong></td>
+<td class=""><code>features/artisan_profile/presentation/artisan_profile_screen.dart</code></td>
+<td class="">View Shop Catalog</td>
+<td class="col-code"><code>[ArtisanProfileScreen] View shop catalog tapped for artisan: $artisanId</code></td>
+<td class="">Verifies navigation to artisan catalog.</td>
+</tr>
+<tr>
+<td class="col-num">18</td>
+<td class=""><strong>ArtisanProfileScreen</strong></td>
+<td class=""><code>features/artisan_profile/presentation/artisan_profile_screen.dart</code></td>
+<td class="">Contact Artisan Dialog</td>
+<td class="col-code"><code>[ArtisanProfileScreen] Contact artisan tapped -&gt; opening contact dialog</code></td>
+<td class="">Logs direct contact inquiries.</td>
+</tr>
+<tr>
+<td class="col-num">18</td>
+<td class=""><strong>ArtisanProfileScreen</strong></td>
+<td class=""><code>features/artisan_profile/presentation/artisan_profile_screen.dart</code></td>
+<td class="">Product Card Tap</td>
+<td class="col-code"><code>[ArtisanProfileScreen] Product card tapped: id=$productId</code></td>
+<td class="">Profile craft showcase click telemetry.</td>
+</tr>
+<tr>
+<td class="col-num">18</td>
+<td class=""><strong>ArtisanProfileScreen</strong></td>
+<td class=""><code>features/artisan_profile/presentation/artisan_profile_screen.dart</code></td>
+<td class="">Switch to Buyer Role</td>
+<td class="col-code"><code>[ArtisanProfileScreen] Role switch to Buyer confirmed -&gt; navigating to /buyer/home</code></td>
+<td class="">Captures mode-switching between artisan seller and buyer.</td>
+</tr>
+<tr>
+<td class="col-num">18</td>
+<td class=""><strong>ArtisanProfileScreen</strong></td>
+<td class=""><code>features/artisan_profile/presentation/artisan_profile_screen.dart</code></td>
+<td class="">Sign Out Tap</td>
+<td class="col-code"><code>[ArtisanProfileScreen] Sign out confirmed -&gt; navigating to /login</code></td>
+<td class="">Audits session termination.</td>
+</tr>
+<tr>
+<td class="col-num">19</td>
+<td class=""><strong>ArtisanStoryTextInputScreen</strong></td>
+<td class=""><code>features/artisan_profile/presentation/artisan_story_text_screen.dart</code></td>
+<td class=""><code>initState</code></td>
+<td class="col-code"><code>[ArtisanStoryTextInputScreen] Initialized</code></td>
+<td class="">Verifies written story form mount.</td>
+</tr>
+<tr>
+<td class="col-num">19</td>
+<td class=""><strong>ArtisanStoryTextInputScreen</strong></td>
+<td class=""><code>features/artisan_profile/presentation/artisan_story_text_screen.dart</code></td>
+<td class="">Form Submission</td>
+<td class="col-code"><code>[ArtisanStoryTextInputScreen] Submitting story form: name=&quot;$name&quot;, craft=&quot;$craft&quot;, storyLength=$len</code></td>
+<td class="">Audits artisan bio updates and content lengths.</td>
+</tr>
+<tr>
+<td class="col-num">19</td>
+<td class=""><strong>ArtisanStoryTextInputScreen</strong></td>
+<td class=""><code>features/artisan_profile/presentation/artisan_story_text_screen.dart</code></td>
+<td class="">Return to Profile</td>
+<td class="col-code"><code>[ArtisanStoryTextInputScreen] Returned to profile from dialog</code></td>
+<td class="">Confirms dialog dismissal and profile refresh.</td>
+</tr>
+<tr>
+<td class="col-num">20</td>
+<td class=""><strong>VoiceOnboardingScreen</strong></td>
+<td class=""><code>features/artisan_profile/presentation/voice_onboarding_screen.dart</code></td>
+<td class=""><code>initState</code></td>
+<td class="col-code"><code>[VoiceOnboardingScreen] Initialized</code></td>
+<td class="">Verifies voice bio onboarding mount.</td>
+</tr>
+<tr>
+<td class="col-num">20</td>
+<td class=""><strong>VoiceOnboardingScreen</strong></td>
+<td class=""><code>features/artisan_profile/presentation/voice_onboarding_screen.dart</code></td>
+<td class="">Mic Hold Down</td>
+<td class="col-code"><code>[VoiceOnboardingScreen] Mic pressed down -&gt; listening started</code></td>
+<td class="">Audits push-to-talk mic initiation.</td>
+</tr>
+<tr>
+<td class="col-num">20</td>
+<td class=""><strong>VoiceOnboardingScreen</strong></td>
+<td class=""><code>features/artisan_profile/presentation/voice_onboarding_screen.dart</code></td>
+<td class="">Mic Release</td>
+<td class="col-code"><code>[VoiceOnboardingScreen] Mic released -&gt; listening stopped, voice recorded</code></td>
+<td class="">Audits push-to-talk completion.</td>
+</tr>
+<tr>
+<td class="col-num">20</td>
+<td class=""><strong>VoiceOnboardingScreen</strong></td>
+<td class=""><code>features/artisan_profile/presentation/voice_onboarding_screen.dart</code></td>
+<td class="">Prefer Typing Link</td>
+<td class="col-code"><code>[VoiceOnboardingScreen] Prefer typing pressed -&gt; navigating to /artisan/story-input</code></td>
+<td class="">Tracks fallback from voice to standard typing.</td>
+</tr>
+</tbody></table></div>
+<hr/>
+<h3>Group 4: Fairs &amp; Community (2 Screens)</h3>
+<div class="table-container"><table><thead><tr>
+<th>#</th>
+<th>Screen Name</th>
+<th>File Path</th>
+<th>Event Trigger / Lifecycle</th>
+<th>Log Message Pattern</th>
+<th>Diagnostic / Study Purpose</th>
+</tr></thead><tbody>
+<tr>
+<td class="col-num">21</td>
+<td class=""><strong>ArtisanFairsScreen</strong></td>
+<td class=""><code>features/artisan_fairs/presentation/artisan_fairs_screen.dart</code></td>
+<td class=""><code>initState</code></td>
+<td class="col-code"><code>[ArtisanFairsScreen] Initialized. Current tab index: $index</code></td>
+<td class="">Tracks fair directory entry.</td>
+</tr>
+<tr>
+<td class="col-num">21</td>
+<td class=""><strong>ArtisanFairsScreen</strong></td>
+<td class=""><code>features/artisan_fairs/presentation/artisan_fairs_screen.dart</code></td>
+<td class="">Tab Selection</td>
+<td class="col-code"><code>[ArtisanFairsScreen] Tab selected: index=$index, label=&quot;$label&quot;</code></td>
+<td class="">Audits filtering across Upcoming, Applied, and Subsidized tabs.</td>
+</tr>
+<tr>
+<td class="col-num">21</td>
+<td class=""><strong>ArtisanFairsScreen</strong></td>
+<td class=""><code>features/artisan_fairs/presentation/artisan_fairs_screen.dart</code></td>
+<td class="">Search Query</td>
+<td class="col-code"><code>[ArtisanFairsScreen] Search query changed: &quot;$val&quot;</code></td>
+<td class="">Live search telemetry in fairs.</td>
+</tr>
+<tr>
+<td class="col-num">21</td>
+<td class=""><strong>ArtisanFairsScreen</strong></td>
+<td class=""><code>features/artisan_fairs/presentation/artisan_fairs_screen.dart</code></td>
+<td class="">Voice Search Modal</td>
+<td class="col-code"><code>[ArtisanFairsScreen] Opening voice search modal</code></td>
+<td class="">Voice search engagement metric.</td>
+</tr>
+<tr>
+<td class="col-num">21</td>
+<td class=""><strong>ArtisanFairsScreen</strong></td>
+<td class=""><code>features/artisan_fairs/presentation/artisan_fairs_screen.dart</code></td>
+<td class="">Bookmark Fair</td>
+<td class="col-code"><code>[ArtisanFairsScreen] Bookmark toggled for fair: id=$id, newState=$state</code></td>
+<td class="">Audits fair saving behavior.</td>
+</tr>
+<tr>
+<td class="col-num">21</td>
+<td class=""><strong>ArtisanFairsScreen</strong></td>
+<td class=""><code>features/artisan_fairs/presentation/artisan_fairs_screen.dart</code></td>
+<td class="">View Details Click</td>
+<td class="col-code"><code>[ArtisanFairsScreen] Navigating to fair details: /fair/$fairId</code></td>
+<td class="">Tracks transition to fair details.</td>
+</tr>
+<tr>
+<td class="col-num">21</td>
+<td class=""><strong>ArtisanFairsScreen</strong></td>
+<td class=""><code>features/artisan_fairs/presentation/artisan_fairs_screen.dart</code></td>
+<td class="">Apply for Stall</td>
+<td class="col-code"><code>[ArtisanFairsScreen] Stall application submitted for fair: id=$id, title=$title</code></td>
+<td class="">Audits artisan exhibition participation.</td>
+</tr>
+<tr>
+<td class="col-num">21</td>
+<td class=""><strong>ArtisanFairsScreen</strong></td>
+<td class=""><code>features/artisan_fairs/presentation/artisan_fairs_screen.dart</code></td>
+<td class="">Support Helpline</td>
+<td class="col-code"><code>[ArtisanFairsScreen] Calling helpline 1800-200-8899</code></td>
+<td class="">Tracks support phone dialer trigger.</td>
+</tr>
+<tr>
+<td class="col-num">22</td>
+<td class=""><strong>FairDetailScreen</strong></td>
+<td class=""><code>features/artisan_fairs/presentation/fair_detail_screen.dart</code></td>
+<td class=""><code>initState</code></td>
+<td class="col-code"><code>[FairDetailScreen] Initialized for fairId: $fairId</code></td>
+<td class="">Validates fair detail screen initialization.</td>
+</tr>
+<tr>
+<td class="col-num">22</td>
+<td class=""><strong>FairDetailScreen</strong></td>
+<td class=""><code>features/artisan_fairs/presentation/fair_detail_screen.dart</code></td>
+<td class="">View Artisan Shop</td>
+<td class="col-code"><code>[FairDetailScreen] View Shop clicked for artisan: $artisanId</code></td>
+<td class="">Verifies Task 1 navigation fix from fair to shop catalog.</td>
+</tr>
+<tr>
+<td class="col-num">22</td>
+<td class=""><strong>FairDetailScreen</strong></td>
+<td class=""><code>features/artisan_fairs/presentation/fair_detail_screen.dart</code></td>
+<td class="">Featured Craft Tap</td>
+<td class="col-code"><code>[FairDetailScreen] Featured product card tapped: id=$id, name=&quot;$name&quot;</code></td>
+<td class="">Tracks craft discovery within fair.</td>
+</tr>
+<tr>
+<td class="col-num">22</td>
+<td class=""><strong>FairDetailScreen</strong></td>
+<td class=""><code>features/artisan_fairs/presentation/fair_detail_screen.dart</code></td>
+<td class="">Stall Apply Dialog</td>
+<td class="col-code"><code>[FairDetailScreen] Stall application completed for fair: $fairId</code></td>
+<td class="">Verifies exhibition registration flow.</td>
+</tr>
+</tbody></table></div>
+<hr/>
+<h3>Group 5: Marketplace &amp; Buyer Flow (5 Screens)</h3>
+<div class="table-container"><table><thead><tr>
+<th>#</th>
+<th>Screen Name</th>
+<th>File Path</th>
+<th>Event Trigger / Lifecycle</th>
+<th>Log Message Pattern</th>
+<th>Diagnostic / Study Purpose</th>
+</tr></thead><tbody>
+<tr>
+<td class="col-num">23</td>
+<td class=""><strong>MarketplaceHomeScreen</strong></td>
+<td class=""><code>features/marketplace_home/presentation/marketplace_home_screen.dart</code></td>
+<td class=""><code>initState</code></td>
+<td class="col-code"><code>[MarketplaceHomeScreen] Initialized</code></td>
+<td class="">Tracks buyer marketplace launch.</td>
+</tr>
+<tr>
+<td class="col-num">23</td>
+<td class=""><strong>MarketplaceHomeScreen</strong></td>
+<td class=""><code>features/marketplace_home/presentation/marketplace_home_screen.dart</code></td>
+<td class="">Cart Icon Tap</td>
+<td class="col-code"><code>[MarketplaceHomeScreen] Cart icon tapped (count=$count) -&gt; navigating to /customer/cart</code></td>
+<td class="">Cart inspection funnel.</td>
+</tr>
+<tr>
+<td class="col-num">23</td>
+<td class=""><strong>MarketplaceHomeScreen</strong></td>
+<td class=""><code>features/marketplace_home/presentation/marketplace_home_screen.dart</code></td>
+<td class="">Pull to Refresh</td>
+<td class="col-code"><code>[MarketplaceHomeScreen] Pull-to-refresh triggered</code></td>
+<td class="">Audits feed refresh frequency.</td>
+</tr>
+<tr>
+<td class="col-num">23</td>
+<td class=""><strong>MarketplaceHomeScreen</strong></td>
+<td class=""><code>features/marketplace_home/presentation/marketplace_home_screen.dart</code></td>
+<td class="">B2B Wholesale Banner</td>
+<td class="col-code"><code>[MarketplaceHomeScreen] B2B wholesale tapped -&gt; navigating to /customer/b2b/bulk-request</code></td>
+<td class="">B2B quotation lead tracking.</td>
+</tr>
+<tr>
+<td class="col-num">23</td>
+<td class=""><strong>MarketplaceHomeScreen</strong></td>
+<td class=""><code>features/marketplace_home/presentation/marketplace_home_screen.dart</code></td>
+<td class="">Cluster Filter Chip</td>
+<td class="col-code"><code>[MarketplaceHomeScreen] Cluster selected: &quot;$cluster&quot;</code></td>
+<td class="">Geographical cluster filter telemetry (e.g. Gorakhpur, Maheshwar).</td>
+</tr>
+<tr>
+<td class="col-num">23</td>
+<td class=""><strong>MarketplaceHomeScreen</strong></td>
+<td class=""><code>features/marketplace_home/presentation/marketplace_home_screen.dart</code></td>
+<td class="">Product Card Tap</td>
+<td class="col-code"><code>[MarketplaceHomeScreen] Product card tapped: id=$id, name=&quot;$name&quot;</code></td>
+<td class="">Product page view conversion tracking.</td>
+</tr>
+<tr>
+<td class="col-num">23</td>
+<td class=""><strong>MarketplaceHomeScreen</strong></td>
+<td class=""><code>features/marketplace_home/presentation/marketplace_home_screen.dart</code></td>
+<td class="">Quick Add to Cart</td>
+<td class="col-code"><code>[MarketplaceHomeScreen] Quick add to cart: id=$id, price=$price</code></td>
+<td class="">Audits quick-buy interactions.</td>
+</tr>
+<tr>
+<td class="col-num">24</td>
+<td class=""><strong>ProductDetailScreen</strong></td>
+<td class=""><code>features/marketplace_home/presentation/product_detail_screen.dart</code></td>
+<td class=""><code>build</code> render</td>
+<td class="col-code"><code>[ProductDetailScreen] Rendered. productId=$productId, isBuyer=$isBuyer</code></td>
+<td class="">Verifies contextual buyer vs artisan rendering.</td>
+</tr>
+<tr>
+<td class="col-num">24</td>
+<td class=""><strong>ProductDetailScreen</strong></td>
+<td class=""><code>features/marketplace_home/presentation/product_detail_screen.dart</code></td>
+<td class="">Add to Cart Tap</td>
+<td class="col-code"><code>[ProductDetailScreen] Add to cart pressed: productId=$productId, price=$price</code></td>
+<td class="">Tracks cart conversion (exclusive to Buyer flow).</td>
+</tr>
+<tr>
+<td class="col-num">24</td>
+<td class=""><strong>ProductDetailScreen</strong></td>
+<td class=""><code>features/marketplace_home/presentation/product_detail_screen.dart</code></td>
+<td class="">Artisan Edit Listing</td>
+<td class="col-code"><code>[ProductDetailScreen] Artisan edit listing tapped -&gt; navigating to pricing</code></td>
+<td class="">Verifies artisan seller quick-edit capability.</td>
+</tr>
+<tr>
+<td class="col-num">25</td>
+<td class=""><strong>CartScreen</strong></td>
+<td class=""><code>features/cart_checkout/presentation/cart_screen.dart</code></td>
+<td class=""><code>build</code> render</td>
+<td class="col-code"><code>[CartScreen] Rendered. cartItemsCount=$count, total=₹$total</code></td>
+<td class="">Cart contents and billing breakdown audit.</td>
+</tr>
+<tr>
+<td class="col-num">25</td>
+<td class=""><strong>CartScreen</strong></td>
+<td class=""><code>features/cart_checkout/presentation/cart_screen.dart</code></td>
+<td class="">Quantity +/-</td>
+<td class="col-code"><code>[CartScreen] Quantity increased / decreased for product: $productId</code></td>
+<td class="">Tracks cart quantity modifications.</td>
+</tr>
+<tr>
+<td class="col-num">25</td>
+<td class=""><strong>CartScreen</strong></td>
+<td class=""><code>features/cart_checkout/presentation/cart_screen.dart</code></td>
+<td class="">Empty Cart CTA</td>
+<td class="col-code"><code>[CartScreen] Empty cart button tapped -&gt; navigating to /customer/home</code></td>
+<td class="">Tracks bounce recovery from empty cart.</td>
+</tr>
+<tr>
+<td class="col-num">25</td>
+<td class=""><strong>CartScreen</strong></td>
+<td class=""><code>features/cart_checkout/presentation/cart_screen.dart</code></td>
+<td class="">Checkout Button</td>
+<td class="col-code"><code>[CartScreen] Checkout confirmed for total: ₹$total</code></td>
+<td class="">Audits purchase checkout completion.</td>
+</tr>
+<tr>
+<td class="col-num">26</td>
+<td class=""><strong>CustomerAccountScreen</strong></td>
+<td class=""><code>features/marketplace_home/presentation/customer_account_screen.dart</code></td>
+<td class=""><code>build</code> render</td>
+<td class="col-code"><code>[CustomerAccountScreen] Rendered for user: $name</code></td>
+<td class="">Buyer account overview audit.</td>
+</tr>
+<tr>
+<td class="col-num">26</td>
+<td class=""><strong>CustomerAccountScreen</strong></td>
+<td class=""><code>features/marketplace_home/presentation/customer_account_screen.dart</code></td>
+<td class="">Switch to Artisan Track</td>
+<td class="col-code"><code>[CustomerAccountScreen] Role switch to Artisan -&gt; navigating to /artisan/home</code></td>
+<td class="">Tracks persona transition to Artisan studio.</td>
+</tr>
+<tr>
+<td class="col-num">26</td>
+<td class=""><strong>CustomerAccountScreen</strong></td>
+<td class=""><code>features/marketplace_home/presentation/customer_account_screen.dart</code></td>
+<td class="">Sign Out Button</td>
+<td class="col-code"><code>[CustomerAccountScreen] Sign out confirmed -&gt; navigating to /login</code></td>
+<td class="">Audits buyer sign out.</td>
+</tr>
+<tr>
+<td class="col-num">27</td>
+<td class=""><strong>B2bBulkRequestScreen</strong></td>
+<td class=""><code>features/b2b_bulk_request/presentation/b2b_bulk_request_screen.dart</code></td>
+<td class=""><code>initState</code></td>
+<td class="col-code"><code>[B2bBulkRequestScreen] Initialized</code></td>
+<td class="">B2B RFQ form mount.</td>
+</tr>
+<tr>
+<td class="col-num">27</td>
+<td class=""><strong>B2bBulkRequestScreen</strong></td>
+<td class=""><code>features/b2b_bulk_request/presentation/b2b_bulk_request_screen.dart</code></td>
+<td class="">Craft Category Select</td>
+<td class="col-code"><code>[B2bBulkRequestScreen] Craft category changed: $val</code></td>
+<td class="">Tracks bulk craft categories in demand.</td>
+</tr>
+<tr>
+<td class="col-num">27</td>
+<td class=""><strong>B2bBulkRequestScreen</strong></td>
+<td class=""><code>features/b2b_bulk_request/presentation/b2b_bulk_request_screen.dart</code></td>
+<td class="">Submit Quotation</td>
+<td class="col-code"><code>[B2bBulkRequestScreen] Quotation request submitted: company=&quot;$company&quot;, craft=&quot;$craft&quot;, qty=&quot;$qty&quot;</code></td>
+<td class="">Logs B2B quotation submission inputs.</td>
+</tr>
+<tr>
+<td class="col-num">27</td>
+<td class=""><strong>B2bBulkRequestScreen</strong></td>
+<td class=""><code>features/b2b_bulk_request/presentation/b2b_bulk_request_screen.dart</code></td>
+<td class="">Dialog OK Tap</td>
+<td class="col-code"><code>[B2bBulkRequestScreen] Request dialog OK pressed -&gt; popping screen</code></td>
+<td class="">Confirms quotation dialog acknowledgment.</td>
+</tr>
+</tbody></table></div>
+<hr/>
+<h2>3. How to Use for Study and Debugging</h2>
+<p>1. <strong>Grepping by Tag</strong>:</p>
+<p>Every log statement starts with <code>[&lt;ClassName&gt;]</code>. When debugging a specific screen (e.g., <code>ArtisanCameraScreen</code>), use:</p>
+<pre><code>   flutter logs | grep &quot;\[ArtisanCameraScreen\]&quot;</code></pre>
+<p>2. <strong>Monitoring State Transitions</strong>:</p>
+<p>In multi-step wizards like <strong>Add Item Wizard</strong>:</p>
+<li><code>[ArtisanCameraScreen]</code> -&gt; <code>[ImageCropperScreen]</code> -&gt; <code>[PhotoReviewScreen]</code> -&gt; <code>[VoiceDescribeScreen]</code> -&gt; <code>[AiReviewScreen]</code> -&gt; <code>[PricingScreen]</code></li>
+<p>You can trace an entire craft creation lifecycle from photo capture to price publication in a single log trace.</p>
+<p>3. <strong>Role Context Verification</strong>:</p>
+<p>Screens that adapt dynamically between Artisan and Buyer (<code>ProductDetailScreen</code>, <code>ShopCatalogScreen</code>, <code>ArtisanFairsScreen</code>) print <code>isBuyer=true/false</code> so you can verify access rules and UI permissions in real-time.</p>
+</body>
+</html>
