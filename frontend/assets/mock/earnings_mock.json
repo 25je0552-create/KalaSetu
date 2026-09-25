@@ -1,0 +1,21 @@
+{
+  "totalEarnings": 42350,
+  "currentBalance": 8720,
+  "todayEarnings": 3450,
+  "weeklyHistory": [
+    { "week": "सप्ताह १ (Week 1)", "amount": 3200, "ordersCount": 4 },
+    { "week": "सप्ताह २ (Week 2)", "amount": 4850, "ordersCount": 7 },
+    { "week": "सप्ताह ३ (Week 3)", "amount": 5100, "ordersCount": 6 },
+    { "week": "सप्ताह ४ (Week 4)", "amount": 6400, "ordersCount": 9 },
+    { "week": "सप्ताह ५ (Week 5)", "amount": 3900, "ordersCount": 5 },
+    { "week": "सप्ताह ६ (Week 6)", "amount": 5600, "ordersCount": 8 },
+    { "week": "सप्ताह ७ (Week 7)", "amount": 6850, "ordersCount": 11 },
+    { "week": "सप्ताह ८ (Week 8 - वर्तमान)", "amount": 6450, "ordersCount": 9 }
+  ],
+  "bankAccount": {
+    "bankName": "State Bank of India (गोरखपुर ग्रामीण शाखा)",
+    "accountNumberMasked": "•••• •••• 4892",
+    "holderName": "रमेश प्रजापति (Ramesh Prajapati)",
+    "ifsc": "SBIN0001234"
+  }
+}
