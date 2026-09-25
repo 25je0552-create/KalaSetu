@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/localization/app_localizations.dart';
 import '../../../core/widgets/clay_widgets.dart';
 import 'add_item_wizard_controller.dart';
 
@@ -24,10 +25,16 @@ class _PhotoReviewScreenState extends ConsumerState<PhotoReviewScreen> {
     return Scaffold(
       backgroundColor: AppColors.surface,
       appBar: AppBar(
-        title: const Text(
-          'फोटो समीक्षा • Photo Review',
-          style: TextStyle(fontFamily: 'Literata', fontWeight: FontWeight.bold, fontSize: 18),
+        title: Text(
+          ref.tr('photo_review_title'),
+          style: const TextStyle(fontFamily: 'Literata', fontWeight: FontWeight.bold, fontSize: 18),
         ),
+        actions: const [
+          Padding(
+            padding: EdgeInsets.only(right: 16),
+            child: LanguageTogglePill(),
+          ),
+        ],
       ),
       body: SafeArea(
         child: Padding(
@@ -55,7 +62,7 @@ class _PhotoReviewScreenState extends ConsumerState<PhotoReviewScreen> {
                           ),
                           child: Center(
                             child: Text(
-                              'मूल फोटो (Original)',
+                              ref.tr('original_photo_tab'),
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 13,
@@ -77,7 +84,7 @@ class _PhotoReviewScreenState extends ConsumerState<PhotoReviewScreen> {
                           ),
                           child: Center(
                             child: Text(
-                              'स्टूडियो पृष्ठभूमि (AI Studio)',
+                              ref.tr('ai_studio_tab'),
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 13,
@@ -98,10 +105,9 @@ class _PhotoReviewScreenState extends ConsumerState<PhotoReviewScreen> {
                 child: Center(
                   child: Container(
                     decoration: BoxDecoration(
-                      // TODO: replace with real bg-removal model output (U²-Net/rembg via backend)
                       color: _showAfter ? AppColors.surfaceBright : Colors.black87,
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: AppColors.outlineVariant.withOpacity(0.5)),
+                      border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.5)),
                       boxShadow: [
                         BoxShadow(
                           color: _showAfter ? const Color(0x1F785440) : Colors.black26,
@@ -131,16 +137,16 @@ class _PhotoReviewScreenState extends ConsumerState<PhotoReviewScreen> {
                 decoration: BoxDecoration(
                   color: AppColors.surfaceContainerHigh,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.outlineVariant.withOpacity(0.4)),
+                  border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.4)),
                 ),
-                child: const Row(
+                child: Row(
                   children: [
-                    Icon(Icons.auto_awesome, color: AppColors.secondary, size: 20),
-                    SizedBox(width: 10),
+                    const Icon(Icons.auto_awesome, color: AppColors.secondary, size: 20),
+                    const SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        'पृष्ठभूमि स्वतः साफ की गई है ताकि खरीदार केवल आपकी कारीगरी पर ध्यान दें।',
-                        style: TextStyle(fontSize: 12, height: 1.3, color: AppColors.onSurface),
+                        ref.tr('studio_treatment_note'),
+                        style: const TextStyle(fontSize: 12, height: 1.3, color: AppColors.onSurface),
                       ),
                     ),
                   ],
@@ -159,13 +165,13 @@ class _PhotoReviewScreenState extends ConsumerState<PhotoReviewScreen> {
                         side: const BorderSide(color: AppColors.outlineVariant),
                       ),
                       onPressed: () => context.pop(),
-                      child: const Text('दोबारा खींचें (Retake)'),
+                      child: Text(ref.tr('retake_btn')),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: TerracottaButton(
-                      label: 'आगे बढ़ें • Next',
+                      label: ref.tr('next_btn'),
                       height: 54,
                       icon: Icons.arrow_forward,
                       onPressed: () => context.push('/artisan/add-item/voice-describe'),

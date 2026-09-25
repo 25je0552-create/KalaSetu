@@ -18,8 +18,16 @@ class ArtisanFairsScreen extends ConsumerStatefulWidget {
 class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
   int _selectedTabIndex = 0; // 0: Upcoming, 1: Applied, 2: Subsidized
   String _searchQuery = '';
+  final Set<String> _bookmarkedFairIds = {};
+  final Set<String> _appliedFairIds = {};
 
-  void _showApplicationSuccessDialog(CraftFair fair) {
+  void _showApplicationSuccessDialog(CraftFair fair, bool isHindi) {
+    setState(() {
+      _appliedFairIds.add(fair.id);
+    });
+
+    final fairTitle = isHindi ? fair.titleHi : fair.titleEn;
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -39,9 +47,9 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
               child: const Icon(Icons.task_alt, size: 36, color: AppColors.onSecondaryContainer),
             ),
             const SizedBox(height: 16),
-            const Text(
-              'आवेदन जमा हुआ',
-              style: TextStyle(
+            Text(
+              ref.tr('application_submitted'),
+              style: const TextStyle(
                 fontFamily: 'Literata',
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -50,7 +58,7 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
             ),
             const SizedBox(height: 6),
             Text(
-              fair.titleHi,
+              fairTitle,
               textAlign: TextAlign.center,
               style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary),
             ),
@@ -61,14 +69,14 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
                 color: AppColors.surfaceContainer,
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Text(
-                'आपके पंजीकृत शिल्पी पहचान पत्र के आधार पर आवेदन अग्रसारित कर दिया गया है। 48 घंटे में एसएमएस द्वारा सूचना प्राप्त होगी।',
-                style: TextStyle(fontSize: 12, height: 1.4, color: AppColors.onSurfaceVariant),
+              child: Text(
+                ref.tr('application_note'),
+                style: const TextStyle(fontSize: 12, height: 1.4, color: AppColors.onSurfaceVariant),
               ),
             ),
             const SizedBox(height: 20),
             TerracottaButton(
-              label: 'ठीक है, धन्यवाद',
+              label: ref.tr('modal_thanks'),
               onPressed: () => Navigator.pop(context),
             ),
           ],
@@ -77,9 +85,112 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
     );
   }
 
+  void _showVoiceSearchModal(bool isHindi) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF363023),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 44,
+                          height: 44,
+                          decoration: const BoxDecoration(
+                            color: AppColors.secondaryContainer,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.mic, color: AppColors.onSecondaryContainer, size: 26),
+                        ),
+                        const SizedBox(width: 12),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              ref.tr('listening_voice'),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                            Text(
+                              ref.tr('voice_search_prompt'),
+                              style: const TextStyle(color: Colors.white70, fontSize: 12),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close, color: Colors.white70),
+                      onPressed: () => Navigator.pop(ctx),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    ActionChip(
+                      backgroundColor: const Color(0xFF4A4336),
+                      label: Text(
+                        isHindi ? 'हुनर हाट' : 'Hunar Haat',
+                        style: const TextStyle(color: Colors.white, fontSize: 12),
+                      ),
+                      onPressed: () {
+                        setState(() => _searchQuery = isHindi ? 'हुनर' : 'Hunar');
+                        Navigator.pop(ctx);
+                      },
+                    ),
+                    ActionChip(
+                      backgroundColor: const Color(0xFF4A4336),
+                      label: Text(
+                        isHindi ? 'सूरजकुंड' : 'Surajkund',
+                        style: const TextStyle(color: Colors.white, fontSize: 12),
+                      ),
+                      onPressed: () {
+                        setState(() => _searchQuery = isHindi ? 'सूरजकुंड' : 'Surajkund');
+                        Navigator.pop(ctx);
+                      },
+                    ),
+                    ActionChip(
+                      backgroundColor: const Color(0xFF4A4336),
+                      label: Text(
+                        isHindi ? 'ताज महोत्सव' : 'Taj Mahotsav',
+                        style: const TextStyle(color: Colors.white, fontSize: 12),
+                      ),
+                      onPressed: () {
+                        setState(() => _searchQuery = isHindi ? 'ताज' : 'Taj');
+                        Navigator.pop(ctx);
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final fairsAsync = ref.watch(craftFairsProvider);
+    final isHindi = ref.watch(localeProvider) == AppLocale.hindi;
 
     return Scaffold(
       backgroundColor: AppColors.surface,
@@ -87,8 +198,8 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
         preferredSize: const Size.fromHeight(70),
         child: Container(
           decoration: BoxDecoration(
-            color: AppColors.surfaceContainer.withOpacity(0.9),
-            border: const Border(bottom: BorderSide(color: AppColors.outlineVariant, width: 0.8)),
+            color: AppColors.surfaceContainer.withValues(alpha: 0.9),
+            border: Border(bottom: BorderSide(color: AppColors.outlineVariant.withValues(alpha: 0.5), width: 0.8)),
           ),
           child: SafeArea(
             child: Padding(
@@ -101,7 +212,7 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
                     decoration: BoxDecoration(
                       color: AppColors.surfaceContainer,
                       shape: BoxShape.circle,
-                      border: Border.all(color: AppColors.outlineVariant.withOpacity(0.4)),
+                      border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.4)),
                     ),
                     padding: const EdgeInsets.all(4),
                     child: ClipOval(
@@ -109,13 +220,13 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
                     ),
                   ),
                   const SizedBox(width: 10),
-                  const Column(
+                  Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        'KalaSetu',
-                        style: TextStyle(
+                        ref.tr('app_name'),
+                        style: const TextStyle(
                           fontFamily: 'Literata',
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -123,13 +234,27 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
                         ),
                       ),
                       Text(
-                        'कलासेतु शिल्प मेले',
-                        style: TextStyle(fontSize: 11, color: AppColors.onSurfaceVariant),
+                        ref.tr('header_fairs_subtitle'),
+                        style: const TextStyle(fontSize: 11, color: AppColors.onSurfaceVariant),
                       ),
                     ],
                   ),
                   const Spacer(),
                   const LanguageTogglePill(),
+                  const SizedBox(width: 10),
+                  GestureDetector(
+                    onTap: () => context.push('/artisan/profile'),
+                    child: Container(
+                      width: 38,
+                      height: 38,
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceContainerHigh,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+                      ),
+                      child: const Icon(Icons.person_outline, color: AppColors.primary, size: 22),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -146,18 +271,23 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
         data: (fairs) {
           var filteredFairs = fairs;
           if (_selectedTabIndex == 1) {
-            filteredFairs = fairs.where((f) => f.applied).toList();
+            filteredFairs = fairs.where((f) => f.applied || _appliedFairIds.contains(f.id)).toList();
           } else if (_selectedTabIndex == 2) {
             filteredFairs = fairs.where((f) => f.subsidized).toList();
           }
 
           if (_searchQuery.isNotEmpty) {
+            final query = _searchQuery.toLowerCase();
             filteredFairs = filteredFairs
                 .where((f) =>
-                    f.titleHi.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-                    f.locationHi.toLowerCase().contains(_searchQuery.toLowerCase()))
+                    f.titleHi.toLowerCase().contains(query) ||
+                    f.titleEn.toLowerCase().contains(query) ||
+                    f.locationHi.toLowerCase().contains(query) ||
+                    f.locationEn.toLowerCase().contains(query))
                 .toList();
           }
+
+          final appliedCount = fairs.where((f) => f.applied || _appliedFairIds.contains(f.id)).length;
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16),
@@ -169,7 +299,7 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
                   decoration: BoxDecoration(
                     color: AppColors.surfaceContainerLow,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppColors.outlineVariant.withOpacity(0.4)),
+                    border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.4)),
                   ),
                   padding: const EdgeInsets.all(16),
                   child: Row(
@@ -184,14 +314,14 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
                                 color: AppColors.secondaryFixed,
                                 borderRadius: BorderRadius.circular(20),
                               ),
-                              child: const Row(
+                              child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(Icons.celebration, size: 14, color: AppColors.onSecondaryFixed),
-                                  SizedBox(width: 4),
+                                  const Icon(Icons.celebration, size: 14, color: AppColors.onSecondaryFixed),
+                                  const SizedBox(width: 4),
                                   Text(
-                                    'सीधा सरकारी सहयोग',
-                                    style: TextStyle(
+                                    ref.tr('govt_support_badge'),
+                                    style: const TextStyle(
                                       fontSize: 11,
                                       fontWeight: FontWeight.bold,
                                       color: AppColors.onSecondaryFixed,
@@ -201,9 +331,9 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
                               ),
                             ),
                             const SizedBox(height: 6),
-                            const Text(
-                              'शिल्प मेले',
-                              style: TextStyle(
+                            Text(
+                              ref.tr('fairs_heading'),
+                              style: const TextStyle(
                                 fontFamily: 'Literata',
                                 fontSize: 24,
                                 fontWeight: FontWeight.bold,
@@ -211,21 +341,28 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
                               ),
                             ),
                             const SizedBox(height: 2),
-                            const Text(
-                              'अपने हस्तशिल्प को देश-विदेश के बड़े मंचों तक पहुंचाएं',
-                              style: TextStyle(fontSize: 12, color: AppColors.onSurfaceVariant),
+                            Text(
+                              ref.tr('fairs_subheading'),
+                              style: const TextStyle(fontSize: 12, color: AppColors.onSurfaceVariant),
                             ),
                           ],
                         ),
                       ),
-                      Container(
-                        width: 48,
-                        height: 48,
-                        decoration: const BoxDecoration(
-                          color: AppColors.primary,
-                          shape: BoxShape.circle,
+                      // Voice Search Anchor Button
+                      GestureDetector(
+                        onTap: () => _showVoiceSearchModal(isHindi),
+                        child: Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color: AppColors.primary,
+                            shape: BoxShape.circle,
+                            boxShadow: const [
+                              BoxShadow(color: Color(0x339D3E14), blurRadius: 6, offset: Offset(0, 2)),
+                            ],
+                          ),
+                          child: const Icon(Icons.mic, color: Colors.white, size: 24),
                         ),
-                        child: const Icon(Icons.mic, color: Colors.white, size: 24),
                       ),
                     ],
                   ),
@@ -237,7 +374,7 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
                   decoration: BoxDecoration(
                     color: AppColors.surfaceContainer,
                     borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: AppColors.outlineVariant.withOpacity(0.4)),
+                    border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.4)),
                   ),
                   padding: const EdgeInsets.symmetric(horizontal: 14),
                   child: Row(
@@ -247,13 +384,18 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
                       Expanded(
                         child: TextField(
                           onChanged: (val) => setState(() => _searchQuery = val),
-                          decoration: const InputDecoration(
-                            hintText: 'शहर, शिल्प या मेले का नाम खोजें...',
+                          decoration: InputDecoration(
+                            hintText: ref.tr('fairs_search_placeholder'),
                             border: InputBorder.none,
-                            hintStyle: TextStyle(fontSize: 14, color: AppColors.outline),
+                            hintStyle: const TextStyle(fontSize: 14, color: AppColors.outline),
                           ),
                         ),
                       ),
+                      if (_searchQuery.isNotEmpty)
+                        IconButton(
+                          icon: const Icon(Icons.clear, size: 18, color: AppColors.outline),
+                          onPressed: () => setState(() => _searchQuery = ''),
+                        ),
                       const Icon(Icons.tune, color: AppColors.primary),
                     ],
                   ),
@@ -265,27 +407,116 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     children: [
-                      _buildTab(0, 'आगामी मेले', Icons.event),
+                      _buildTab(0, ref.tr('tab_upcoming_fairs'), Icons.event),
                       const SizedBox(width: 8),
-                      _buildTab(1, 'मेरे आवेदन (2)', Icons.assignment_turned_in),
+                      _buildTab(1, '${ref.tr('tab_my_applications')} ($appliedCount)', Icons.assignment_turned_in),
                       const SizedBox(width: 8),
-                      _buildTab(2, 'सरकारी अनुदान', Icons.verified),
+                      _buildTab(2, ref.tr('tab_govt_subsidies'), Icons.verified),
                     ],
                   ),
                 ),
                 const SizedBox(height: 20),
 
                 // Exhibition Tickets Stack
-                ListView.separated(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: filteredFairs.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 20),
-                  itemBuilder: (context, index) {
-                    final fair = filteredFairs[index];
-                    return _buildTicketCard(fair);
-                  },
+                if (filteredFairs.isEmpty)
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 40),
+                      child: Column(
+                        children: [
+                          const Icon(Icons.festival_outlined, size: 54, color: AppColors.outline),
+                          const SizedBox(height: 10),
+                          Text(
+                            isHindi ? 'कोई मेला नहीं मिला' : 'No craft fairs found',
+                            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                else
+                  ListView.separated(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: filteredFairs.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 20),
+                    itemBuilder: (context, index) {
+                      final fair = filteredFairs[index];
+                      return _buildTicketCard(fair, isHindi);
+                    },
+                  ),
+
+                const SizedBox(height: 24),
+
+                // Help Desk Footnote Banner
+                Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.4)),
+                  ),
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withValues(alpha: 0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.contact_support, color: AppColors.primary, size: 22),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              ref.tr('need_help_form'),
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.onSurface),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              ref.tr('help_desc_fairs'),
+                              style: const TextStyle(fontSize: 12, color: AppColors.onSurfaceVariant),
+                            ),
+                            const SizedBox(height: 8),
+                            GestureDetector(
+                              onTap: () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      isHindi
+                                          ? 'कारीगर हेल्पलाइन १८००-२००-८८९९ पर कॉल की जा रही है...'
+                                          : 'Calling Artisan Helpline 1800-200-8899...',
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.call, size: 16, color: AppColors.primary),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    ref.tr('talk_artisan_helpline'),
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.primary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
+                const SizedBox(height: 20),
               ],
             ),
           );
@@ -303,7 +534,7 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
         decoration: BoxDecoration(
           color: isSelected ? AppColors.primary : AppColors.surfaceContainer,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: isSelected ? Colors.transparent : AppColors.outlineVariant.withOpacity(0.4)),
+          border: Border.all(color: isSelected ? Colors.transparent : AppColors.outlineVariant.withValues(alpha: 0.4)),
         ),
         child: Row(
           children: [
@@ -324,12 +555,24 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
     );
   }
 
-  Widget _buildTicketCard(CraftFair fair) {
+  Widget _buildTicketCard(CraftFair fair, bool isHindi) {
+    final title = isHindi ? fair.titleHi : fair.titleEn;
+    final category = isHindi ? fair.categoryHi : fair.categoryEn;
+    final badge = isHindi ? fair.badgeHi : fair.badgeEn;
+    final daysLeft = isHindi ? fair.daysLeftHi : fair.daysLeftEn;
+    final location = isHindi ? fair.locationHi : fair.locationEn;
+    final dateRange = isHindi ? fair.dateRangeHi : fair.dateRangeEn;
+    final subsidyNote = isHindi ? fair.subsidyNoteHi : fair.subsidyNoteEn;
+    final expectedVisitors = isHindi ? fair.expectedVisitorsHi : fair.expectedVisitorsEn;
+
+    final isApplied = fair.applied || _appliedFairIds.contains(fair.id);
+    final isBookmarked = _bookmarkedFairIds.contains(fair.id);
+
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surfaceContainer,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.outlineVariant.withOpacity(0.4)),
+        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.4)),
         boxShadow: const [
           BoxShadow(color: Color(0x0C000000), blurRadius: 8, offset: Offset(0, 3)),
         ],
@@ -368,7 +611,7 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
                       const Icon(Icons.stars, size: 14, color: Colors.white),
                       const SizedBox(width: 4),
                       Text(
-                        fair.badgeHi,
+                        badge,
                         style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white),
                       ),
                     ],
@@ -381,11 +624,11 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.7),
+                    color: Colors.black.withValues(alpha: 0.7),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
-                    fair.daysLeftHi,
+                    daysLeft,
                     style: const TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.w600),
                   ),
                 ),
@@ -397,13 +640,34 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  fair.categoryHi.toUpperCase(),
-                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.primary),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      category.toUpperCase(),
+                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.primary),
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          if (isBookmarked) {
+                            _bookmarkedFairIds.remove(fair.id);
+                          } else {
+                            _bookmarkedFairIds.add(fair.id);
+                          }
+                        });
+                      },
+                      child: Icon(
+                        isBookmarked ? Icons.bookmark : Icons.bookmark_outline,
+                        color: isBookmarked ? AppColors.primary : AppColors.outline,
+                        size: 22,
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  fair.titleHi,
+                  title,
                   style: const TextStyle(
                     fontFamily: 'Literata',
                     fontSize: 20,
@@ -417,7 +681,7 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
                     const Icon(Icons.location_on, size: 16, color: AppColors.primary),
                     const SizedBox(width: 6),
                     Expanded(
-                      child: Text(fair.locationHi, style: const TextStyle(fontSize: 13, color: AppColors.onSurfaceVariant)),
+                      child: Text(location, style: const TextStyle(fontSize: 13, color: AppColors.onSurfaceVariant)),
                     ),
                   ],
                 ),
@@ -426,7 +690,7 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
                   children: [
                     const Icon(Icons.calendar_month, size: 16, color: AppColors.secondary),
                     const SizedBox(width: 6),
-                    Text(fair.dateRangeHi, style: const TextStyle(fontSize: 13, color: AppColors.onSurfaceVariant)),
+                    Text(dateRange, style: const TextStyle(fontSize: 13, color: AppColors.onSurfaceVariant)),
                   ],
                 ),
                 const SizedBox(height: 10),
@@ -442,7 +706,7 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          fair.subsidyNoteHi,
+                          subsidyNote,
                           style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.onSurface),
                         ),
                       ),
@@ -452,7 +716,7 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
               ],
             ),
           ),
-          // Perforated Tear-Line with Notches
+          // Perforated Tear-Line with Authentic Notches
           Row(
             children: [
               Container(
@@ -471,11 +735,11 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: List.generate(
                         count,
-                        (_) => const SizedBox(
+                        (_) => SizedBox(
                           width: 4,
                           height: 1.5,
                           child: DecoratedBox(
-                            decoration: BoxDecoration(color: AppColors.outlineVariant),
+                            decoration: BoxDecoration(color: AppColors.outlineVariant.withValues(alpha: 0.8)),
                           ),
                         ),
                       ),
@@ -502,9 +766,9 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('अनुमानित दर्शक', style: TextStyle(fontSize: 11, color: AppColors.onSurfaceVariant)),
+                    Text(ref.tr('expected_visitors_label'), style: const TextStyle(fontSize: 11, color: AppColors.onSurfaceVariant)),
                     Text(
-                      fair.expectedVisitorsHi,
+                      expectedVisitors,
                       style: const TextStyle(
                         fontFamily: 'Literata',
                         fontSize: 16,
@@ -518,17 +782,17 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
                   height: 44,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: fair.applied ? AppColors.secondary : AppColors.primary,
+                      backgroundColor: isApplied ? AppColors.secondary : AppColors.primary,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                     ),
-                    onPressed: () => _showApplicationSuccessDialog(fair),
+                    onPressed: () => _showApplicationSuccessDialog(fair, isHindi),
                     child: Row(
                       children: [
-                        Icon(fair.applied ? Icons.check : Icons.how_to_reg, size: 18, color: Colors.white),
+                        Icon(isApplied ? Icons.check_circle : Icons.how_to_reg, size: 18, color: Colors.white),
                         const SizedBox(width: 6),
                         Text(
-                          fair.applied ? 'आवेदन हुआ' : 'आवेदन करें',
+                          isApplied ? ref.tr('applied') : ref.tr('apply_now'),
                           style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
                         ),
                       ],

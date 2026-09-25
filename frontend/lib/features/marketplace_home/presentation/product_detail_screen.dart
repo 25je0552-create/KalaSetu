@@ -15,22 +15,29 @@ class ProductDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final productAsync = ref.watch(productDetailProvider(productId));
+    final locale = ref.watch(localeProvider);
+    final isHindi = locale == AppLocale.hindi;
 
     return Scaffold(
       backgroundColor: AppColors.surface,
       appBar: AppBar(
-        title: const Text('शिल्प विवरण • Craft Detail', style: TextStyle(fontFamily: 'Literata', fontSize: 18)),
+        title: Text(ref.tr('craft_detail_title'), style: const TextStyle(fontFamily: 'Literata', fontSize: 18)),
         actions: const [
           Padding(padding: EdgeInsets.only(right: 16), child: LanguageTogglePill()),
         ],
       ),
       body: productAsync.when(
         loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
-        error: (err, _) => Center(child: Text('त्रुटि: $err')),
+        error: (err, _) => Center(child: Text('त्रुटि / Error: $err')),
         data: (p) {
           if (p == null) {
-            return const Center(child: Text('उत्पाद नहीं मिला (Product Not Found)'));
+            return Center(child: Text(ref.tr('product_not_found')));
           }
+
+          final primaryName = isHindi ? p.nameHi : p.nameEn;
+          final secondaryName = isHindi ? p.nameEn : p.nameHi;
+          final primaryDesc = isHindi ? p.descriptionHi : p.descriptionEn;
+          final secondaryDesc = isHindi ? p.descriptionEn : p.descriptionHi;
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16),
@@ -54,7 +61,7 @@ class ProductDetailScreen extends ConsumerWidget {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(color: AppColors.success, borderRadius: BorderRadius.circular(6)),
-                        child: const Text('प्रमाणित जी.आई. शिल्प (GI TAGGED)', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+                        child: Text(ref.tr('gi_tagged_badge'), style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
                       ),
                     Text(
                       '₹${p.price.toInt()}',
@@ -64,11 +71,11 @@ class ProductDetailScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  p.nameHi,
+                  primaryName,
                   style: const TextStyle(fontFamily: 'Literata', fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.onSurface),
                 ),
                 Text(
-                  p.nameEn,
+                  secondaryName,
                   style: const TextStyle(fontSize: 14, color: AppColors.onSurfaceVariant),
                 ),
                 const SizedBox(height: 16),
@@ -101,20 +108,20 @@ class ProductDetailScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 16),
 
-                const Text('शिल्प कथा (The Artisan Story)', style: TextStyle(fontFamily: 'Literata', fontSize: 16, fontWeight: FontWeight.bold)),
+                Text(ref.tr('artisan_story_label'), style: const TextStyle(fontFamily: 'Literata', fontSize: 16, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 6),
-                Text(p.descriptionHi, style: const TextStyle(fontSize: 14, height: 1.5, color: AppColors.onSurface)),
+                Text(primaryDesc, style: const TextStyle(fontSize: 14, height: 1.5, color: AppColors.onSurface)),
                 const SizedBox(height: 8),
-                Text(p.descriptionEn, style: const TextStyle(fontSize: 13, height: 1.4, color: AppColors.onSurfaceVariant)),
+                Text(secondaryDesc, style: const TextStyle(fontSize: 13, height: 1.4, color: AppColors.onSurfaceVariant)),
                 const SizedBox(height: 24),
 
                 TerracottaButton(
-                  label: 'कार्ट में जोड़ें • Add to Cart (₹${p.price.toInt()})',
+                  label: '${ref.tr("add_to_cart_btn")} (₹${p.price.toInt()})',
                   icon: Icons.shopping_bag_outlined,
                   onPressed: () {
                     ref.read(cartControllerProvider.notifier).addItem(p);
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('${p.nameHi} कार्ट में जोड़ा गया!')),
+                      SnackBar(content: Text('$primaryName ${ref.tr("added_to_cart_msg")}')),
                     );
                     context.push('/customer/cart');
                   },

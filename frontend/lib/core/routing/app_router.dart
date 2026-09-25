@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../services/auth_service.dart';
 import '../theme/app_theme.dart';
+import '../localization/app_localizations.dart';
 import '../../features/auth/presentation/splash_screen.dart';
 import '../../features/auth/presentation/language_select_screen.dart';
 import '../../features/auth/presentation/login_screen.dart';
@@ -13,6 +14,7 @@ import '../../features/artisan_home/presentation/artisan_home_screen.dart';
 import '../../features/artisan_fairs/presentation/artisan_fairs_screen.dart';
 import '../../features/artisan_orders/presentation/artisan_orders_screen.dart';
 import '../../features/artisan_earnings/presentation/artisan_earnings_screen.dart';
+import '../../features/artisan_profile/presentation/artisan_profile_screen.dart';
 import '../../features/artisan_profile/presentation/voice_onboarding_screen.dart';
 import '../../features/artisan_add_item/presentation/artisan_camera_screen.dart';
 import '../../features/artisan_add_item/presentation/photo_review_screen.dart';
@@ -40,7 +42,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           state.uri.path == '/signup' ||
           state.uri.path == '/otp-verify';
 
-      // Route Guard: unauthenticated requests to /artisan/* or /customer/* redirect to /login
+      // Route Guard: unauthenticated requests redirect to /login
       if (authUser == null && !isAuthRoute) {
         return '/login';
       }
@@ -86,43 +88,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state, navigationShell) {
           return Scaffold(
             body: navigationShell,
-            bottomNavigationBar: Container(
-              decoration: BoxDecoration(
-                color: AppColors.surfaceVariant.withOpacity(0.95),
-                border: const Border(top: BorderSide(color: AppColors.outlineVariant, width: 0.5)),
-              ),
-              height: 72,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _buildArtisanNavItem(
-                    context: context,
-                    icon: Icons.cottage,
-                    label: 'होम',
-                    isSelected: navigationShell.currentIndex == 0,
-                    onTap: () => navigationShell.goBranch(0),
-                  ),
-                  _buildArtisanAddItemButton(
-                    context: context,
-                    onTap: () => context.push('/artisan/add-item/camera'),
-                  ),
-                  _buildArtisanNavItem(
-                    context: context,
-                    icon: Icons.festival,
-                    label: 'मेले',
-                    isSelected: navigationShell.currentIndex == 1,
-                    onTap: () => navigationShell.goBranch(1),
-                  ),
-                  _buildArtisanNavItem(
-                    context: context,
-                    icon: Icons.payments,
-                    label: 'कमाई',
-                    isSelected: navigationShell.currentIndex == 2,
-                    onTap: () => navigationShell.goBranch(2),
-                  ),
-                ],
-              ),
-            ),
+            bottomNavigationBar: _ArtisanBottomBar(navigationShell: navigationShell),
           );
         },
         branches: [
@@ -147,6 +113,14 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/artisan/earnings',
                 builder: (context, state) => const ArtisanEarningsScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/artisan/profile',
+                builder: (context, state) => const ArtisanProfileScreen(),
               ),
             ],
           ),
@@ -197,18 +171,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state, navigationShell) {
           return Scaffold(
             body: navigationShell,
-            bottomNavigationBar: NavigationBar(
-              selectedIndex: navigationShell.currentIndex,
-              backgroundColor: AppColors.surfaceContainerHigh,
-              indicatorColor: AppColors.primary.withOpacity(0.15),
-              onDestinationSelected: (idx) => navigationShell.goBranch(idx),
-              destinations: const [
-                NavigationDestination(icon: Icon(Icons.storefront_outlined), selectedIcon: Icon(Icons.storefront, color: AppColors.primary), label: 'शिल्प'),
-                NavigationDestination(icon: Icon(Icons.festival_outlined), selectedIcon: Icon(Icons.festival, color: AppColors.primary), label: 'मेले'),
-                NavigationDestination(icon: Icon(Icons.shopping_bag_outlined), selectedIcon: Icon(Icons.shopping_bag, color: AppColors.primary), label: 'कार्ट'),
-                NavigationDestination(icon: Icon(Icons.person_outline), selectedIcon: Icon(Icons.person, color: AppColors.primary), label: 'खाता'),
-              ],
-            ),
+            bottomNavigationBar: _CustomerBottomBar(navigationShell: navigationShell),
           );
         },
         branches: [
@@ -265,6 +228,221 @@ final routerProvider = Provider<GoRouter>((ref) {
   );
 });
 
+class _ArtisanBottomBar extends ConsumerWidget {
+  final StatefulNavigationShell navigationShell;
+
+  const _ArtisanBottomBar({required this.navigationShell});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Rebuilds automatically on language switch
+    ref.watch(localeProvider);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surfaceVariant.withValues(alpha: 0.95),
+        border: Border(top: BorderSide(color: AppColors.outlineVariant.withValues(alpha: 0.4), width: 0.8)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x0A000000),
+            blurRadius: 10,
+            offset: Offset(0, -2),
+          ),
+        ],
+      ),
+      height: 76,
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          // 1. Home
+          _buildArtisanNavItem(
+            context: context,
+            icon: Icons.cottage,
+            label: ref.tr('nav_home'),
+            isSelected: navigationShell.currentIndex == 0,
+            onTap: () => navigationShell.goBranch(0),
+          ),
+
+          // 2. Fairs
+          _buildArtisanNavItem(
+            context: context,
+            icon: Icons.festival,
+            label: ref.tr('nav_fairs'),
+            isSelected: navigationShell.currentIndex == 1,
+            onTap: () => navigationShell.goBranch(1),
+          ),
+
+          // 3. Separate Voice Recording / Voice Scribe Button in Bottom Bar
+          _buildArtisanVoiceRecordButton(
+            context: context,
+            ref: ref,
+            onTap: () {
+              _showVoiceActionSheet(context, ref);
+            },
+          ),
+
+          // 4. Earnings
+          _buildArtisanNavItem(
+            context: context,
+            icon: Icons.payments,
+            label: ref.tr('nav_earnings'),
+            isSelected: navigationShell.currentIndex == 2,
+            onTap: () => navigationShell.goBranch(2),
+          ),
+
+          // 5. Profile (separate from Voice Recording)
+          _buildArtisanNavItem(
+            context: context,
+            icon: Icons.person,
+            label: ref.tr('nav_profile'),
+            isSelected: navigationShell.currentIndex == 3,
+            onTap: () => navigationShell.goBranch(3),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showVoiceActionSheet(BuildContext context, WidgetRef ref) {
+    final isHindi = ref.read(localeProvider) == AppLocale.hindi;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surfaceBright,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: const BoxDecoration(
+                        color: AppColors.secondaryContainer,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.mic, color: AppColors.onSecondaryContainer, size: 22),
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      isHindi ? 'स्वर सहायता केंद्र (Voice Hub)' : 'Artisan Voice Hub',
+                      style: const TextStyle(
+                        fontFamily: 'Literata',
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.onSurface,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                ListTile(
+                  leading: Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(Icons.record_voice_over, color: Colors.white, size: 22),
+                  ),
+                  title: Text(
+                    isHindi ? 'बोलकर नया सामान जोड़ें' : 'Add Item by Voice (Voice Scribe)',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  subtitle: Text(
+                    isHindi ? 'अपनी बोली में उत्पाद का विवरण रिकॉर्ड करें' : 'Describe your craft in native dialect',
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.primary),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    context.push('/artisan/add-item/voice-describe');
+                  },
+                ),
+                const Divider(),
+                ListTile(
+                  leading: Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: AppColors.secondary,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(Icons.graphic_eq, color: Colors.white, size: 22),
+                  ),
+                  title: Text(
+                    isHindi ? 'स्वर परिचय (Voice Profile Intro)' : 'Artisan Voice Introduction',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  subtitle: Text(
+                    isHindi ? 'अपना नाम, शिल्प व गाँव का परिचय बोलें' : 'Introduce your name, craft, and village',
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.secondary),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    context.push('/artisan/voice-onboarding');
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _CustomerBottomBar extends ConsumerWidget {
+  final StatefulNavigationShell navigationShell;
+
+  const _CustomerBottomBar({required this.navigationShell});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Rebuilds on language switch
+    ref.watch(localeProvider);
+
+    return NavigationBar(
+      selectedIndex: navigationShell.currentIndex,
+      backgroundColor: AppColors.surfaceContainerHigh,
+      indicatorColor: AppColors.primary.withValues(alpha: 0.15),
+      onDestinationSelected: (idx) => navigationShell.goBranch(idx),
+      destinations: [
+        NavigationDestination(
+          icon: const Icon(Icons.storefront_outlined),
+          selectedIcon: const Icon(Icons.storefront, color: AppColors.primary),
+          label: ref.tr('nav_crafts'),
+        ),
+        NavigationDestination(
+          icon: const Icon(Icons.festival_outlined),
+          selectedIcon: const Icon(Icons.festival, color: AppColors.primary),
+          label: ref.tr('nav_fairs'),
+        ),
+        NavigationDestination(
+          icon: const Icon(Icons.shopping_bag_outlined),
+          selectedIcon: const Icon(Icons.shopping_bag, color: AppColors.primary),
+          label: ref.tr('nav_cart'),
+        ),
+        NavigationDestination(
+          icon: const Icon(Icons.person_outline),
+          selectedIcon: const Icon(Icons.person, color: AppColors.primary),
+          label: ref.tr('nav_account'),
+        ),
+      ],
+    );
+  }
+}
+
 Widget _buildArtisanNavItem({
   required BuildContext context,
   required IconData icon,
@@ -276,50 +454,64 @@ Widget _buildArtisanNavItem({
   return GestureDetector(
     onTap: onTap,
     behavior: HitTestBehavior.opaque,
-    child: Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Icon(icon, size: 26, color: color),
-        const SizedBox(height: 2),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-            color: color,
+    child: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 26, color: color),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11.5,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+              color: color,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     ),
   );
 }
 
-Widget _buildArtisanAddItemButton({
+Widget _buildArtisanVoiceRecordButton({
   required BuildContext context,
+  required WidgetRef ref,
   required VoidCallback onTap,
 }) {
   return GestureDetector(
     onTap: onTap,
+    behavior: HitTestBehavior.opaque,
     child: Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Container(
-          width: 44,
-          height: 44,
-          margin: const EdgeInsets.only(top: 2),
-          decoration: const BoxDecoration(
+          width: 46,
+          height: 46,
+          margin: const EdgeInsets.only(top: 1),
+          decoration: BoxDecoration(
             color: AppColors.primary,
             shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(color: Color(0x339D3E14), blurRadius: 6, offset: Offset(0, 2)),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x339D3E14),
+                blurRadius: 8,
+                offset: Offset(0, 3),
+              ),
             ],
+            border: Border.all(color: Colors.white.withValues(alpha: 0.3), width: 1.5),
           ),
-          child: const Icon(Icons.add, color: Colors.white, size: 28),
+          child: const Icon(Icons.mic, color: Colors.white, size: 26),
         ),
         const SizedBox(height: 2),
-        const Text(
-          'जोड़ें',
-          style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.primary),
+        Text(
+          ref.tr('nav_voice_short'),
+          style: const TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.bold,
+            color: AppColors.primary,
+          ),
         ),
       ],
     ),

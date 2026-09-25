@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -20,8 +19,10 @@ class ArtisanCameraScreen extends ConsumerStatefulWidget {
 
 class _ArtisanCameraScreenState extends ConsumerState<ArtisanCameraScreen> {
   final CameraService _cameraService = CameraService();
-  bool _isInit = false;
   bool _isCapturing = false;
+  bool _showFlashOverlay = false;
+  int _flashState = 0; // 0: off, 1: on, 2: auto
+  bool _isVoiceRecording = false;
   final ImagePicker _picker = ImagePicker();
 
   @override
@@ -34,13 +35,21 @@ class _ArtisanCameraScreenState extends ConsumerState<ArtisanCameraScreen> {
     final granted = await _cameraService.requestPermissions();
     if (granted) {
       await _cameraService.initialize();
-      if (mounted) setState(() => _isInit = true);
+      if (mounted) setState(() {});
     }
   }
 
   Future<void> _onShutterPressed() async {
     if (_isCapturing) return;
-    setState(() => _isCapturing = true);
+    setState(() {
+      _isCapturing = true;
+      _showFlashOverlay = true;
+    });
+
+    // Tactile screen flash effect
+    Future.delayed(const Duration(milliseconds: 140), () {
+      if (mounted) setState(() => _showFlashOverlay = false);
+    });
 
     try {
       XFile? photo;
@@ -48,7 +57,6 @@ class _ArtisanCameraScreenState extends ConsumerState<ArtisanCameraScreen> {
         photo = await _cameraService.takePhoto();
       }
 
-      // If in simulator or camera not available, use a realistic sample craft photo
       final photoPath = photo?.path ?? 'sample_kulhad_craft.jpg';
       ref.read(addItemWizardProvider.notifier).setPhoto(photoPath);
 
@@ -76,6 +84,34 @@ class _ArtisanCameraScreenState extends ConsumerState<ArtisanCameraScreen> {
     }
   }
 
+  void _cycleFlash() {
+    setState(() {
+      _flashState = (_flashState + 1) % 3;
+    });
+    _cameraService.toggleFlash();
+  }
+
+  void _toggleVoiceNote() {
+    setState(() {
+      _isVoiceRecording = !_isVoiceRecording;
+    });
+    final isHindi = ref.read(localeProvider) == AppLocale.hindi;
+    if (_isVoiceRecording) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            isHindi
+                ? 'आवाज सुन रहे हैं... सामान का विवरण बोलें'
+                : 'Listening... Describe the craft item',
+          ),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    } else {
+      context.push('/artisan/add-item/voice-describe');
+    }
+  }
+
   @override
   void dispose() {
     _cameraService.dispose();
@@ -84,14 +120,27 @@ class _ArtisanCameraScreenState extends ConsumerState<ArtisanCameraScreen> {
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(localeProvider);
+
+    final flashLabels = [
+      ref.tr('flash_off'),
+      ref.tr('flash_on'),
+      ref.tr('flash_auto'),
+    ];
+    final flashIcons = [
+      Icons.flash_off,
+      Icons.flash_on,
+      Icons.flash_auto,
+    ];
+
     return Scaffold(
       backgroundColor: AppColors.surface,
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(60),
         child: Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             color: AppColors.surface,
-            border: Border(bottom: BorderSide(color: AppColors.outlineVariant, width: 0.5)),
+            border: Border(bottom: BorderSide(color: AppColors.outlineVariant.withValues(alpha: 0.4), width: 0.5)),
           ),
           child: SafeArea(
             child: Padding(
@@ -117,6 +166,20 @@ class _ArtisanCameraScreenState extends ConsumerState<ArtisanCameraScreen> {
                   ),
                   const Spacer(),
                   const LanguageTogglePill(),
+                  const SizedBox(width: 8),
+                  GestureDetector(
+                    onTap: () => context.push('/artisan/profile'),
+                    child: Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceContainerHigh,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+                      ),
+                      child: const Icon(Icons.person_outline, color: AppColors.primary, size: 18),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -125,7 +188,7 @@ class _ArtisanCameraScreenState extends ConsumerState<ArtisanCameraScreen> {
       ),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Column(
             children: [
               // 1. Framing Status Banner
@@ -133,36 +196,36 @@ class _ArtisanCameraScreenState extends ConsumerState<ArtisanCameraScreen> {
                 decoration: BoxDecoration(
                   color: AppColors.surfaceContainer,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.outlineVariant.withOpacity(0.4)),
+                  border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.4)),
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                 child: Row(
                   children: [
                     const Icon(Icons.center_focus_strong, color: AppColors.primary, size: 20),
                     const SizedBox(width: 8),
-                    const Expanded(
+                    Expanded(
                       child: Text(
-                        'सामान को बीच में रखें (Center craft)',
-                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.onSurface),
+                        ref.tr('center_craft_hint'),
+                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.onSurface),
                       ),
                     ),
                     Container(
-                      width: 6,
-                      height: 6,
+                      width: 7,
+                      height: 7,
                       decoration: const BoxDecoration(
                         color: AppColors.secondary,
                         shape: BoxShape.circle,
                       ),
                     ),
                     const SizedBox(width: 6),
-                    const Text(
-                      'अच्छी रोशनी (Good light)',
-                      style: TextStyle(fontSize: 11, color: AppColors.onSurfaceVariant),
+                    Text(
+                      ref.tr('good_light'),
+                      style: const TextStyle(fontSize: 11, color: AppColors.onSurfaceVariant, fontWeight: FontWeight.w600),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
 
               // 2. Viewfinder Frame Overlay (4:5 Aspect Ratio)
               Expanded(
@@ -172,7 +235,7 @@ class _ArtisanCameraScreenState extends ConsumerState<ArtisanCameraScreen> {
                     decoration: BoxDecoration(
                       color: AppColors.surfaceContainerHighest,
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: AppColors.outlineVariant.withOpacity(0.5)),
+                      border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.5)),
                       boxShadow: const [
                         BoxShadow(color: Color(0x15000000), blurRadius: 10, offset: Offset(0, 4)),
                       ],
@@ -182,11 +245,11 @@ class _ArtisanCameraScreenState extends ConsumerState<ArtisanCameraScreen> {
                       child: Stack(
                         fit: StackFit.expand,
                         children: [
-                          // Live camera preview or simulator fallback
+                          // Live camera preview or realistic artisan craft fallback
                           _cameraService.isInitialized
                               ? CameraPreview(_cameraService.controller!)
                               : Image.network(
-                                  'https://images.unsplash.com/photo-1615865417491-9941019fbc00?auto=format&fit=crop&w=800&q=80',
+                                  'https://lh3.googleusercontent.com/aida-public/AB6AXuCF1WoBZgqM24_q4yeNmcBo3uSKRiyFqnM4Y6Boj3WRImT4D4NVb0pLlvRtwxJh5tA9MMrlR8KpPwWeX0XAyw1FZf2x9OK-janmeVVotPAzcLg8ktVbC_l5hWEW6qX3hn5RQZ7uoItJV5oSVX9UpQHpe2kDPO155oVM1WlWv8iBZnv-kei-dg_m1AQ-KnHPfgVJ6vzKJh0Hq9zrb8yHu7DM7mOUg8ETBLVlASneowvaM4DtyMod3BOM',
                                   fit: BoxFit.cover,
                                 ),
 
@@ -197,15 +260,21 @@ class _ArtisanCameraScreenState extends ConsumerState<ArtisanCameraScreen> {
                                 begin: Alignment.topCenter,
                                 end: Alignment.bottomCenter,
                                 colors: [
-                                  Colors.black.withOpacity(0.25),
+                                  Colors.black.withValues(alpha: 0.25),
                                   Colors.transparent,
-                                  Colors.black.withOpacity(0.35),
+                                  Colors.black.withValues(alpha: 0.35),
                                 ],
                               ),
                             ),
                           ),
 
-                          // Top Controls (Flash toggle, craft mode, switch camera)
+                          // Flash Effect Animation Overlay
+                          if (_showFlashOverlay)
+                            Container(
+                              color: Colors.white.withValues(alpha: 0.85),
+                            ),
+
+                          // Top Controls inside Viewfinder
                           Positioned(
                             top: 12,
                             left: 12,
@@ -215,32 +284,32 @@ class _ArtisanCameraScreenState extends ConsumerState<ArtisanCameraScreen> {
                               children: [
                                 // Flash button
                                 GestureDetector(
-                                  onTap: () => _cameraService.toggleFlash(),
+                                  onTap: _cycleFlash,
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                                     decoration: BoxDecoration(
-                                      color: Colors.white.withOpacity(0.85),
+                                      color: Colors.white.withValues(alpha: 0.88),
                                       borderRadius: BorderRadius.circular(20),
                                     ),
-                                    child: const Row(
+                                    child: Row(
                                       children: [
-                                        Icon(Icons.flash_off, size: 16, color: AppColors.secondary),
-                                        SizedBox(width: 4),
-                                        Text('बंद', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                                        Icon(flashIcons[_flashState], size: 16, color: AppColors.secondary),
+                                        const SizedBox(width: 4),
+                                        Text(flashLabels[_flashState], style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                                       ],
                                     ),
                                   ),
                                 ),
-                                // Mode badge
+                                // Craft Mode Badge
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
                                   decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.9),
+                                    color: Colors.white.withValues(alpha: 0.92),
                                     borderRadius: BorderRadius.circular(20),
                                   ),
-                                  child: const Text(
-                                    'हस्तशिल्प मोड',
-                                    style: TextStyle(
+                                  child: Text(
+                                    ref.tr('craft_mode'),
+                                    style: const TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.bold,
                                       color: AppColors.primary,
@@ -251,10 +320,10 @@ class _ArtisanCameraScreenState extends ConsumerState<ArtisanCameraScreen> {
                                 GestureDetector(
                                   onTap: () => _cameraService.switchCamera(),
                                   child: Container(
-                                    width: 32,
-                                    height: 32,
+                                    width: 34,
+                                    height: 34,
                                     decoration: BoxDecoration(
-                                      color: Colors.white.withOpacity(0.85),
+                                      color: Colors.white.withValues(alpha: 0.88),
                                       shape: BoxShape.circle,
                                     ),
                                     child: const Icon(Icons.flip_camera_ios, size: 18, color: AppColors.onSurface),
@@ -267,7 +336,7 @@ class _ArtisanCameraScreenState extends ConsumerState<ArtisanCameraScreen> {
                           // Center Ochre Alignment Frame & Crosshairs
                           Center(
                             child: SizedBox(
-                              width: 200,
+                              width: 210,
                               height: 240,
                               child: Stack(
                                 children: [
@@ -327,7 +396,7 @@ class _ArtisanCameraScreenState extends ConsumerState<ArtisanCameraScreen> {
                                       ),
                                     ),
                                   ),
-                                  // Center focus dot
+                                  // Center focus crosshairs
                                   const Center(
                                     child: Icon(Icons.add, size: 28, color: AppColors.secondaryFixed),
                                   ),
@@ -338,15 +407,18 @@ class _ArtisanCameraScreenState extends ConsumerState<ArtisanCameraScreen> {
                                       margin: const EdgeInsets.only(bottom: 6),
                                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
                                       decoration: BoxDecoration(
-                                        color: Colors.white.withOpacity(0.85),
+                                        color: Colors.white.withValues(alpha: 0.88),
                                         borderRadius: BorderRadius.circular(12),
                                       ),
-                                      child: const Row(
+                                      child: Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          Icon(Icons.horizontal_rule, size: 14, color: AppColors.secondary),
-                                          SizedBox(width: 4),
-                                          Text('संतुलित (Balanced)', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+                                          const Icon(Icons.horizontal_rule, size: 14, color: AppColors.secondary),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            ref.tr('balanced'),
+                                            style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+                                          ),
                                         ],
                                       ),
                                     ),
@@ -365,15 +437,18 @@ class _ArtisanCameraScreenState extends ConsumerState<ArtisanCameraScreen> {
                               child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.85),
+                                  color: Colors.white.withValues(alpha: 0.88),
                                   borderRadius: BorderRadius.circular(20),
                                 ),
-                                child: const Row(
+                                child: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    Icon(Icons.wb_sunny, size: 14, color: AppColors.primary),
-                                    SizedBox(width: 4),
-                                    Text('दीया या खिड़की के पास रखें', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
+                                    const Icon(Icons.wb_sunny, size: 14, color: AppColors.primary),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      ref.tr('lighting_tip'),
+                                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                                    ),
                                   ],
                                 ),
                               ),
@@ -385,9 +460,9 @@ class _ArtisanCameraScreenState extends ConsumerState<ArtisanCameraScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 14),
 
-              // 3. Camera Controls (Gallery, Shutter Button, Audio Help)
+              // 3. Camera Controls (Gallery, Shutter Button, Add by Voice)
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Row(
@@ -404,12 +479,15 @@ class _ArtisanCameraScreenState extends ConsumerState<ArtisanCameraScreen> {
                             decoration: BoxDecoration(
                               color: AppColors.surfaceContainerHigh,
                               borderRadius: BorderRadius.circular(14),
-                              border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+                              border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
                             ),
                             child: const Icon(Icons.photo_library_outlined, color: AppColors.primary, size: 26),
                           ),
                           const SizedBox(height: 4),
-                          const Text('गैलरी (Gallery)', style: TextStyle(fontSize: 11, color: AppColors.onSurfaceVariant)),
+                          Text(
+                            ref.tr('gallery'),
+                            style: const TextStyle(fontSize: 11, color: AppColors.onSurfaceVariant),
+                          ),
                         ],
                       ),
                     ),
@@ -418,11 +496,11 @@ class _ArtisanCameraScreenState extends ConsumerState<ArtisanCameraScreen> {
                     GestureDetector(
                       onTap: _onShutterPressed,
                       child: Container(
-                        width: 80,
-                        height: 80,
+                        width: 78,
+                        height: 78,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          border: Border.all(color: AppColors.primary.withOpacity(0.25), width: 3),
+                          border: Border.all(color: AppColors.primary.withValues(alpha: 0.25), width: 3),
                         ),
                         padding: const EdgeInsets.all(4),
                         child: Container(
@@ -442,40 +520,82 @@ class _ArtisanCameraScreenState extends ConsumerState<ArtisanCameraScreen> {
                                   ),
                                 )
                               : const Center(
-                                  child: Icon(Icons.photo_camera, size: 36, color: Colors.white),
+                                  child: Icon(Icons.photo_camera, size: 34, color: Colors.white),
                                 ),
                         ),
                       ),
                     ),
 
-                    // Audio Help button
+                    // Add by Voice note button
                     GestureDetector(
-                      onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('कैमरा निर्देश: "सामान के चारों ओर समान रोशनी रखें..."')),
-                        );
-                      },
+                      onTap: _toggleVoiceNote,
                       child: Column(
                         children: [
                           Container(
                             width: 54,
                             height: 54,
                             decoration: BoxDecoration(
-                              color: AppColors.surfaceContainerHigh,
+                              color: _isVoiceRecording ? AppColors.primary : AppColors.surfaceContainerHigh,
                               borderRadius: BorderRadius.circular(14),
-                              border: Border.all(color: AppColors.secondary.withOpacity(0.3)),
+                              border: Border.all(color: AppColors.secondary.withValues(alpha: 0.3)),
                             ),
-                            child: const Icon(Icons.volume_up_outlined, color: AppColors.secondary, size: 26),
+                            child: Icon(
+                              _isVoiceRecording ? Icons.graphic_eq : Icons.mic,
+                              color: _isVoiceRecording ? Colors.white : AppColors.primary,
+                              size: 26,
+                            ),
                           ),
                           const SizedBox(height: 4),
-                          const Text('मदद (Help)', style: TextStyle(fontSize: 11, color: AppColors.onSurfaceVariant)),
+                          Text(
+                            ref.tr('voice_add_btn'),
+                            style: const TextStyle(fontSize: 11, color: AppColors.onSurfaceVariant),
+                          ),
                         ],
                       ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
+
+              // 4. Artisan Tip Box (कारीगर सलाह)
+              Container(
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceContainerLow,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.3)),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 32,
+                      height: 32,
+                      decoration: const BoxDecoration(
+                        color: AppColors.secondaryContainer,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.lightbulb_outline, size: 18, color: AppColors.onSecondaryContainer),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            ref.tr('artisan_tip_title'),
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.onSurface),
+                          ),
+                          Text(
+                            ref.tr('artisan_tip_desc'),
+                            style: const TextStyle(fontSize: 11, color: AppColors.onSurfaceVariant),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
         ),

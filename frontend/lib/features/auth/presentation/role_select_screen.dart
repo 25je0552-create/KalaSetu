@@ -14,9 +14,9 @@ class RoleSelectScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppColors.surface,
       appBar: AppBar(
-        title: const Text(
-          'भूमिका चुनें • Select Role',
-          style: TextStyle(fontFamily: 'Literata', fontWeight: FontWeight.bold),
+        title: Text(
+          ref.tr('role_title'),
+          style: const TextStyle(fontFamily: 'Literata', fontWeight: FontWeight.bold),
         ),
         actions: const [
           Padding(
@@ -33,7 +33,7 @@ class RoleSelectScreen extends ConsumerWidget {
             children: [
               const SizedBox(height: 12),
               Text(
-                ref.tr('i_am_artisan'),
+                ref.tr('role_title'),
                 style: const TextStyle(
                   fontFamily: 'Literata',
                   fontSize: 22,
@@ -42,9 +42,9 @@ class RoleSelectScreen extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 6),
-              const Text(
-                'आप ऐप का उपयोग कैसे करना चाहते हैं?',
-                style: TextStyle(fontSize: 15, color: AppColors.onSurfaceVariant),
+              Text(
+                ref.tr('how_to_use'),
+                style: const TextStyle(fontSize: 15, color: AppColors.onSurfaceVariant),
               ),
               const SizedBox(height: 24),
               // Artisan Track Card
@@ -89,9 +89,9 @@ class RoleSelectScreen extends ConsumerWidget {
                                   color: AppColors.secondaryFixed,
                                   borderRadius: BorderRadius.circular(4),
                                 ),
-                                child: const Text(
-                                  'हिंदी-प्रथम • कैमरा व आवाज',
-                                  style: TextStyle(
+                                child: Text(
+                                  ref.tr('i_am_artisan_badge'),
+                                  style: const TextStyle(
                                     fontSize: 11,
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.onSecondaryFixed,
@@ -154,9 +154,9 @@ class RoleSelectScreen extends ConsumerWidget {
                                   color: AppColors.surfaceContainerLowest,
                                   borderRadius: BorderRadius.circular(4),
                                 ),
-                                child: const Text(
-                                  'मार्केटप्लेस • क्राफ्ट क्लस्टर',
-                                  style: TextStyle(
+                                child: Text(
+                                  ref.tr('i_am_customer_badge'),
+                                  style: const TextStyle(
                                     fontSize: 11,
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.tertiary,

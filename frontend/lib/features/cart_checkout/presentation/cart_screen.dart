@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/localization/app_localizations.dart';
 import '../../../core/widgets/clay_widgets.dart';
 import 'cart_controller.dart';
 
@@ -12,11 +13,19 @@ class CartScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final cartItems = ref.watch(cartControllerProvider);
     final total = ref.watch(cartTotalAmountProvider);
+    final locale = ref.watch(localeProvider);
+    final isHindi = locale == AppLocale.hindi;
 
     return Scaffold(
       backgroundColor: AppColors.surface,
       appBar: AppBar(
-        title: const Text('शिल्प कार्ट • Craft Cart', style: TextStyle(fontFamily: 'Literata', fontSize: 18)),
+        title: Text(ref.tr('craft_cart_title'), style: const TextStyle(fontFamily: 'Literata', fontSize: 18)),
+        actions: const [
+          Padding(
+            padding: EdgeInsets.only(right: 16),
+            child: LanguageTogglePill(),
+          ),
+        ],
       ),
       body: cartItems.isEmpty
           ? Center(
@@ -25,14 +34,14 @@ class CartScreen extends ConsumerWidget {
                 children: [
                   const Icon(Icons.shopping_bag_outlined, size: 72, color: AppColors.outline),
                   const SizedBox(height: 12),
-                  const Text('आपकी कार्ट खाली है', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  Text(ref.tr('cart_empty_title'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 6),
-                  const Text('कारीगरों की कलाकृतियों को कार्ट में जोड़ें', style: TextStyle(color: AppColors.onSurfaceVariant)),
+                  Text(ref.tr('cart_empty_subtitle'), style: const TextStyle(color: AppColors.onSurfaceVariant)),
                   const SizedBox(height: 20),
                   SizedBox(
                     width: 200,
                     child: TerracottaButton(
-                      label: 'शिल्प देखें (Shop)',
+                      label: ref.tr('shop_crafts_btn'),
                       onPressed: () => context.go('/customer/home'),
                     ),
                   ),
@@ -51,11 +60,12 @@ class CartScreen extends ConsumerWidget {
                     separatorBuilder: (_, __) => const SizedBox(height: 12),
                     itemBuilder: (context, index) {
                       final item = cartItems[index];
+                      final name = isHindi ? item.product.nameHi : item.product.nameEn;
                       return Container(
                         decoration: BoxDecoration(
                           color: AppColors.surfaceContainer,
                           borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: AppColors.outlineVariant.withOpacity(0.4)),
+                          border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.4)),
                         ),
                         padding: const EdgeInsets.all(12),
                         child: Row(
@@ -74,7 +84,7 @@ class CartScreen extends ConsumerWidget {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(item.product.nameHi, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                                  Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                                   Text('₹${item.product.price.toInt()}', style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
                                 ],
                               ),
@@ -110,23 +120,23 @@ class CartScreen extends ConsumerWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text('शिल्प मूल्य (Items total):'),
+                            Text('${ref.tr("subtotal_label")}:'),
                             Text('₹${total.toInt()}', style: const TextStyle(fontWeight: FontWeight.bold)),
                           ],
                         ),
                         const SizedBox(height: 6),
-                        const Row(
+                        Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text('डिलीवरी (Rural cluster dispatch):'),
-                            Text('निःशुल्क (FREE)', style: TextStyle(color: AppColors.success, fontWeight: FontWeight.bold)),
+                            Text('${ref.tr("delivery_label")}:'),
+                            Text(ref.tr('free_label'), style: const TextStyle(color: AppColors.success, fontWeight: FontWeight.bold)),
                           ],
                         ),
                         const Divider(height: 20),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text('कुल राशि (Total):', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                            Text('${ref.tr("total_label")}:', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                             Text('₹${total.toInt()}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: AppColors.primary)),
                           ],
                         ),
@@ -135,7 +145,7 @@ class CartScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 24),
                   TerracottaButton(
-                    label: 'ऑर्डर करें • Place Order (₹${total.toInt()})',
+                    label: '${ref.tr("checkout_btn")} (₹${total.toInt()})',
                     icon: Icons.lock_outline,
                     onPressed: () {
                       ref.read(cartControllerProvider.notifier).clear();
@@ -143,15 +153,17 @@ class CartScreen extends ConsumerWidget {
                         context: context,
                         builder: (_) => AlertDialog(
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-                          title: const Text('ऑर्डर सफल! (Order Placed)'),
-                          content: const Text('कारीगर को सूचना भेज दी गई है। आपका हस्तशिल्प सुरक्षित पैकेजिंग में भेजा जाएगा।'),
+                          title: Text(isHindi ? 'ऑर्डर सफल!' : 'Order Placed!'),
+                          content: Text(isHindi
+                              ? 'कारीगर को सूचना भेज दी गई है। आपका हस्तशिल्प सुरक्षित पैकेजिंग में भेजा जाएगा।'
+                              : 'Artisan has been notified. Your authentic handcrafted art will be dispatched securely.'),
                           actions: [
                             TextButton(
                               onPressed: () {
                                 Navigator.pop(context);
                                 context.go('/customer/home');
                               },
-                              child: const Text('ठीक है'),
+                              child: Text(isHindi ? 'ठीक है' : 'OK'),
                             ),
                           ],
                         ),

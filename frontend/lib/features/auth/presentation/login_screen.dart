@@ -29,7 +29,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Future<void> _handleSendOtp() async {
     final phone = _phoneController.text.trim();
     if (phone.length < 10) {
-      setState(() => _errorMessage = 'कृपया 10 अंकों का मान्य मोबाइल नंबर दर्ज करें');
+      setState(() => _errorMessage = ref.tr('phone_error'));
       return;
     }
 
@@ -45,7 +45,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         context.push('/otp-verify', extra: '+91$phone');
       }
     } catch (e) {
-      setState(() => _errorMessage = 'ओटीपी भेजने में त्रुटि: $e');
+      final isHindi = ref.read(localeProvider) == AppLocale.hindi;
+      setState(() => _errorMessage = isHindi ? 'ओटीपी भेजने में त्रुटि: $e' : 'Error sending OTP: $e');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -75,7 +76,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         context.go('/role-select');
       }
     } catch (e) {
-      setState(() => _errorMessage = 'Google साइन-इन त्रुटि: $e');
+      final isHindi = ref.read(localeProvider) == AppLocale.hindi;
+      setState(() => _errorMessage = isHindi ? 'Google साइन-इन त्रुटि: $e' : 'Google sign-in error: $e');
     } finally {
       if (mounted) setState(() => _isGoogleLoading = false);
     }
@@ -83,9 +85,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final currentLocale = ref.watch(localeProvider);
+    final isHindi = currentLocale == AppLocale.hindi;
+
     return Scaffold(
       backgroundColor: AppColors.surface,
       appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         actions: const [
           Padding(
             padding: EdgeInsets.only(right: 16),
@@ -95,26 +102,144 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Logo & App Name
               Center(
-                child: Container(
-                  width: 72,
-                  height: 72,
-                  decoration: BoxDecoration(
-                    color: AppColors.surfaceContainer,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.outlineVariant),
-                  ),
-                  padding: const EdgeInsets.all(6),
-                  child: ClipOval(
-                    child: Image.asset(AppConstants.logoPath, fit: BoxFit.cover),
-                  ),
+                child: Column(
+                  children: [
+                    Container(
+                      width: 76,
+                      height: 76,
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceContainer,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: AppColors.outlineVariant, width: 1.5),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color(0x149D3E14),
+                            blurRadius: 12,
+                            offset: Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      padding: const EdgeInsets.all(6),
+                      child: ClipOval(
+                        child: Image.asset(AppConstants.logoPath, fit: BoxFit.cover),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      ref.tr('app_name'),
+                      style: const TextStyle(
+                        fontFamily: 'Literata',
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                    Text(
+                      ref.tr('tagline'),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 18),
+
+              // Prominent Language Selection Bar directly on the first login screen
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceContainerLow,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: AppColors.outlineVariant.withOpacity(0.5)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.language, size: 20, color: AppColors.primary),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        ref.tr('select_language'),
+                        style: const TextStyle(
+                          fontFamily: 'Be Vietnam Pro',
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.onSurface,
+                        ),
+                      ),
+                    ),
+                    // Language Switcher Buttons
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            ref.read(localeProvider.notifier).setLocale(AppLocale.hindi);
+                          },
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: isHindi ? AppColors.primary : AppColors.surfaceContainerHigh,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: isHindi ? AppColors.primary : AppColors.outlineVariant.withOpacity(0.4),
+                              ),
+                            ),
+                            child: Text(
+                              'हिन्दी',
+                              style: TextStyle(
+                                fontFamily: 'Be Vietnam Pro',
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: isHindi ? Colors.white : AppColors.onSurfaceVariant,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        GestureDetector(
+                          onTap: () {
+                            ref.read(localeProvider.notifier).setLocale(AppLocale.english);
+                          },
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: !isHindi ? AppColors.primary : AppColors.surfaceContainerHigh,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: !isHindi ? AppColors.primary : AppColors.outlineVariant.withOpacity(0.4),
+                              ),
+                            ),
+                            child: Text(
+                              'English',
+                              style: TextStyle(
+                                fontFamily: 'Be Vietnam Pro',
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: !isHindi ? Colors.white : AppColors.onSurfaceVariant,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Title and Subtitle
               Text(
                 ref.tr('login'),
                 style: const TextStyle(
@@ -125,14 +250,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
               ),
               const SizedBox(height: 6),
-              const Text(
-                'अपने पंजीकृत मोबाइल नंबर से प्रवेश करें',
-                style: TextStyle(
+              Text(
+                ref.tr('login_subtitle'),
+                style: const TextStyle(
                   fontSize: 14,
                   color: AppColors.onSurfaceVariant,
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 22),
+
               // Phone Input Field
               Container(
                 decoration: BoxDecoration(
@@ -161,11 +287,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         keyboardType: TextInputType.phone,
                         maxLength: 10,
                         style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                        decoration: const InputDecoration(
-                          hintText: '98765 43210',
+                        decoration: InputDecoration(
+                          hintText: ref.tr('phone_placeholder'),
                           counterText: '',
                           border: InputBorder.none,
-                          hintStyle: TextStyle(color: AppColors.outline),
+                          hintStyle: const TextStyle(color: AppColors.outline),
                         ),
                       ),
                     ),
@@ -180,6 +306,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
               ],
               const SizedBox(height: 20),
+
               // Send OTP Primary Button
               TerracottaButton(
                 label: ref.tr('send_otp'),
@@ -188,6 +315,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 onPressed: _handleSendOtp,
               ),
               const SizedBox(height: 24),
+
               // Divider "or"
               Row(
                 children: [
@@ -195,8 +323,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Text(
-                      'या / OR',
-                      style: TextStyle(
+                      ref.tr('or_divider'),
+                      style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
                         color: AppColors.outline,
@@ -207,8 +335,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ],
               ),
               const SizedBox(height: 24),
+
               // Official Google Branded Sign-In Button
-              // Conforming strictly to Google Button Branding Guidelines: White background, official G icon, grey border
               SizedBox(
                 height: 54,
                 width: double.infinity,
@@ -239,9 +367,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               errorBuilder: (_, __, ___) => const Icon(Icons.g_mobiledata, size: 28, color: Colors.blue),
                             ),
                             const SizedBox(width: 12),
-                            const Text(
-                              'Sign in with Google',
-                              style: TextStyle(
+                            Text(
+                              ref.tr('continue_google'),
+                              style: const TextStyle(
                                 fontFamily: 'Roboto',
                                 fontSize: 15,
                                 fontWeight: FontWeight.w600,
@@ -253,18 +381,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
               ),
               const SizedBox(height: 32),
+
               // Create account link
               Center(
                 child: TextButton(
                   onPressed: () => context.push('/signup'),
-                  child: const Text.rich(
+                  child: Text.rich(
                     TextSpan(
-                      text: 'नया खाता बनाना है? ',
-                      style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 14),
+                      text: ref.tr('need_account'),
+                      style: const TextStyle(color: AppColors.onSurfaceVariant, fontSize: 14),
                       children: [
                         TextSpan(
-                          text: 'खाता बनाएं (Sign Up)',
-                          style: TextStyle(
+                          text: ref.tr('signup_link'),
+                          style: const TextStyle(
                             color: AppColors.primary,
                             fontWeight: FontWeight.bold,
                           ),

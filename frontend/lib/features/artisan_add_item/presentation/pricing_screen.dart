@@ -14,9 +14,9 @@ class PricingScreen extends ConsumerStatefulWidget {
 }
 
 class _PricingScreenState extends ConsumerState<PricingScreen> {
-  double _rawMaterial = 1800;
-  double _laborHours = 14;
-  double _hourlyRate = 120;
+  final double _rawMaterial = 1800;
+  final double _laborHours = 14;
+  final double _hourlyRate = 120;
   int _stock = 1;
   bool _isPublishing = false;
 
@@ -49,19 +49,20 @@ class _PricingScreenState extends ConsumerState<PricingScreen> {
                 child: const Icon(Icons.check_circle_outline, size: 36, color: AppColors.onSecondaryContainer),
               ),
               const SizedBox(height: 16),
-              const Text(
-                'उत्पाद सफलतापूर्वक प्रकाशित!',
-                style: TextStyle(fontFamily: 'Literata', fontSize: 18, fontWeight: FontWeight.bold),
+              Text(
+                ref.tr('publish_success_title'),
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontFamily: 'Literata', fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 6),
-              const Text(
-                'आपकी वस्तु अब दुकान और देश भर के खरीदारों को दिखाई दे रही है।',
+              Text(
+                ref.tr('publish_success_desc'),
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 13, color: AppColors.onSurfaceVariant),
+                style: const TextStyle(fontSize: 13, color: AppColors.onSurfaceVariant),
               ),
               const SizedBox(height: 20),
               TerracottaButton(
-                label: 'दुकान में देखें (Back to Home)',
+                label: ref.tr('back_to_home_btn'),
                 onPressed: () {
                   ref.read(addItemWizardProvider.notifier).reset();
                   Navigator.pop(context);
@@ -80,9 +81,9 @@ class _PricingScreenState extends ConsumerState<PricingScreen> {
     return Scaffold(
       backgroundColor: AppColors.surface,
       appBar: AppBar(
-        title: const Text(
-          'मूल्य निर्धारण • Pricing',
-          style: TextStyle(fontFamily: 'Literata', fontWeight: FontWeight.bold, fontSize: 18),
+        title: Text(
+          ref.tr('pricing_title'),
+          style: const TextStyle(fontFamily: 'Literata', fontWeight: FontWeight.bold, fontSize: 18),
         ),
         actions: const [
           Padding(
@@ -103,16 +104,16 @@ class _PricingScreenState extends ConsumerState<PricingScreen> {
                 decoration: BoxDecoration(
                   color: AppColors.surfaceContainerLow,
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: AppColors.outlineVariant.withOpacity(0.4)),
+                  border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.4)),
                 ),
-                child: const Row(
+                child: Row(
                   children: [
-                    Icon(Icons.shield_outlined, color: AppColors.primary, size: 24),
-                    SizedBox(width: 10),
+                    const Icon(Icons.shield_outlined, color: AppColors.primary, size: 24),
+                    const SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        'कारीगर न्यायसंगत मूल्य गारंटी: आपकी मेहनत और सामग्री की उचित कीमत सुरक्षित की जाती है। कलासेतु कोई छुपा कमीशन नहीं लेता।',
-                        style: TextStyle(fontSize: 12, height: 1.4, color: AppColors.onSurface),
+                        ref.tr('fair_price_guarantee'),
+                        style: const TextStyle(fontSize: 12, height: 1.4, color: AppColors.onSurface),
                       ),
                     ),
                   ],
@@ -121,9 +122,9 @@ class _PricingScreenState extends ConsumerState<PricingScreen> {
               const SizedBox(height: 24),
 
               // Cost Breakdown Calculator
-              const Text(
-                'लागत और समय (Cost Breakdown)',
-                style: TextStyle(fontFamily: 'Literata', fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.onSurface),
+              Text(
+                ref.tr('cost_breakdown_title'),
+                style: const TextStyle(fontFamily: 'Literata', fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.onSurface),
               ),
               const SizedBox(height: 12),
 
@@ -131,7 +132,7 @@ class _PricingScreenState extends ConsumerState<PricingScreen> {
                 decoration: BoxDecoration(
                   color: AppColors.surfaceContainer,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.outlineVariant.withOpacity(0.4)),
+                  border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.4)),
                 ),
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -139,7 +140,7 @@ class _PricingScreenState extends ConsumerState<PricingScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('कच्चा माल (सिल्क, रंग, धागा):', style: TextStyle(fontSize: 14)),
+                        Text(ref.tr('raw_material_label'), style: const TextStyle(fontSize: 14)),
                         Text('₹${_rawMaterial.toInt()}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
                       ],
                     ),
@@ -147,25 +148,25 @@ class _PricingScreenState extends ConsumerState<PricingScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('बुनने का समय ($_laborHours घंटे x ₹$_hourlyRate):', style: const TextStyle(fontSize: 14)),
+                        Text('${ref.tr("labor_time_label")} (${_laborHours.toInt()}h x ₹${_hourlyRate.toInt()}):', style: const TextStyle(fontSize: 14)),
                         Text('₹${_laborCost.toInt()}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
                       ],
                     ),
                     const Divider(height: 20, color: AppColors.outlineVariant),
-                    const Row(
+                    Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('कारीगर लाभ मार्जिन (25% न्यूनतम):', style: TextStyle(fontSize: 14, color: AppColors.secondary)),
-                        Text('+ २५% गारंटी', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.secondary, fontSize: 13)),
+                        Text(ref.tr('artisan_margin_label'), style: const TextStyle(fontSize: 14, color: AppColors.secondary)),
+                        Text(ref.tr('margin_guarantee_badge'), style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.secondary, fontSize: 13)),
                       ],
                     ),
                     const Divider(height: 24, thickness: 1.5, color: AppColors.outlineVariant),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
-                          'सुझाया गया विक्रय मूल्य:',
-                          style: TextStyle(fontFamily: 'Literata', fontSize: 16, fontWeight: FontWeight.bold),
+                        Text(
+                          ref.tr('suggested_price_label'),
+                          style: const TextStyle(fontFamily: 'Literata', fontSize: 16, fontWeight: FontWeight.bold),
                         ),
                         Text(
                           '₹${_suggestedListingPrice.toInt()}',
@@ -187,12 +188,12 @@ class _PricingScreenState extends ConsumerState<PricingScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('उपलब्ध संख्या (Stock Quantity):', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                  Text(ref.tr('stock_quantity_label'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                   Container(
                     decoration: BoxDecoration(
                       color: AppColors.surfaceContainerHigh,
                       borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: AppColors.outlineVariant.withOpacity(0.5)),
+                      border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.5)),
                     ),
                     child: Row(
                       children: [
@@ -215,7 +216,7 @@ class _PricingScreenState extends ConsumerState<PricingScreen> {
               const SizedBox(height: 36),
 
               TerracottaButton(
-                label: 'दुकान में प्रकाशित करें • Publish Item',
+                label: ref.tr('publish_item_btn'),
                 icon: Icons.storefront,
                 isLoading: _isPublishing,
                 onPressed: _handlePublish,

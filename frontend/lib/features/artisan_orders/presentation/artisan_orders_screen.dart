@@ -11,13 +11,15 @@ class ArtisanOrdersScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final ordersAsync = ref.watch(artisanOrdersProvider);
+    final locale = ref.watch(localeProvider);
+    final isHindi = locale == AppLocale.hindi;
 
     return Scaffold(
       backgroundColor: AppColors.surface,
       appBar: AppBar(
-        title: const Text(
-          'ऑर्डर व ग्राहक • Orders',
-          style: TextStyle(fontFamily: 'Literata', fontWeight: FontWeight.bold, fontSize: 19),
+        title: Text(
+          ref.tr('orders_title'),
+          style: const TextStyle(fontFamily: 'Literata', fontWeight: FontWeight.bold, fontSize: 19),
         ),
         actions: const [
           Padding(
@@ -28,7 +30,7 @@ class ArtisanOrdersScreen extends ConsumerWidget {
       ),
       body: ordersAsync.when(
         loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
-        error: (err, _) => Center(child: Text('त्रुटि: $err')),
+        error: (err, _) => Center(child: Text('त्रुटि / Error: $err')),
         data: (orders) {
           if (orders.isEmpty) {
             return Center(
@@ -37,9 +39,9 @@ class ArtisanOrdersScreen extends ConsumerWidget {
                 children: [
                   const Icon(Icons.receipt_long_outlined, size: 64, color: AppColors.outline),
                   const SizedBox(height: 12),
-                  const Text('कोई नया ऑर्डर नहीं है', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  Text(ref.tr('no_orders'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                   const SizedBox(height: 4),
-                  const Text('नए ऑर्डर आने पर आपको तुरंत सूचना मिलेगी', style: TextStyle(color: AppColors.onSurfaceVariant)),
+                  Text(ref.tr('no_orders_desc'), style: const TextStyle(color: AppColors.onSurfaceVariant)),
                 ],
               ),
             );
@@ -75,7 +77,7 @@ class ArtisanOrdersScreen extends ConsumerWidget {
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
-                            ord.statusLabelHi,
+                            isHindi ? ord.statusLabelHi : ord.statusLabelEn,
                             style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.bold,
@@ -113,11 +115,11 @@ class ArtisanOrdersScreen extends ConsumerWidget {
                                 style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                               ),
                               Text(
-                                'ग्राहक: ${ord.customerName} (${ord.city})',
+                                '${ref.tr("customer_label")}: ${ord.customerName} (${ord.city})',
                                 style: const TextStyle(fontSize: 12, color: AppColors.onSurfaceVariant),
                               ),
                               Text(
-                                'मात्रा: ${ord.quantity} | कुल: ₹${ord.totalAmount.toInt()}',
+                                '${ref.tr("quantity_label")}: ${ord.quantity} | ${ref.tr("total_label")}: ₹${ord.totalAmount.toInt()}',
                                 style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.primary),
                               ),
                             ],

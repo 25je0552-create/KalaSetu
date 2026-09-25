@@ -24,7 +24,7 @@ dependencies:
   camera: ^0.10.5+9
   image_picker: ^1.1.0
   permission_handler: ^11.3.1
-  record: ^5.1.0
+  record: ^7.1.1
 
   # Network & UI
   cached_network_image: ^3.3.1

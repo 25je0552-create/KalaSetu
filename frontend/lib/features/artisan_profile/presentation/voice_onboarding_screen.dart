@@ -14,6 +14,7 @@ class VoiceOnboardingScreen extends ConsumerStatefulWidget {
 
 class _VoiceOnboardingScreenState extends ConsumerState<VoiceOnboardingScreen> with SingleTickerProviderStateMixin {
   bool _isListening = false;
+  bool _isRecorded = false;
   late AnimationController _animController;
 
   @override
@@ -21,7 +22,7 @@ class _VoiceOnboardingScreenState extends ConsumerState<VoiceOnboardingScreen> w
     super.initState();
     _animController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1500),
+      duration: const Duration(milliseconds: 1400),
     )..repeat(reverse: true);
   }
 
@@ -32,30 +33,75 @@ class _VoiceOnboardingScreenState extends ConsumerState<VoiceOnboardingScreen> w
   }
 
   void _startListening() {
-    setState(() => _isListening = true);
+    setState(() {
+      _isListening = true;
+      _isRecorded = false;
+    });
   }
 
   void _stopListening() {
-    setState(() => _isListening = false);
+    setState(() {
+      _isListening = false;
+      _isRecorded = true;
+    });
+    final isHindi = ref.read(localeProvider) == AppLocale.hindi;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('स्वर परिचय दर्ज हुआ! "रमेश प्रजापति, गोरखपुर, माटी शिल्पी"'),
-        duration: Duration(seconds: 2),
+      SnackBar(
+        content: Text(
+          isHindi
+              ? 'आवाज़ दर्ज की गई! "रमेश प्रजापति, गोरखपुर, माटी शिल्पी"'
+              : 'Voice recorded! "Ramesh Prajapati, Gorakhpur, Terracotta Artisan"',
+        ),
+        duration: const Duration(seconds: 3),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final currentLocale = ref.watch(localeProvider);
+    final isHindi = currentLocale == AppLocale.hindi;
+
     return Scaffold(
       backgroundColor: AppColors.surface,
-      appBar: AppBar(
-        actions: const [
-          Padding(
-            padding: EdgeInsets.only(right: 16),
-            child: LanguageTogglePill(),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(60),
+        child: Container(
+          decoration: BoxDecoration(
+            color: AppColors.surfaceContainer.withValues(alpha: 0.9),
+            border: Border(bottom: BorderSide(color: AppColors.outlineVariant.withValues(alpha: 0.4), width: 0.8)),
           ),
-        ],
+          child: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back, color: AppColors.onSurface),
+                    onPressed: () {
+                      if (context.canPop()) {
+                        context.pop();
+                      } else {
+                        context.go('/artisan/home');
+                      }
+                    },
+                  ),
+                  Text(
+                    ref.tr('voice_onboarding_badge'),
+                    style: const TextStyle(
+                      fontFamily: 'Literata',
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                  const Spacer(),
+                  const LanguageTogglePill(),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -69,23 +115,23 @@ class _VoiceOnboardingScreenState extends ConsumerState<VoiceOnboardingScreen> w
                   color: AppColors.secondaryFixed,
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.record_voice_over, size: 16, color: AppColors.onSecondaryFixed),
-                    SizedBox(width: 6),
+                    const Icon(Icons.record_voice_over, size: 16, color: AppColors.onSecondaryFixed),
+                    const SizedBox(width: 6),
                     Text(
-                      'स्वर परिचय • Voice Onboarding',
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.onSecondaryFixed),
+                      ref.tr('voice_onboarding_badge'),
+                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.onSecondaryFixed),
                     ),
                   ],
                 ),
               ),
               const SizedBox(height: 16),
-              const Text(
-                'मुझे अपने बारे में बताएं',
+              Text(
+                ref.tr('voice_onboarding_title'),
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: const TextStyle(
                   fontFamily: 'Literata',
                   fontSize: 26,
                   fontWeight: FontWeight.bold,
@@ -93,10 +139,10 @@ class _VoiceOnboardingScreenState extends ConsumerState<VoiceOnboardingScreen> w
                 ),
               ),
               const SizedBox(height: 8),
-              const Text(
-                'आपका नाम, आपका शिल्प, और आपका गाँव',
+              Text(
+                ref.tr('voice_onboarding_subtitle'),
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 15, color: AppColors.onSurfaceVariant),
+                style: const TextStyle(fontSize: 15, color: AppColors.onSurfaceVariant),
               ),
               const SizedBox(height: 48),
 
@@ -116,7 +162,7 @@ class _VoiceOnboardingScreenState extends ConsumerState<VoiceOnboardingScreen> w
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: AppColors.secondaryContainer.withOpacity(_isListening ? 0.6 : 0.2),
+                              color: AppColors.secondaryContainer.withValues(alpha: _isListening ? 0.6 : 0.2),
                               width: 2,
                             ),
                           ),
@@ -134,7 +180,7 @@ class _VoiceOnboardingScreenState extends ConsumerState<VoiceOnboardingScreen> w
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: AppColors.secondary.withOpacity(_isListening ? 0.7 : 0.3),
+                              color: AppColors.secondary.withValues(alpha: _isListening ? 0.7 : 0.3),
                               width: 1.5,
                             ),
                           ),
@@ -160,13 +206,15 @@ class _VoiceOnboardingScreenState extends ConsumerState<VoiceOnboardingScreen> w
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(
-                              _isListening ? Icons.graphic_eq : Icons.mic,
-                              size: 44,
+                              _isListening
+                                  ? Icons.graphic_eq
+                                  : (_isRecorded ? Icons.check_circle : Icons.mic),
+                              size: 42,
                               color: Colors.white,
                             ),
-                            const Text(
-                              'बोलें',
-                              style: TextStyle(
+                            Text(
+                              ref.tr('speak_action').toUpperCase(),
+                              style: const TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white,
@@ -202,16 +250,18 @@ class _VoiceOnboardingScreenState extends ConsumerState<VoiceOnboardingScreen> w
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      _isListening ? 'सुन रहे हैं... (Listening...)' : 'दबाकर बोलें (Hold to Speak)',
+                      _isListening
+                          ? (isHindi ? 'सुन रहे हैं... (Listening...)' : 'Listening...')
+                          : (_isRecorded ? ref.tr('voice_recorded') : ref.tr('hold_to_speak')),
                       style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                     ),
                   ],
                 ),
               ),
               const SizedBox(height: 8),
-              const Text(
-                'माइक्रोफ़ोन को दबाए रखें और बोलना शुरू करें',
-                style: TextStyle(fontSize: 12, color: AppColors.tertiary),
+              Text(
+                _isListening ? ref.tr('release_hint') : ref.tr('hold_hint'),
+                style: const TextStyle(fontSize: 12, color: AppColors.tertiary),
               ),
               const SizedBox(height: 36),
 
@@ -220,24 +270,24 @@ class _VoiceOnboardingScreenState extends ConsumerState<VoiceOnboardingScreen> w
                 decoration: BoxDecoration(
                   color: AppColors.surfaceContainerHigh,
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: AppColors.outlineVariant.withOpacity(0.3)),
+                  border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.3)),
                 ),
                 padding: const EdgeInsets.all(12),
-                child: const Row(
+                child: Row(
                   children: [
-                    Icon(Icons.hearing, color: AppColors.secondary, size: 28),
-                    SizedBox(width: 12),
+                    const Icon(Icons.hearing, color: AppColors.secondary, size: 28),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'कारीगर सहायता • खुल कर बोलें',
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                            ref.tr('artisan_help_title'),
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                           ),
                           Text(
-                            'अपनी भाषा व क्षेत्रीय बोली में बेझिझक बोलें',
-                            style: TextStyle(fontSize: 11, color: AppColors.onSurfaceVariant),
+                            ref.tr('artisan_help_desc'),
+                            style: const TextStyle(fontSize: 11, color: AppColors.onSurfaceVariant),
                           ),
                         ],
                       ),
@@ -251,24 +301,28 @@ class _VoiceOnboardingScreenState extends ConsumerState<VoiceOnboardingScreen> w
               TextButton(
                 onPressed: () {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('मैन्युअल फ़ॉर्म खोला जा रहा है...')),
+                    SnackBar(
+                      content: Text(
+                        isHindi ? 'साधारण फ़ॉर्म खोला जा रहा है...' : 'Opening standard form...',
+                      ),
+                    ),
                   );
                 },
-                child: const Column(
+                child: Column(
                   children: [
                     Text(
-                      'लिखकर भरना चाहते हैं? (Type instead)',
-                      style: TextStyle(
+                      ref.tr('prefer_typing'),
+                      style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.bold,
                         color: AppColors.tertiary,
                         decoration: TextDecoration.underline,
                       ),
                     ),
-                    SizedBox(height: 2),
+                    const SizedBox(height: 2),
                     Text(
-                      'साधारण फ़ॉर्म भरें',
-                      style: TextStyle(fontSize: 11, color: AppColors.outline),
+                      ref.tr('fill_standard_form'),
+                      style: const TextStyle(fontSize: 11, color: AppColors.outline),
                     ),
                   ],
                 ),

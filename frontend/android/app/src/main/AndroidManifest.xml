@@ -1,5 +1,4 @@
-﻿<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.kalasetu.app">
+﻿<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <!-- Camera and Media Permissions for Artisan Add Item Flow -->
     <uses-permission android:name="android.permission.CAMERA" />

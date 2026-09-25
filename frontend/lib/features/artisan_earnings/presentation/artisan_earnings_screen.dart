@@ -9,12 +9,15 @@ class ArtisanEarningsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final locale = ref.watch(localeProvider);
+    final isHindi = locale == AppLocale.hindi;
+
     return Scaffold(
       backgroundColor: AppColors.surface,
       appBar: AppBar(
-        title: const Text(
-          'कमाई व भुगतान • Earnings',
-          style: TextStyle(fontFamily: 'Literata', fontWeight: FontWeight.bold, fontSize: 19),
+        title: Text(
+          ref.tr('earnings_title'),
+          style: const TextStyle(fontFamily: 'Literata', fontWeight: FontWeight.bold, fontSize: 19),
         ),
         actions: const [
           Padding(
@@ -41,14 +44,14 @@ class ArtisanEarningsScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'कुल प्राप्य राशि (Available Balance)',
-                    style: TextStyle(fontSize: 13, color: AppColors.primaryFixed),
+                  Text(
+                    ref.tr('available_balance'),
+                    style: const TextStyle(fontSize: 13, color: AppColors.primaryFixed),
                   ),
                   const SizedBox(height: 6),
-                  const Text(
-                    '₹८,७२०',
-                    style: TextStyle(
+                  Text(
+                    isHindi ? '₹८,७२०' : '₹8,720',
+                    style: const TextStyle(
                       fontFamily: 'Be Vietnam Pro',
                       fontSize: 32,
                       fontWeight: FontWeight.bold,
@@ -59,9 +62,9 @@ class ArtisanEarningsScreen extends ConsumerWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
-                        'बैंक खाता: SBI •••• 4892',
-                        style: TextStyle(fontSize: 12, color: AppColors.primaryFixedDim),
+                      Text(
+                        ref.tr('bank_account'),
+                        style: const TextStyle(fontSize: 12, color: AppColors.primaryFixedDim),
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -69,9 +72,9 @@ class ArtisanEarningsScreen extends ConsumerWidget {
                           color: AppColors.surfaceContainerLowest,
                           borderRadius: BorderRadius.circular(14),
                         ),
-                        child: const Text(
-                          'प्रत्येक बुधवार भुगतान',
-                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.primary),
+                        child: Text(
+                          ref.tr('wednesday_payout'),
+                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.primary),
                         ),
                       ),
                     ],
@@ -81,18 +84,43 @@ class ArtisanEarningsScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 24),
 
-            const Text(
-              'साप्ताहिक कमाई का इतिहास (Weekly History)',
-              style: TextStyle(fontFamily: 'Literata', fontSize: 16, fontWeight: FontWeight.bold),
+            Text(
+              ref.tr('weekly_history'),
+              style: const TextStyle(fontFamily: 'Literata', fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
 
             // Weekly history cards
-            _buildWeekRow('सप्ताह ८ (वर्तमान)', '₹६,४५०', '९ ऑर्डर', true),
-            _buildWeekRow('सप्ताह ७', '₹६,८५०', '११ ऑर्डर', false),
-            _buildWeekRow('सप्ताह ६', '₹५,६००', '८ ऑर्डर', false),
-            _buildWeekRow('सप्ताह ५', '₹३,९००', '५ ऑर्डर', false),
-            _buildWeekRow('सप्ताह ४', '₹६,४००', '९ ऑर्डर', false),
+            _buildWeekRow(
+              ref.tr('week_current'),
+              isHindi ? '₹६,४५०' : '₹6,450',
+              '${isHindi ? "९" : "9"} ${ref.tr("orders_count_label")}',
+              true,
+            ),
+            _buildWeekRow(
+              '${ref.tr("week_prev")} ${isHindi ? "७" : "7"}',
+              isHindi ? '₹६,८५०' : '₹6,850',
+              '${isHindi ? "११" : "11"} ${ref.tr("orders_count_label")}',
+              false,
+            ),
+            _buildWeekRow(
+              '${ref.tr("week_prev")} ${isHindi ? "६" : "6"}',
+              isHindi ? '₹५,६००' : '₹5,600',
+              '${isHindi ? "८" : "8"} ${ref.tr("orders_count_label")}',
+              false,
+            ),
+            _buildWeekRow(
+              '${ref.tr("week_prev")} ${isHindi ? "५" : "5"}',
+              isHindi ? '₹३,९००' : '₹3,900',
+              '${isHindi ? "५" : "5"} ${ref.tr("orders_count_label")}',
+              false,
+            ),
+            _buildWeekRow(
+              '${ref.tr("week_prev")} ${isHindi ? "४" : "4"}',
+              isHindi ? '₹६,४००' : '₹6,400',
+              '${isHindi ? "९" : "9"} ${ref.tr("orders_count_label")}',
+              false,
+            ),
           ],
         ),
       ),

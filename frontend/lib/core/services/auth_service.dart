@@ -48,22 +48,24 @@ class AuthService {
 
   /// Send Phone OTP via Supabase
   Future<void> sendOtp(String phoneNumber) async {
-    if (_client == null) {
+    final client = _client;
+    if (client == null) {
       debugPrint('[AuthService] Supabase client not initialized (running on mock auth)');
       return;
     }
-    await _client!.auth.signInWithOtp(
+    await client.auth.signInWithOtp(
       phone: phoneNumber,
     );
   }
 
   /// Verify 6-digit OTP
   Future<AuthResponse?> verifyOtp(String phoneNumber, String token) async {
-    if (_client == null) {
+    final client = _client;
+    if (client == null) {
       debugPrint('[AuthService] Mock OTP verified for $phoneNumber');
       return null;
     }
-    return await _client!.auth.verifyOTP(
+    return await client.auth.verifyOTP(
       phone: phoneNumber,
       token: token,
       type: OtpType.sms,
@@ -84,7 +86,8 @@ class AuthService {
   ///    - Enable Google provider under Authentication -> Providers.
   ///    - Add Google Client ID and Secret from Google Cloud Console.
   Future<void> signInWithGoogle() async {
-    if (_client == null) {
+    final client = _client;
+    if (client == null) {
       debugPrint('[AuthService] Mock Google Sign In executed');
       return;
     }
@@ -104,20 +107,21 @@ class AuthService {
         throw 'Missing Google ID Token';
       }
 
-      await _client!.auth.signInWithIdToken(
+      await client.auth.signInWithIdToken(
         provider: OAuthProvider.google,
         idToken: googleAuth!.idToken!,
         accessToken: googleAuth.accessToken,
       );
     } catch (e) {
       debugPrint('[AuthService] Supabase OAuth sign-in fallback: $e');
-      await _client!.auth.signInWithOAuth(OAuthProvider.google);
+      await client.auth.signInWithOAuth(OAuthProvider.google);
     }
   }
 
   Future<void> signOut() async {
-    if (_client != null) {
-      await _client!.auth.signOut();
+    final client = _client;
+    if (client != null) {
+      await client.auth.signOut();
     }
   }
 }

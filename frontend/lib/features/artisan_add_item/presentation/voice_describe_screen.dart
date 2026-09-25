@@ -16,9 +16,9 @@ class VoiceDescribeScreen extends ConsumerStatefulWidget {
 
 class _VoiceDescribeScreenState extends ConsumerState<VoiceDescribeScreen> with SingleTickerProviderStateMixin {
   late AudioRecorder _audioRecorder;
-  bool _isRecording = false;
   bool _isPaused = false;
-  int _seconds = 24;
+  bool _isDone = false;
+  final int _seconds = 24;
   late AnimationController _waveAnim;
 
   @override
@@ -36,10 +36,16 @@ class _VoiceDescribeScreenState extends ConsumerState<VoiceDescribeScreen> with 
     try {
       if (await _audioRecorder.hasPermission()) {
         await _audioRecorder.start(const RecordConfig(), path: '');
-        setState(() => _isRecording = true);
+        setState(() {
+          _isPaused = false;
+          _isDone = false;
+        });
       }
     } catch (_) {
-      setState(() => _isRecording = true);
+      setState(() {
+        _isPaused = false;
+        _isDone = false;
+      });
     }
   }
 
@@ -54,8 +60,10 @@ class _VoiceDescribeScreenState extends ConsumerState<VoiceDescribeScreen> with 
   }
 
   Future<void> _finishRecording() async {
+    setState(() => _isDone = true);
     final path = await _audioRecorder.stop();
     ref.read(addItemWizardProvider.notifier).setAudio(path ?? 'audio_sample.m4a');
+    await Future.delayed(const Duration(milliseconds: 600));
     if (mounted) {
       context.push('/artisan/add-item/ai-review');
     }
@@ -70,21 +78,56 @@ class _VoiceDescribeScreenState extends ConsumerState<VoiceDescribeScreen> with 
 
   @override
   Widget build(BuildContext context) {
-    final wizardState = ref.watch(addItemWizardProvider);
+    ref.watch(localeProvider);
 
     return Scaffold(
       backgroundColor: AppColors.surface,
-      appBar: AppBar(
-        title: const Text(
-          'बोलकर जोड़ें • Voice Add',
-          style: TextStyle(fontFamily: 'Literata', fontWeight: FontWeight.bold, fontSize: 18),
-        ),
-        actions: const [
-          Padding(
-            padding: EdgeInsets.only(right: 16),
-            child: LanguageTogglePill(),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(60),
+        child: Container(
+          decoration: BoxDecoration(
+            color: AppColors.surfaceContainer.withValues(alpha: 0.9),
+            border: Border(bottom: BorderSide(color: AppColors.outlineVariant.withValues(alpha: 0.4), width: 0.8)),
           ),
-        ],
+          child: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back, color: AppColors.onSurface),
+                    onPressed: () => context.pop(),
+                  ),
+                  Text(
+                    ref.tr('header_voice_subtitle'),
+                    style: const TextStyle(
+                      fontFamily: 'Literata',
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                  const Spacer(),
+                  const LanguageTogglePill(),
+                  const SizedBox(width: 8),
+                  GestureDetector(
+                    onTap: () => context.push('/artisan/profile'),
+                    child: Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceContainerHigh,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+                      ),
+                      child: const Icon(Icons.person_outline, color: AppColors.primary, size: 18),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -99,22 +142,22 @@ class _VoiceDescribeScreenState extends ConsumerState<VoiceDescribeScreen> with 
                   color: AppColors.secondaryFixed,
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.record_voice_over, size: 14, color: AppColors.onSecondaryFixed),
-                    SizedBox(width: 4),
+                    const Icon(Icons.record_voice_over, size: 14, color: AppColors.onSecondaryFixed),
+                    const SizedBox(width: 4),
                     Text(
-                      'आवाज से विवरण • Voice Scribe',
-                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.onSecondaryFixed),
+                      ref.tr('voice_scribe_badge'),
+                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.onSecondaryFixed),
                     ),
                   ],
                 ),
               ),
               const SizedBox(height: 8),
-              const Text(
-                'बोलिए, हम लिख लेंगे',
-                style: TextStyle(
+              Text(
+                ref.tr('voice_scribe_title'),
+                style: const TextStyle(
                   fontFamily: 'Literata',
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
@@ -122,10 +165,10 @@ class _VoiceDescribeScreenState extends ConsumerState<VoiceDescribeScreen> with 
                 ),
               ),
               const SizedBox(height: 4),
-              const Text(
-                'स्वाभाविक रूप से बोलें, हम खरीदारों के लिए आपकी कहानी तैयार करेंगे',
+              Text(
+                ref.tr('voice_scribe_subtitle'),
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 13, color: AppColors.onSurfaceVariant),
+                style: const TextStyle(fontSize: 13, color: AppColors.onSurfaceVariant),
               ),
               const SizedBox(height: 20),
 
@@ -134,7 +177,7 @@ class _VoiceDescribeScreenState extends ConsumerState<VoiceDescribeScreen> with 
                 decoration: BoxDecoration(
                   color: AppColors.surfaceContainer,
                   borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: AppColors.outlineVariant.withOpacity(0.4)),
+                  border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.4)),
                 ),
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -160,7 +203,7 @@ class _VoiceDescribeScreenState extends ConsumerState<VoiceDescribeScreen> with 
                               ),
                               const SizedBox(width: 6),
                               Text(
-                                _isPaused ? 'रुका हुआ (Paused)' : 'सुन रहे हैं... (Listening...)',
+                                _isPaused ? ref.tr('paused_status') : ref.tr('listening_status'),
                                 style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
                               ),
                             ],
@@ -169,7 +212,7 @@ class _VoiceDescribeScreenState extends ConsumerState<VoiceDescribeScreen> with 
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.8),
+                            color: Colors.white.withValues(alpha: 0.8),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Row(
@@ -228,13 +271,13 @@ class _VoiceDescribeScreenState extends ConsumerState<VoiceDescribeScreen> with 
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Row(
+                              Row(
                                 children: [
-                                  Icon(Icons.edit_note, size: 16, color: AppColors.tertiary),
-                                  SizedBox(width: 4),
+                                  const Icon(Icons.edit_note, size: 16, color: AppColors.tertiary),
+                                  const SizedBox(width: 4),
                                   Text(
-                                    'सीधा श्रुतलेख • LIVE SCRIBE',
-                                    style: TextStyle(
+                                    ref.tr('live_scribe').toUpperCase(),
+                                    style: const TextStyle(
                                       fontSize: 10,
                                       fontWeight: FontWeight.bold,
                                       color: AppColors.tertiary,
@@ -249,17 +292,17 @@ class _VoiceDescribeScreenState extends ConsumerState<VoiceDescribeScreen> with 
                                   color: AppColors.secondaryFixed,
                                   borderRadius: BorderRadius.circular(4),
                                 ),
-                                child: const Text(
-                                  'हिंदी (महेश्वर)',
-                                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+                                child: Text(
+                                  ref.tr('dialect_tag'),
+                                  style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
                                 ),
                               ),
                             ],
                           ),
                           const SizedBox(height: 8),
-                          const Text(
-                            '“मैं महेश्वर में पारंपरिक हाथ की बनी चंदेरी और सूती साड़ियाँ बनाता हूँ। इसमें प्राकृतिक नील और हल्दी के रंगों का प्रयोग किया गया है...”',
-                            style: TextStyle(
+                          Text(
+                            ref.tr('transcription_sample'),
+                            style: const TextStyle(
                               fontFamily: 'Literata',
                               fontSize: 14,
                               height: 1.4,
@@ -268,21 +311,21 @@ class _VoiceDescribeScreenState extends ConsumerState<VoiceDescribeScreen> with 
                             ),
                           ),
                           const SizedBox(height: 8),
-                          const Wrap(
+                          Wrap(
                             spacing: 6,
                             children: [
                               Chip(
-                                label: Text('साड़ी (Saree)', style: TextStyle(fontSize: 11)),
+                                label: Text(ref.tr('tag_saree'), style: const TextStyle(fontSize: 11)),
                                 visualDensity: VisualDensity.compact,
                                 backgroundColor: AppColors.surfaceContainerHigh,
                               ),
                               Chip(
-                                label: Text('प्राकृतिक रंग (Natural Dyes)', style: TextStyle(fontSize: 11)),
+                                label: Text(ref.tr('tag_natural_dyes'), style: const TextStyle(fontSize: 11)),
                                 visualDensity: VisualDensity.compact,
                                 backgroundColor: AppColors.surfaceContainerHigh,
                               ),
                               Chip(
-                                label: Text('महेश्वर (Maheshwar)', style: TextStyle(fontSize: 11)),
+                                label: Text(ref.tr('tag_maheshwar'), style: const TextStyle(fontSize: 11)),
                                 visualDensity: VisualDensity.compact,
                                 backgroundColor: AppColors.surfaceContainerHigh,
                               ),
@@ -297,7 +340,7 @@ class _VoiceDescribeScreenState extends ConsumerState<VoiceDescribeScreen> with 
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: AppColors.surfaceContainerHigh.withOpacity(0.6),
+                        color: AppColors.surfaceContainerHigh.withValues(alpha: 0.6),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Row(
@@ -312,12 +355,12 @@ class _VoiceDescribeScreenState extends ConsumerState<VoiceDescribeScreen> with 
                             child: const Icon(Icons.image, color: AppColors.outline),
                           ),
                           const SizedBox(width: 10),
-                          const Expanded(
+                          Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('तस्वीर जोड़ी गई (Photo Attached)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                                Text('महेश्वरी हैंडलूम टेक्सटाइल #04', style: TextStyle(fontSize: 11, color: AppColors.onSurfaceVariant)),
+                                Text(ref.tr('photo_attached'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                                Text(ref.tr('photo_attached_desc'), style: const TextStyle(fontSize: 11, color: AppColors.onSurfaceVariant)),
                               ],
                             ),
                           ),
@@ -340,16 +383,25 @@ class _VoiceDescribeScreenState extends ConsumerState<VoiceDescribeScreen> with 
                   TextButton.icon(
                     onPressed: () {
                       _startRecording();
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('पुनः रिकॉर्डिंग शुरू')));
+                      final isHindi = ref.read(localeProvider) == AppLocale.hindi;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(isHindi ? 'पुनः रिकॉर्डिंग शुरू' : 'Recording restarted')),
+                      );
                     },
                     icon: const Icon(Icons.refresh, color: AppColors.tertiary),
-                    label: const Text('फिर से बोलें (Re-record)', style: TextStyle(color: AppColors.tertiary, fontWeight: FontWeight.bold)),
+                    label: Text(
+                      ref.tr('re_record'),
+                      style: const TextStyle(color: AppColors.tertiary, fontWeight: FontWeight.bold),
+                    ),
                   ),
                   const SizedBox(width: 16),
                   TextButton.icon(
                     onPressed: _togglePause,
                     icon: Icon(_isPaused ? Icons.play_circle : Icons.pause_circle, color: AppColors.onSurfaceVariant),
-                    label: Text(_isPaused ? 'जारी रखें' : 'रोकें', style: const TextStyle(color: AppColors.onSurfaceVariant, fontWeight: FontWeight.bold)),
+                    label: Text(
+                      _isPaused ? ref.tr('resume_btn') : ref.tr('pause_btn'),
+                      style: const TextStyle(color: AppColors.onSurfaceVariant, fontWeight: FontWeight.bold),
+                    ),
                   ),
                 ],
               ),
@@ -357,14 +409,14 @@ class _VoiceDescribeScreenState extends ConsumerState<VoiceDescribeScreen> with 
 
               // Done Primary Action
               TerracottaButton(
-                label: 'पूरा हुआ • Done',
+                label: _isDone ? ref.tr('saved_btn') : ref.tr('done_btn'),
                 icon: Icons.check_circle,
                 onPressed: _finishRecording,
               ),
               const SizedBox(height: 8),
-              const Text(
-                'अपनी डिजिटल उत्पाद कथा बनाने के लिए "पूरा हुआ" पर टैप करें',
-                style: TextStyle(fontSize: 11, color: AppColors.onSurfaceVariant),
+              Text(
+                ref.tr('done_hint'),
+                style: const TextStyle(fontSize: 11, color: AppColors.onSurfaceVariant),
               ),
             ],
           ),

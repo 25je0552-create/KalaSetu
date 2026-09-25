@@ -71,7 +71,7 @@ class _OtpVerifyScreenState extends ConsumerState<OtpVerifyScreen> {
         context.go('/role-select');
       }
     } catch (e) {
-      setState(() => _errorMessage = 'अमान्य ओटीपी कोड (Invalid OTP)');
+      setState(() => _errorMessage = ref.tr('invalid_otp'));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -91,12 +91,28 @@ class _OtpVerifyScreenState extends ConsumerState<OtpVerifyScreen> {
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(localeProvider);
     final isOtpComplete = _otpCode.length == 6;
 
     return Scaffold(
       backgroundColor: AppColors.surface,
       appBar: AppBar(
-        title: const Text('ओटीपी सत्यापन', style: TextStyle(fontFamily: 'Literata', fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: AppColors.onSurface),
+          onPressed: () => context.pop(),
+        ),
+        title: Text(
+          ref.tr('otp_title'),
+          style: const TextStyle(fontFamily: 'Literata', fontWeight: FontWeight.bold, fontSize: 18),
+        ),
+        actions: const [
+          Padding(
+            padding: EdgeInsets.only(right: 16),
+            child: LanguageTogglePill(),
+          ),
+        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -115,7 +131,7 @@ class _OtpVerifyScreenState extends ConsumerState<OtpVerifyScreen> {
               ),
               const SizedBox(height: 6),
               Text(
-                '${widget.phoneNumber} पर भेजा गया 6 अंकों का कोड दर्ज करें',
+                '${ref.tr('otp_sent_to')} ${widget.phoneNumber}',
                 style: const TextStyle(fontSize: 14, color: AppColors.onSurfaceVariant),
               ),
               const SizedBox(height: 32),
@@ -184,7 +200,7 @@ class _OtpVerifyScreenState extends ConsumerState<OtpVerifyScreen> {
               Center(
                 child: _secondsLeft > 0
                     ? Text(
-                        'पुनः कोड भेजें: $_secondsLeft सेकंड में',
+                        '${ref.tr('resend_in')} $_secondsLeft ${ref.tr('seconds')}',
                         style: const TextStyle(color: AppColors.onSurfaceVariant, fontSize: 13),
                       )
                     : TextButton(

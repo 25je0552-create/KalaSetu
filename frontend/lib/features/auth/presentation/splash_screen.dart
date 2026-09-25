@@ -43,7 +43,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
 
     final user = ref.read(authStateProvider);
     if (user == null) {
-      context.go('/onboarding-language');
+      context.go('/login');
     } else if (user.role == UserRole.artisan) {
       context.go('/artisan/home');
     } else if (user.role == UserRole.customer) {

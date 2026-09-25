@@ -29,6 +29,8 @@ class _MarketplaceHomeScreenState extends ConsumerState<MarketplaceHomeScreen> {
   Widget build(BuildContext context) {
     final productsAsync = ref.watch(featuredProductsProvider);
     final cartCount = ref.watch(cartItemCountProvider);
+    final locale = ref.watch(localeProvider);
+    final isHindi = locale == AppLocale.hindi;
 
     return Scaffold(
       backgroundColor: AppColors.surface,
@@ -83,19 +85,19 @@ class _MarketplaceHomeScreenState extends ConsumerState<MarketplaceHomeScreen> {
                 decoration: BoxDecoration(
                   color: AppColors.surfaceContainerHigh,
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: AppColors.outlineVariant.withOpacity(0.4)),
+                  border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.4)),
                 ),
                 padding: const EdgeInsets.symmetric(horizontal: 14),
-                child: const Row(
+                child: Row(
                   children: [
-                    Icon(Icons.search, color: AppColors.outline),
-                    SizedBox(width: 10),
+                    const Icon(Icons.search, color: AppColors.outline),
+                    const SizedBox(width: 10),
                     Expanded(
                       child: TextField(
                         decoration: InputDecoration(
-                          hintText: 'शिल्प, साड़ी, मटका या पीतल खोजें...',
+                          hintText: ref.tr('marketplace_search_hint'),
                           border: InputBorder.none,
-                          hintStyle: TextStyle(fontSize: 14, color: AppColors.outline),
+                          hintStyle: const TextStyle(fontSize: 14, color: AppColors.outline),
                         ),
                       ),
                     ),
@@ -110,7 +112,7 @@ class _MarketplaceHomeScreenState extends ConsumerState<MarketplaceHomeScreen> {
                 decoration: BoxDecoration(
                   color: AppColors.surfaceContainerLow,
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: AppColors.outlineVariant.withOpacity(0.3)),
+                  border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.3)),
                 ),
                 child: Row(
                   children: [
@@ -120,14 +122,14 @@ class _MarketplaceHomeScreenState extends ConsumerState<MarketplaceHomeScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('थोक खरीददार (B2B Bulk Orders)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                          const Text('सीधे शिल्प क्लस्टर से भारी छूट पर आर्डर करें', style: TextStyle(fontSize: 11, color: AppColors.onSurfaceVariant)),
+                          Text(ref.tr('b2b_wholesale_title'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                          Text(ref.tr('b2b_wholesale_subtitle'), style: const TextStyle(fontSize: 11, color: AppColors.onSurfaceVariant)),
                         ],
                       ),
                     ),
                     TextButton(
                       onPressed: () => context.push('/customer/b2b/bulk-request'),
-                      child: const Text('कोटेशन लें', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary)),
+                      child: Text(ref.tr('get_quote_btn'), style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary)),
                     ),
                   ],
                 ),
@@ -135,24 +137,26 @@ class _MarketplaceHomeScreenState extends ConsumerState<MarketplaceHomeScreen> {
               const SizedBox(height: 20),
 
               // Craft Clusters horizontal filter
-              const Text(
-                'शिल्प क्लस्टर (Craft Clusters)',
-                style: TextStyle(fontFamily: 'Literata', fontSize: 17, fontWeight: FontWeight.bold),
+              Text(
+                ref.tr('craft_clusters_title'),
+                style: const TextStyle(fontFamily: 'Literata', fontSize: 17, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 10),
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
                   children: _clusters.map((c) {
-                    final isSel = _selectedCluster == c || (_selectedCluster.isEmpty && c.startsWith('सभी'));
+                    final isAll = c.startsWith('सभी');
+                    final isSel = _selectedCluster == c || (_selectedCluster.isEmpty && isAll);
+                    final displayName = isAll ? ref.tr('all_cluster_filter') : c;
                     return Padding(
                       padding: const EdgeInsets.only(right: 8),
                       child: FilterChip(
                         selected: isSel,
-                        label: Text(c, style: TextStyle(fontSize: 12, color: isSel ? Colors.white : AppColors.onSurface)),
+                        label: Text(displayName, style: TextStyle(fontSize: 12, color: isSel ? Colors.white : AppColors.onSurface)),
                         selectedColor: AppColors.primary,
                         backgroundColor: AppColors.surfaceContainerHigh,
-                        onSelected: (_) => setState(() => _selectedCluster = c.startsWith('सभी') ? '' : c),
+                        onSelected: (_) => setState(() => _selectedCluster = isAll ? '' : c),
                       ),
                     );
                   }).toList(),
@@ -161,15 +165,15 @@ class _MarketplaceHomeScreenState extends ConsumerState<MarketplaceHomeScreen> {
               const SizedBox(height: 24),
 
               // Featured Handcrafts Grid
-              const Text(
-                'विशेष हस्तशिल्प (Featured Crafts)',
-                style: TextStyle(fontFamily: 'Literata', fontSize: 17, fontWeight: FontWeight.bold),
+              Text(
+                ref.tr('featured_crafts_title'),
+                style: const TextStyle(fontFamily: 'Literata', fontSize: 17, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
 
               productsAsync.when(
                 loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
-                error: (err, _) => Center(child: Text('त्रुटि: $err')),
+                error: (err, _) => Center(child: Text('त्रुटि / Error: $err')),
                 data: (products) {
                   final filtered = _selectedCluster.isEmpty
                       ? products
@@ -187,13 +191,14 @@ class _MarketplaceHomeScreenState extends ConsumerState<MarketplaceHomeScreen> {
                     itemCount: filtered.length,
                     itemBuilder: (context, index) {
                       final p = filtered[index];
+                      final name = isHindi ? p.nameHi : p.nameEn;
                       return GestureDetector(
                         onTap: () => context.push('/customer/product/${p.id}'),
                         child: Container(
                           decoration: BoxDecoration(
                             color: AppColors.surfaceContainer,
                             borderRadius: BorderRadius.circular(14),
-                            border: Border.all(color: AppColors.outlineVariant.withOpacity(0.4)),
+                            border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.4)),
                           ),
                           padding: const EdgeInsets.all(8),
                           child: Column(
@@ -230,7 +235,7 @@ class _MarketplaceHomeScreenState extends ConsumerState<MarketplaceHomeScreen> {
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                p.nameHi,
+                                name,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
@@ -259,7 +264,7 @@ class _MarketplaceHomeScreenState extends ConsumerState<MarketplaceHomeScreen> {
                                       ref.read(cartControllerProvider.notifier).addItem(p);
                                       ScaffoldMessenger.of(context).showSnackBar(
                                         SnackBar(
-                                          content: Text('${p.nameHi} कार्ट में जोड़ा गया!'),
+                                          content: Text('$name ${ref.tr("added_to_cart_msg")}'),
                                           duration: const Duration(seconds: 1),
                                         ),
                                       );

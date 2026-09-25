@@ -21,12 +21,15 @@ class _ArtisanHomeScreenState extends ConsumerState<ArtisanHomeScreen> {
     setState(() {
       _isPlayingAudioGuide = !_isPlayingAudioGuide;
     });
+    final isHindi = ref.read(localeProvider) == AppLocale.hindi;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
           _isPlayingAudioGuide
-              ? 'ऑडियो गाइड चल रहा है: "नमस्ते रमेश जी, आज आपके 4 नए ऑर्डर तैयार होने हैं..."'
-              : 'ऑडियो गाइड बंद किया गया',
+              ? (isHindi
+                  ? 'ऑडियो गाइड चल रहा है: "नमस्ते रमेश जी, आज आपके 4 नए ऑर्डर तैयार होने हैं..."'
+                  : 'Playing audio guide: "Namaste Ramesh ji, today you have 4 new orders to prepare..."')
+              : (isHindi ? 'ऑडियो गाइड बंद किया गया' : 'Audio guide stopped'),
         ),
         duration: const Duration(seconds: 2),
       ),
@@ -36,6 +39,7 @@ class _ArtisanHomeScreenState extends ConsumerState<ArtisanHomeScreen> {
   @override
   Widget build(BuildContext context) {
     final productsAsync = ref.watch(featuredProductsProvider);
+    final isHindi = ref.watch(localeProvider) == AppLocale.hindi;
 
     return Scaffold(
       backgroundColor: AppColors.surface,
@@ -43,8 +47,8 @@ class _ArtisanHomeScreenState extends ConsumerState<ArtisanHomeScreen> {
         preferredSize: const Size.fromHeight(70),
         child: Container(
           decoration: BoxDecoration(
-            color: AppColors.surfaceContainer.withOpacity(0.9),
-            border: const Border(bottom: BorderSide(color: AppColors.outlineVariant, width: 0.8)),
+            color: AppColors.surfaceContainer.withValues(alpha: 0.9),
+            border: Border(bottom: BorderSide(color: AppColors.outlineVariant.withValues(alpha: 0.5), width: 0.8)),
           ),
           child: SafeArea(
             child: Padding(
@@ -57,7 +61,7 @@ class _ArtisanHomeScreenState extends ConsumerState<ArtisanHomeScreen> {
                     decoration: BoxDecoration(
                       color: AppColors.surfaceContainer,
                       shape: BoxShape.circle,
-                      border: Border.all(color: AppColors.outlineVariant.withOpacity(0.4)),
+                      border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.4)),
                     ),
                     padding: const EdgeInsets.all(4),
                     child: ClipOval(
@@ -87,15 +91,17 @@ class _ArtisanHomeScreenState extends ConsumerState<ArtisanHomeScreen> {
                   const Spacer(),
                   const LanguageTogglePill(),
                   const SizedBox(width: 10),
+
+                  // Profile Button - Opens Artisan Profile (NOT voice recording!)
                   GestureDetector(
-                    onTap: () => context.push('/artisan/voice-onboarding'),
+                    onTap: () => context.push('/artisan/profile'),
                     child: Container(
                       width: 38,
                       height: 38,
                       decoration: BoxDecoration(
                         color: AppColors.surfaceContainerHigh,
                         shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+                        border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
                       ),
                       child: const Icon(Icons.person_outline, color: AppColors.primary, size: 22),
                     ),
@@ -192,7 +198,7 @@ class _ArtisanHomeScreenState extends ConsumerState<ArtisanHomeScreen> {
                             size: 24,
                           ),
                           Text(
-                            _isPlayingAudioGuide ? 'रुकें' : ref.tr('listen'),
+                            _isPlayingAudioGuide ? ref.tr('pause') : ref.tr('listen'),
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
@@ -276,7 +282,7 @@ class _ArtisanHomeScreenState extends ConsumerState<ArtisanHomeScreen> {
                   decoration: BoxDecoration(
                     color: AppColors.surfaceContainerHigh,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppColors.outlineVariant.withOpacity(0.5)),
+                    border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.5)),
                   ),
                   padding: const EdgeInsets.all(14),
                   child: Row(
@@ -374,8 +380,8 @@ class _ArtisanHomeScreenState extends ConsumerState<ArtisanHomeScreen> {
                   _buildMetricTile(
                     icon: Icons.account_balance_wallet_outlined,
                     iconColor: AppColors.secondary,
-                    period: 'आज',
-                    value: '₹३,४५०',
+                    period: ref.tr('period_today'),
+                    value: isHindi ? '₹३,४५०' : '₹3,450',
                     label: ref.tr('today_earnings'),
                     onTap: () => context.push('/artisan/earnings'),
                   ),
@@ -383,8 +389,8 @@ class _ArtisanHomeScreenState extends ConsumerState<ArtisanHomeScreen> {
                   _buildMetricTile(
                     icon: Icons.shopping_bag_outlined,
                     iconColor: AppColors.primary,
-                    period: 'नया',
-                    value: '४ नए',
+                    period: isHindi ? 'नया' : 'New',
+                    value: ref.tr('orders_count_4'),
                     label: ref.tr('new_orders'),
                     onTap: () => context.push('/artisan/orders'),
                   ),
@@ -392,8 +398,8 @@ class _ArtisanHomeScreenState extends ConsumerState<ArtisanHomeScreen> {
                   _buildMetricTile(
                     icon: Icons.festival_outlined,
                     iconColor: AppColors.tertiary,
-                    period: 'सप्ताह',
-                    value: '२ मेले',
+                    period: ref.tr('period_week'),
+                    value: ref.tr('fairs_count_2'),
                     label: ref.tr('craft_fairs'),
                     onTap: () => context.push('/artisan/fairs'),
                   ),
@@ -446,28 +452,34 @@ class _ArtisanHomeScreenState extends ConsumerState<ArtisanHomeScreen> {
                     children: [
                       const Icon(Icons.error_outline, color: AppColors.error),
                       const SizedBox(width: 10),
-                      const Expanded(child: Text('सामान लोड करने में समस्या आई')),
+                      Expanded(
+                        child: Text(isHindi ? 'सामान लोड करने में समस्या आई' : 'Failed to load crafts'),
+                      ),
                       TextButton(
                         onPressed: () => ref.refresh(featuredProductsProvider),
-                        child: const Text('पुनः प्रयास'),
+                        child: Text(isHindi ? 'पुनः प्रयास' : 'Retry'),
                       ),
                     ],
                   ),
                 ),
                 data: (products) => SizedBox(
-                  height: 180,
+                  height: 185,
                   child: ListView.separated(
                     scrollDirection: Axis.horizontal,
                     itemCount: products.length,
                     separatorBuilder: (_, __) => const SizedBox(width: 12),
                     itemBuilder: (context, index) {
                       final p = products[index];
+                      final pName = isHindi ? p.nameHi : p.nameEn;
+                      final priceStr = isHindi ? '₹${p.price.toInt()}' : '₹${p.price.toInt()}';
+                      final stockStr = '${p.stock} ${ref.tr('stock_left')}';
+
                       return Container(
-                        width: 144,
+                        width: 148,
                         decoration: BoxDecoration(
                           color: AppColors.surfaceContainerHigh,
                           borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: AppColors.outlineVariant.withOpacity(0.4)),
+                          border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.4)),
                         ),
                         padding: const EdgeInsets.all(8),
                         child: Column(
@@ -489,7 +501,7 @@ class _ArtisanHomeScreenState extends ConsumerState<ArtisanHomeScreen> {
                             ),
                             const SizedBox(height: 6),
                             Text(
-                              p.nameHi,
+                              pName,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
@@ -504,7 +516,7 @@ class _ArtisanHomeScreenState extends ConsumerState<ArtisanHomeScreen> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  '₹${p.price.toInt()}',
+                                  priceStr,
                                   style: const TextStyle(
                                     fontSize: 13,
                                     fontWeight: FontWeight.bold,
@@ -518,7 +530,7 @@ class _ArtisanHomeScreenState extends ConsumerState<ArtisanHomeScreen> {
                                     borderRadius: BorderRadius.circular(4),
                                   ),
                                   child: Text(
-                                    '${p.stock} बचे',
+                                    stockStr,
                                     style: const TextStyle(
                                       fontSize: 10,
                                       fontWeight: FontWeight.bold,
@@ -542,7 +554,7 @@ class _ArtisanHomeScreenState extends ConsumerState<ArtisanHomeScreen> {
                 decoration: BoxDecoration(
                   color: AppColors.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.outlineVariant.withOpacity(0.5)),
+                  border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.5)),
                 ),
                 padding: const EdgeInsets.all(14),
                 child: Row(
@@ -633,7 +645,7 @@ class _ArtisanHomeScreenState extends ConsumerState<ArtisanHomeScreen> {
           decoration: BoxDecoration(
             color: AppColors.surfaceContainerHigh,
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppColors.outlineVariant.withOpacity(0.3)),
+            border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.3)),
           ),
           padding: const EdgeInsets.all(10),
           child: Column(
