@@ -524,16 +524,10 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
                     ),
                   )
                 else
-                  ListView.separated(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: filteredFairs.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 20),
-                    itemBuilder: (context, index) {
-                      final fair = filteredFairs[index];
-                      return _buildTicketCard(fair, isHindi, isBuyer);
-                    },
-                  ),
+                  for (final fair in filteredFairs) ...[
+                    _buildTicketCard(fair, isHindi, isBuyer),
+                    const SizedBox(height: 20),
+                  ],
 
                 const SizedBox(height: 24),
 
@@ -633,6 +627,7 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
           border: Border.all(color: isSelected ? Colors.transparent : AppColors.outlineVariant.withValues(alpha: 0.4)),
         ),
         child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Icon(icon, size: 16, color: isSelected ? Colors.white : AppColors.onSurfaceVariant),
             const SizedBox(width: 6),
@@ -791,6 +786,7 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
                       style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: categoryColor),
                     ),
                     GestureDetector(
+                      behavior: HitTestBehavior.opaque,
                       onTap: () {
                         debugPrint('[ArtisanFairsScreen] Bookmark toggled for fair: id=${fair.id}, newState=${!isBookmarked}');
                         setState(() {
@@ -801,10 +797,13 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
                           }
                         });
                       },
-                      child: Icon(
-                        isBookmarked ? Icons.bookmark : Icons.bookmark_outline,
-                        color: isBookmarked ? AppColors.primary : AppColors.outline,
-                        size: 22,
+                      child: Padding(
+                        padding: const EdgeInsets.all(4),
+                        child: Icon(
+                          isBookmarked ? Icons.bookmark : Icons.bookmark_outline,
+                          color: isBookmarked ? AppColors.primary : AppColors.outline,
+                          size: 22,
+                        ),
                       ),
                     ),
                   ],
@@ -845,16 +844,20 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
                   children: [
                     const Icon(Icons.storefront_outlined, size: 16, color: Color(0xFFD4A373)),
                     const SizedBox(width: 6),
-                    Text(
-                      '${fair.participatingShopsCount > 0 ? fair.participatingShopsCount : 124} ${ref.tr('participating_artisans')}',
-                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.onSurface),
+                    Expanded(
+                      child: Text(
+                        '${fair.participatingShopsCount > 0 ? fair.participatingShopsCount : 124} ${ref.tr('participating_artisans')}',
+                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.onSurface),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-                    const Spacer(),
+                    const SizedBox(width: 8),
                     GestureDetector(
                       onTap: () {
                         debugPrint('[ArtisanFairsScreen] Navigating to fair details: /fair/${fair.id}');
                         context.push('/fair/${fair.id}');
                       },
+                      behavior: HitTestBehavior.opaque,
                       child: Text(
                         isBuyer
                             ? (isHindi ? 'कैटलॉग देखें →' : 'View Catalog →')
@@ -888,47 +891,49 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
               ],
             ),
           ),
-          // Perforated Tear-Line with Authentic Notches
-          Row(
-            children: [
-              Container(
-                width: 14,
-                height: 24,
-                decoration: const BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.horizontal(right: Radius.circular(12)),
+          // Perforated Tear-Line with Authentic Notches (wrapped in IgnorePointer so hit test never fails)
+          IgnorePointer(
+            child: Row(
+              children: [
+                Container(
+                  width: 14,
+                  height: 24,
+                  decoration: const BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.horizontal(right: Radius.circular(12)),
+                  ),
                 ),
-              ),
-              Expanded(
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    final width = constraints.constrainWidth();
-                    final count = width.isFinite && width > 0 ? (width / 8).floor() : 0;
-                    return Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: List.generate(
-                        count > 0 ? count : 0,
-                        (_) => SizedBox(
-                          width: 4,
-                          height: 1.5,
-                          child: DecoratedBox(
-                            decoration: BoxDecoration(color: AppColors.outlineVariant.withValues(alpha: 0.8)),
+                Expanded(
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final width = constraints.constrainWidth();
+                      final count = width.isFinite && width > 0 ? (width / 8).floor() : 0;
+                      return Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: List.generate(
+                          count > 0 ? count : 0,
+                          (_) => SizedBox(
+                            width: 4,
+                            height: 1.5,
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(color: AppColors.outlineVariant.withValues(alpha: 0.8)),
+                            ),
                           ),
                         ),
-                      ),
-                    );
-                  },
+                      );
+                    },
+                  ),
                 ),
-              ),
-              Container(
-                width: 14,
-                height: 24,
-                decoration: const BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.horizontal(left: Radius.circular(12)),
+                Container(
+                  width: 14,
+                  height: 24,
+                  decoration: const BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.horizontal(left: Radius.circular(12)),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
           // Ticket Bottom Stub
           Padding(
@@ -936,21 +941,24 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(ref.tr('expected_visitors_label'), style: const TextStyle(fontSize: 11, color: AppColors.onSurfaceVariant)),
-                    Text(
-                      expectedVisitors,
-                      style: const TextStyle(
-                        fontFamily: 'Literata',
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.primary,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(ref.tr('expected_visitors_label'), style: const TextStyle(fontSize: 11, color: AppColors.onSurfaceVariant)),
+                      Text(
+                        expectedVisitors,
+                        style: const TextStyle(
+                          fontFamily: 'Literata',
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primary,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
+                const SizedBox(width: 8),
                 SizedBox(
                   height: 44,
                   child: isBuyer
@@ -962,6 +970,7 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
                           ),
                           onPressed: () => context.push('/fair/${fair.id}'),
                           child: Row(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
                               const Icon(Icons.storefront, size: 18, color: Colors.white),
                               const SizedBox(width: 6),
@@ -980,6 +989,7 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
                           ),
                           onPressed: () => _showApplicationSuccessDialog(fair, isHindi),
                           child: Row(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
                               Icon(isApplied ? Icons.check_circle : Icons.how_to_reg, size: 18, color: Colors.white),
                               const SizedBox(width: 6),
