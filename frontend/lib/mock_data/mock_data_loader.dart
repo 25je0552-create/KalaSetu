@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import '../core/constants/app_constants.dart';
 import '../core/services/mock_delay.dart';
@@ -308,9 +309,18 @@ class MockDataLoader {
 
   // Real impl later: GET /api/fairs
   static Future<List<CraftFair>> loadFairs() async {
-    await MockDelay.wait();
-    final jsonStr = await rootBundle.loadString(AppConstants.mockFairsPath);
-    final List<dynamic> list = jsonDecode(jsonStr);
-    return list.map((item) => CraftFair.fromJson(item)).toList();
+    debugPrint('[MockDataLoader] loadFairs() called. Fetching from ${AppConstants.mockFairsPath}...');
+    try {
+      await MockDelay.wait();
+      final jsonStr = await rootBundle.loadString(AppConstants.mockFairsPath);
+      debugPrint('[MockDataLoader] loadFairs() read JSON string length: ${jsonStr.length}');
+      final List<dynamic> list = jsonDecode(jsonStr);
+      final fairs = list.map((item) => CraftFair.fromJson(item as Map<String, dynamic>)).toList();
+      debugPrint('[MockDataLoader] loadFairs() successfully parsed ${fairs.length} fairs');
+      return fairs;
+    } catch (e, stack) {
+      debugPrint('[MockDataLoader] ERROR loading fairs: $e\n$stack');
+      rethrow;
+    }
   }
 }

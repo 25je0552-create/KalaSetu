@@ -279,13 +279,49 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
         ),
       ),
       body: fairsAsync.when(
-        loading: () => const Center(
-          child: CircularProgressIndicator(color: AppColors.primary),
-        ),
-        error: (err, _) => Center(
-          child: Text('त्रुटि: $err'),
-        ),
+        loading: () {
+          debugPrint('[ArtisanFairsScreen] fairsAsync state: LOADING');
+          return const Center(
+            child: CircularProgressIndicator(color: AppColors.primary),
+          );
+        },
+        error: (err, stack) {
+          debugPrint('[ArtisanFairsScreen] fairsAsync state: ERROR: $err\n$stack');
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error_outline, size: 54, color: AppColors.error),
+                  const SizedBox(height: 12),
+                  Text(
+                    isHindi ? 'मेले लोड करने में त्रुटि हुई' : 'Failed to load craft fairs',
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '$err',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 12, color: AppColors.onSurfaceVariant),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+                    icon: const Icon(Icons.refresh, color: Colors.white),
+                    label: Text(
+                      isHindi ? 'पुनः प्रयास करें' : 'Retry',
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                    onPressed: () => ref.refresh(craftFairsProvider),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
         data: (fairs) {
+          debugPrint('[ArtisanFairsScreen] fairsAsync state: DATA (${fairs.length} fairs received from craftFairsProvider)');
           var filteredFairs = fairs;
           if (_selectedTabIndex == 0) {
             // Tab 0: Upcoming Fairs
@@ -303,7 +339,7 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
           }
 
           if (_searchQuery.isNotEmpty) {
-            final query = _searchQuery.toLowerCase();
+            final query = _searchQuery.toLowerCase().trim();
             filteredFairs = filteredFairs
                 .where((f) =>
                     f.titleHi.toLowerCase().contains(query) ||
@@ -313,12 +349,20 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
                 .toList();
           }
 
+          debugPrint('[ArtisanFairsScreen] Displaying ${filteredFairs.length} fairs for tab $_selectedTabIndex (query: "$_searchQuery")');
+
           final appliedCount = fairs.where((f) => f.applied || _appliedFairIds.contains(f.id)).length;
           final savedCount = fairs.where((f) => _bookmarkedFairIds.contains(f.id)).length;
 
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
+          return RefreshIndicator(
+            onRefresh: () async {
+              debugPrint('[ArtisanFairsScreen] Pull-to-refresh triggered.');
+              ref.refresh(craftFairsProvider);
+            },
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(16),
+              child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Artisanal Header Greeting Banner
@@ -567,11 +611,12 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
                 const SizedBox(height: 20),
               ],
             ),
-          );
-        },
-      ),
-    );
-  }
+          ),
+        );
+      },
+    ),
+  );
+}
 
   Widget _buildTab(int index, String label, IconData icon, {int? badgeCount}) {
     final isSelected = _selectedTabIndex == index;
@@ -857,11 +902,12 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
               Expanded(
                 child: LayoutBuilder(
                   builder: (context, constraints) {
-                    final count = (constraints.constrainWidth() / 8).floor();
+                    final width = constraints.constrainWidth();
+                    final count = width.isFinite && width > 0 ? (width / 8).floor() : 0;
                     return Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: List.generate(
-                        count,
+                        count > 0 ? count : 0,
                         (_) => SizedBox(
                           width: 4,
                           height: 1.5,
