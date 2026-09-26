@@ -263,7 +263,13 @@ class _ArtisanFairsScreenState extends ConsumerState<ArtisanFairsScreen> {
                         shape: BoxShape.circle,
                         border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
                       ),
-                      child: const Icon(Icons.person_outline, color: AppColors.primary, size: 22),
+                      child: ClipOval(
+                        child: Image.network(
+                          'https://lh3.googleusercontent.com/aida/AEtjO1WwXZ6MsJlC0xG1asbyymA6hnNNQvTRJ40iowmrO3sGggI4vS1kqCVRZGWuSo8STZQzZpohJ5hwl3cvVfGALpD5tDueM88BvazRUFKUzxkR1BxAatNOsMANpHUbAfU8B_mo2MAyGPBcL3edYP7_lDhwYu8ppHol3AsoXrAc27qOubqtbUqy8aFc2B7gY1SHFROQi-r2UYIyR03XFEbz-NzsZs-qCDDMRbHTdaJwPnf75-On8LSDHqvnJm0',
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => const Icon(Icons.person_outline, color: AppColors.primary, size: 22),
+                        ),
+                      ),
                     ),
                   ),
                 ],
