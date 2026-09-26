@@ -1,10 +1,12 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/widgets/clay_widgets.dart';
+import '../../../core/services/studio_api_service.dart';
 import 'add_item_wizard_controller.dart';
 
 class PhotoReviewScreen extends ConsumerStatefulWidget {
@@ -18,6 +20,8 @@ class _PhotoReviewScreenState extends ConsumerState<PhotoReviewScreen> {
   bool _showAfter = true; // Toggle between Before & After AI Studio Backdrop
   double? _imageAspectRatio;
   String? _lastResolvedPath;
+  Uint8List? _enhancedStudioBytes;
+  bool _isProcessingStudio = false;
 
   @override
   void initState() {
@@ -26,7 +30,43 @@ class _PhotoReviewScreenState extends ConsumerState<PhotoReviewScreen> {
     debugPrint('[PhotoReviewScreen] Initialized. photoPath: $currentPath');
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _resolveImageAspectRatio();
+      if (currentPath != null && File(currentPath).existsSync()) {
+        _triggerStudioTransform(currentPath);
+      }
     });
+  }
+
+  Future<void> _triggerStudioTransform(String path) async {
+    if (_isProcessingStudio) return;
+    final file = File(path);
+    if (!file.existsSync()) return;
+
+    debugPrint('[PhotoReviewScreen] Triggering united.py ML studio enhancement for: $path');
+    setState(() {
+      _isProcessingStudio = true;
+    });
+
+    try {
+      final bytes = await StudioApiService.transformStudioImage(file);
+      if (mounted) {
+        setState(() {
+          _enhancedStudioBytes = bytes;
+          _isProcessingStudio = false;
+        });
+        if (bytes != null) {
+          debugPrint('[PhotoReviewScreen] Successfully applied AI Virtual Studio backdrop (${bytes.length} bytes)');
+        } else {
+          debugPrint('[PhotoReviewScreen] Studio transformation returned null. Falling back to original capture.');
+        }
+      }
+    } catch (e, stack) {
+      debugPrint('[PhotoReviewScreen] Error calling StudioApiService: $e\n$stack');
+      if (mounted) {
+        setState(() {
+          _isProcessingStudio = false;
+        });
+      }
+    }
   }
 
   void _resolveImageAspectRatio() {
@@ -186,17 +226,23 @@ class _PhotoReviewScreenState extends ConsumerState<PhotoReviewScreen> {
                           child: Stack(
                             fit: StackFit.expand,
                             children: [
-                              photoPath != null && File(photoPath).existsSync()
-                                  ? Image.file(
-                                      File(photoPath),
-                                      fit: BoxFit.cover,
-                                    )
-                                  : Image.network(
-                                      'https://images.unsplash.com/photo-1615865417491-9941019fbc00?auto=format&fit=crop&w=800&q=80',
-                                      fit: BoxFit.cover,
-                                    ),
-                              // AI Studio subtle depth vignette
-                              if (_showAfter)
+                              if (_showAfter && _enhancedStudioBytes != null)
+                                Image.memory(
+                                  _enhancedStudioBytes!,
+                                  fit: BoxFit.contain,
+                                )
+                              else
+                                photoPath != null && File(photoPath).existsSync()
+                                    ? Image.file(
+                                        File(photoPath),
+                                        fit: BoxFit.cover,
+                                      )
+                                    : Image.network(
+                                        'https://images.unsplash.com/photo-1615865417491-9941019fbc00?auto=format&fit=crop&w=800&q=80',
+                                        fit: BoxFit.cover,
+                                      ),
+                              // AI Studio subtle depth vignette when offline / fallback
+                              if (_showAfter && _enhancedStudioBytes == null)
                                 Container(
                                   decoration: BoxDecoration(
                                     gradient: RadialGradient(
@@ -206,6 +252,44 @@ class _PhotoReviewScreenState extends ConsumerState<PhotoReviewScreen> {
                                         Colors.transparent,
                                         Colors.brown.withValues(alpha: 0.10),
                                       ],
+                                    ),
+                                  ),
+                                ),
+                              // AI Processing Indicator
+                              if (_showAfter && _isProcessingStudio)
+                                Container(
+                                  color: Colors.black.withValues(alpha: 0.35),
+                                  child: Center(
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                      decoration: BoxDecoration(
+                                        color: Colors.black87,
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          const SizedBox(
+                                            width: 16,
+                                            height: 16,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              color: AppColors.secondaryContainer,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 10),
+                                          Text(
+                                            ref.watch(localeProvider) == AppLocale.hindi
+                                                ? 'AI स्टूडियो बैकड्रॉप तैयार हो रहा है...'
+                                                : 'Enhancing with AI Studio...',
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 ),

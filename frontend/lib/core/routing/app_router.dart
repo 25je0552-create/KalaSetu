@@ -31,6 +31,7 @@ import '../../features/marketplace_home/presentation/product_detail_screen.dart'
 import '../../features/marketplace_home/presentation/customer_account_screen.dart';
 import '../../features/cart_checkout/presentation/cart_screen.dart';
 import '../../features/b2b_bulk_request/presentation/b2b_bulk_request_screen.dart';
+import '../../screens/studio_screen.dart';
 
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -220,6 +221,11 @@ final routerProvider = Provider<GoRouter>((ref) {
           final pid = state.pathParameters['productId'] ?? 'prod_1';
           return ProductDetailScreen(productId: pid);
         },
+      ),
+      GoRoute(
+        path: '/studio',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const StudioScreen(),
       ),
 
       // ═══════════════════════════════════════════════════════════

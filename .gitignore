@@ -1,4 +1,4 @@
-﻿# Environment variables
+# Environment variables
 .env
 frontend/.env
 backend/.env
@@ -17,6 +17,16 @@ frontend/ios/Pods/
 frontend/android/.gradle
 frontend/android/local.properties
 frontend/android/app/build/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
 
 # OS / IDE
 .DS_Store
